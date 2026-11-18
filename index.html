@@ -22,198 +22,271 @@
     .app-header {
       background: linear-gradient(135deg, var(--corp-dark) 0%, var(--corp-primary) 100%);
       color: #ffffff;
-      border-radius: 16px;
-      padding: 16px 18px;
-      box-shadow: 0 6px 18px rgba(11, 25, 44, 0.22);
+      border-radius: 14px;
+      padding: 12px 15px;
+      box-shadow: 0 5px 15px rgba(11, 25, 44, 0.2);
       border-bottom: 3px solid var(--corp-accent);
     }
-    .nav-tabs-custom .nav-link {
-      color: rgba(255, 255, 255, 0.85);
-      border-radius: 10px;
-      font-weight: 600;
-      font-size: 0.86rem;
-      padding: 8px 14px;
+    /* Selector segmentado interactivo */
+    .nav-segmented {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 11px;
+      padding: 3px;
+      display: inline-flex;
+      gap: 3px;
     }
-    .nav-tabs-custom .nav-link.active {
+    .nav-segmented .nav-link {
+      color: rgba(255, 255, 255, 0.88);
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 6px 12px;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      border: none;
+    }
+    .nav-segmented .nav-link:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+    .nav-segmented .nav-link.active {
       background-color: #ffffff;
       color: var(--corp-dark);
+      font-weight: 700;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
+
+    /* Ficha compacta */
     .ficha-card {
       background: #ffffff;
-      border-radius: 18px;
+      border-radius: 16px;
       border: 1px solid #cbd5e1;
       border-top: 4px solid var(--corp-primary);
-      box-shadow: 0 8px 24px rgba(11, 25, 44, 0.08);
+      box-shadow: 0 6px 18px rgba(11, 25, 44, 0.07);
       overflow: hidden;
     }
-    /* Pasarela / Carrusel de foto única */
+    .ficha-top-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .pill-meta {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.2px;
+    }
+    .pill-code  { background: #0f172a; color: #ffffff; }
+    .pill-store { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+    .pill-issue { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .pill-days  { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* Estados de votación limpios */
+    .status-progreso { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+    .status-aprobado { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .status-revisar  { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+
+    /* Línea única de datos debajo del título */
+    .linea-datos-prod {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      color: #334155;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+    .dato-sep { color: #cbd5e1; font-weight: 400; }
+
+    /* Pasarela limpia sin botones extra */
     .pasarela-box {
       position: relative;
       background: #f8fafc;
-      border-radius: 14px;
-      border: 1px solid #cbd5e1;
-      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 6px;
       text-align: center;
     }
     .pasarela-img {
       width: 100%;
-      height: 240px;
+      height: 205px;
       object-fit: contain;
-      border-radius: 10px;
+      border-radius: 8px;
       background: #ffffff;
       cursor: zoom-in;
+    }
+    .pasarela-contador {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(15, 23, 42, 0.72);
+      color: #ffffff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      pointer-events: none;
     }
     .pasarela-btn {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 38px;
-      height: 38px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       border: none;
-      background: rgba(11, 25, 44, 0.82);
+      background: rgba(11, 25, 44, 0.8);
       color: #ffffff;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      transition: transform 0.12s;
     }
-    .pasarela-btn.prev { left: 14px; }
-    .pasarela-btn.next { right: 14px; }
-    .pill-foto {
-      font-size: 0.78rem;
-      padding: 4px 14px;
-      border-radius: 20px;
-      border: 1px solid #94a3b8;
-      background: #ffffff;
-      color: #334155;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .pill-foto.active {
-      background: var(--corp-primary);
-      color: #ffffff;
-      border-color: var(--corp-primary);
-    }
-    /* Métricas limpias */
-    .metric-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      padding: 10px 6px;
-      text-align: center;
-    }
-    .metric-label { font-size: 0.7rem; color: #475569; display: block; font-weight: 600; }
-    .metric-val { font-size: 0.94rem; font-weight: 800; }
+    .pasarela-btn:active { transform: translateY(-50%) scale(0.92); }
+    .pasarela-btn.prev { left: 10px; }
+    .pasarela-btn.next { right: 10px; }
 
-    /* 4 Tarjetas interactivas de directivos */
+    /* 4 Tarjetas compactas de directivos */
     .eval-card {
-      border-radius: 12px;
-      padding: 10px;
-      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 6px 9px;
+      border: 1.5px solid #cbd5e1;
       background: #f8fafc;
       cursor: pointer;
       transition: all 0.15s ease;
       height: 100%;
     }
+    .eval-card:hover { border-color: #93c5fd; }
     .eval-card.activo {
       border-color: var(--corp-primary);
       background: #eff6ff;
-      box-shadow: 0 3px 10px rgba(30, 58, 138, 0.18);
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.15);
     }
-    .eval-nombre { font-weight: 700; font-size: 0.88rem; color: var(--corp-dark); line-height: 1.15; }
-    .eval-cargo { font-size: 0.68rem; color: #64748b; font-weight: 500; display: block; }
-    .eval-voto { font-size: 0.76rem; color: #475569; margin-top: 4px; line-height: 1.25; }
+    .eval-nombre { font-weight: 700; font-size: 0.83rem; color: var(--corp-dark); line-height: 1.1; }
+    .eval-cargo { font-size: 0.64rem; color: #64748b; font-weight: 500; display: block; }
+    .eval-voto { font-size: 0.72rem; color: #475569; margin-top: 2px; line-height: 1.15; }
     .eval-voto.votado { color: #15803d; font-weight: 700; }
 
-    /* Botones de decisión corporativos */
+    /* Botones de decisión compactos */
     .btn-decision {
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 10px;
+      padding: 8px 10px;
       font-weight: 700;
-      font-size: 0.88rem;
+      font-size: 0.82rem;
       border: none;
-      transition: transform 0.1s ease, box-shadow 0.15s ease;
+      transition: transform 0.1s ease, filter 0.15s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 5px;
     }
-    .btn-decision:active { transform: scale(0.98); }
+    .btn-decision:hover { filter: brightness(1.06); }
+    .btn-decision:active { transform: scale(0.97); }
     .btn-desc { background: #dc2626; color: #ffffff; }
     .btn-obs  { background: #d97706; color: #ffffff; }
     .btn-tras { background: var(--corp-primary); color: #ffffff; }
     .btn-reem { background: #059669; color: #ffffff; }
     .btn-baja { background: #334155; color: #ffffff; }
 
-    /* Barra inferior de navegación para volver / avanzar */
+    /* Barra inferior compacta */
     .nav-bottom-bar {
       background: var(--corp-dark);
       color: #ffffff;
-      border-radius: 14px;
-      padding: 10px 14px;
+      border-radius: 11px;
+      padding: 7px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
     }
-    /* Listado general en tarjetas móviles */
+
+    /* Tarjeta sincronizada del lote activo */
     .lote-item {
       background: #ffffff;
       border-radius: 12px;
-      padding: 12px;
-      border: 1px solid #cbd5e1;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: border-color 0.15s;
+      padding: 11px 13px;
+      border: 1.5px solid #cbd5e1;
+      transition: all 0.15s ease;
     }
     .lote-item.seleccionado {
       border-color: var(--corp-primary);
-      border-width: 2px;
-      background: #eff6ff;
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
     }
-    .img-preview-aud { height: 180px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
+
+    /* Caja independiente de Totales Financieros */
+    .resumen-financiero-card {
+      background: #ffffff;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      padding: 12px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    }
+    .fin-box {
+      border-radius: 10px;
+      padding: 8px 6px;
+      text-align: center;
+      height: 100%;
+    }
+    .fin-bajas { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .fin-recup { background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; }
+    .fin-total { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; }
+    .fin-lbl { font-size: 0.68rem; font-weight: 700; display: block; text-transform: uppercase; letter-spacing: 0.2px; }
+    .fin-val { font-size: 0.96rem; font-weight: 800; display: block; margin-top: 2px; }
+    .fin-sub { font-size: 0.62rem; opacity: 0.85; display: block; line-height: 1.15; margin-top: 2px; }
+
+    .img-preview-aud { height: 170px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
   </style>
 </head>
 <body>
-<div class="container py-3" style="max-width: 760px;">
+<div class="container py-2" style="max-width: 720px;">
 
   <!-- Encabezado Principal -->
-  <div class="app-header mb-3">
+  <div class="app-header mb-2">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
       <div>
-        <h6 class="fw-bold mb-0">Comité Obsolescencia 4/4 | HTC</h6>
-        <small style="opacity: 0.85; font-size: 0.78rem;">Evaluación ejecutiva y control de inventario</small>
+        <h6 class="fw-bold mb-0" style="font-size: 0.96rem;">Comité Obsolescencia 4/4 | HTC</h6>
+        <small style="opacity: 0.82; font-size: 0.72rem;">Control ejecutivo de inventario</small>
       </div>
-      <ul class="nav nav-pills nav-tabs-custom" role="tablist">
+      <ul class="nav nav-segmented" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabComite" type="button">
-            1. Comité
+            <span>📋</span> 1. Comité
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCargaFotos" type="button">
-            2. Carga y Fotos
+            <span>📸</span> 2. Carga y Fotos
           </button>
         </li>
       </ul>
     </div>
   </div>
 
-  <div id="loader" class="alert alert-info text-center fw-bold rounded-4">Sincronizando inventario...</div>
+  <div id="loader" class="alert alert-info text-center fw-bold rounded-4 py-2 small mb-2">Sincronizando inventario...</div>
 
   <div class="tab-content">
 
     <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
     <div class="tab-pane fade show active" id="tabComite">
 
-      <!-- Barra superior limpia: Tienda + Buscador + Exportar -->
-      <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 mb-3">
+      <!-- Barra superior compacta: Tienda + Buscador + Exportar -->
+      <div class="card border-0 shadow-sm rounded-4 p-2 mb-2">
         <div class="row g-2 align-items-center">
           <div class="col-7 col-md-5">
             <select id="filtroSucursal" class="form-select form-select-sm fw-semibold rounded-3" onchange="idxComite=0; renderComite()">
@@ -229,67 +302,53 @@
         </div>
       </div>
 
-      <!-- Ficha Principal del Producto -->
-      <div id="fichaComite" class="ficha-card p-3 p-md-4 mb-3 d-none">
+      <!-- Ficha Principal del Producto (Compacta y Ejecutiva) -->
+      <div id="fichaComite" class="ficha-card p-3 mb-2 d-none">
 
-        <!-- 1. Datos del producto ENCIMA de la foto -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-1 mb-2">
+        <!-- 1. Tienda + Estado + Contador limpio -->
+        <div class="ficha-top-meta">
           <div class="d-flex flex-wrap align-items-center gap-1">
-            <span class="badge bg-dark rounded-pill px-2 py-1" id="cCodigo"></span>
-            <span class="badge bg-primary rounded-pill px-2 py-1" id="cSucursal"></span>
-            <span class="badge bg-danger rounded-pill px-2 py-1" id="cEstadoNovedad"></span>
+            <span class="pill-meta pill-store" id="cSucursal"></span>
+            <span class="pill-meta pill-issue" id="cEstadoNovedad"></span>
           </div>
-          <span class="badge rounded-pill px-2 py-1" id="cBadgeConsenso">PENDIENTE</span>
+          <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
         </div>
 
-        <h5 class="fw-bold mb-3" style="line-height: 1.3; font-size: 1.08rem;" id="cDescripcion"></h5>
+        <!-- 2. Título del producto + Línea única con Código, Und, Días (meses/años) y Valor Unit. -->
+        <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
 
-        <!-- 2. Foto en un solo cuadro estilo pasarela -->
-        <div class="pasarela-box mb-3">
-          <div class="d-flex justify-content-center gap-2 mb-2">
-            <button type="button" id="pillFoto1" class="pill-foto active" onclick="cambiarSlideFoto(0)">1. Producto</button>
-            <button type="button" id="pillFoto2" class="pill-foto" onclick="cambiarSlideFoto(1)">2. Caja / Estado</button>
-          </div>
+        <div class="linea-datos-prod mb-2">
+          <span><strong>Código:</strong> <span id="cCodigo" class="text-dark fw-bold"></span></span>
+          <span class="dato-sep">|</span>
+          <span><strong id="cCantidad" class="text-primary">1 und.</strong></span>
+          <span class="dato-sep">|</span>
+          <span><strong id="cDias" class="text-danger">0 d</strong></span>
+          <span class="dato-sep">|</span>
+          <span><strong>Unit:</strong> <strong id="cCostoUnit" class="text-dark">$0</strong></span>
+        </div>
+
+        <!-- 3. Foto en pasarela limpia (solo flechas e indicador 1/2) -->
+        <div class="pasarela-box mb-2">
+          <span class="pasarela-contador" id="cContadorFoto">1 / 2</span>
           <div class="position-relative">
             <button type="button" class="pasarela-btn prev" onclick="cambiarSlideFoto(-1, true)">‹</button>
             <img id="cFotoPasarela" src="" class="pasarela-img" onclick="ampliarFoto(this.src)">
             <button type="button" class="pasarela-btn next" onclick="cambiarSlideFoto(1, true)">›</button>
           </div>
-          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Desliza con las flechas o toca la imagen para ampliar</small>
         </div>
 
-        <!-- 3. Métricas del lote -->
-        <div class="metric-grid mb-3">
-          <div>
-            <span class="metric-label">Cantidad</span>
-            <span class="metric-val text-primary" id="cCantidad">1</span>
-          </div>
-          <div>
-            <span class="metric-label">Días Inv.</span>
-            <span class="metric-val text-danger" id="cDias">0</span>
-          </div>
-          <div>
-            <span class="metric-label">Costo Unit.</span>
-            <span class="metric-val" id="cCostoUnit">$0</span>
-          </div>
-          <div>
-            <span class="metric-label">Costo Total</span>
-            <span class="metric-val text-dark" id="cCostoTotal">$0</span>
-          </div>
+        <!-- 4. Novedad y Seriales en formato compacto -->
+        <div class="rounded-3 px-2 py-1 mb-2" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 0.76rem;">
+          <div><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
+          <div class="text-muted" style="font-size: 0.7rem; word-break: break-all;"><strong>Seriales:</strong> <span id="cSeriales">-</span></div>
         </div>
 
-        <!-- 4. Novedad y Seriales -->
-        <div class="rounded-3 p-2 px-3 mb-3" style="background: #fffbeb; border: 1px solid #fcd34d; font-size: 0.83rem;">
-          <div class="mb-1"><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
-          <div class="text-muted" style="font-size: 0.76rem; word-break: break-all;"><strong>Seriales:</strong> <span id="cSeriales">-</span></div>
-        </div>
-
-        <!-- 5. Identificación y Estado de los 4 directivos (Tocar tu nombre para evaluar) -->
+        <!-- 5. Identificación y Estado de los 4 directivos -->
         <div class="d-flex justify-content-between align-items-center mb-1">
-          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Toca tu nombre para evaluar:</small>
-          <span class="badge bg-danger" id="badgeQuienEvalua" style="font-size: 0.72rem;">⚠️ Selecciona tu nombre primero</span>
+          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.66rem;">Toca tu nombre para evaluar:</small>
+          <span class="badge bg-danger" id="badgeQuienEvalua" style="font-size: 0.68rem;">⚠️ Selecciona tu nombre primero</span>
         </div>
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-2">
           <div class="col-6">
             <div class="eval-card" id="card_OSMEL" onclick="seleccionarEvaluador('OSMEL')">
               <div class="d-flex justify-content-between align-items-start">
@@ -297,7 +356,7 @@
                   <span class="eval-nombre">Oswal</span>
                   <span class="eval-cargo">Gerente General</span>
                 </div>
-                <span class="badge bg-primary d-none" id="tag_OSMEL">Tú</span>
+                <span class="badge bg-primary d-none" id="tag_OSMEL" style="font-size: 0.65rem;">Tú</span>
               </div>
               <div class="eval-voto" id="vOsmel">Pendiente</div>
             </div>
@@ -309,7 +368,7 @@
                   <span class="eval-nombre">Angélica</span>
                   <span class="eval-cargo">Gerente Administrativa</span>
                 </div>
-                <span class="badge bg-primary d-none" id="tag_ANGELICA">Tú</span>
+                <span class="badge bg-primary d-none" id="tag_ANGELICA" style="font-size: 0.65rem;">Tú</span>
               </div>
               <div class="eval-voto" id="vAngelica">Pendiente</div>
             </div>
@@ -321,7 +380,7 @@
                   <span class="eval-nombre">Orlando</span>
                   <span class="eval-cargo">Director Comercial</span>
                 </div>
-                <span class="badge bg-primary d-none" id="tag_ORLANDO">Tú</span>
+                <span class="badge bg-primary d-none" id="tag_ORLANDO" style="font-size: 0.65rem;">Tú</span>
               </div>
               <div class="eval-voto" id="vOrlando">Pendiente</div>
             </div>
@@ -333,26 +392,26 @@
                   <span class="eval-nombre">Andrés</span>
                   <span class="eval-cargo">Jefe de Bodega</span>
                 </div>
-                <span class="badge bg-primary d-none" id="tag_ANDRES">Tú</span>
+                <span class="badge bg-primary d-none" id="tag_ANDRES" style="font-size: 0.65rem;">Tú</span>
               </div>
               <div class="eval-voto" id="vAndres">Pendiente</div>
             </div>
           </div>
         </div>
 
-        <!-- 6. Subpanel dinámico para Descuento (% o $) -->
-        <div id="panelDescuento" class="card border-danger bg-danger-subtle p-3 rounded-4 mb-3 d-none">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <strong class="text-danger small">Configurar Descuento</strong>
-            <button type="button" class="btn-close btn-sm" onclick="cerrarPanelDescuento()"></button>
+        <!-- 6A. Subpanel dinámico para Descuento (% o $) -->
+        <div id="panelDescuento" class="card border-danger bg-danger-subtle p-2 rounded-3 mb-2 d-none">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong class="text-danger" style="font-size: 0.78rem;">Configurar Descuento</strong>
+            <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
           </div>
           <div class="d-flex gap-1 mb-2">
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(10)">10%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(20)">20%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(30)">30%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(50)">50%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(10)">10%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(20)">20%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(30)">30%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(50)">50%</button>
           </div>
-          <div class="row g-2 align-items-center mb-2">
+          <div class="row g-2 align-items-center mb-1">
             <div class="col-5">
               <select id="tipoDesc" class="form-select form-select-sm fw-bold" onchange="calcularPreviewDesc()">
                 <option value="PORC">Porcentaje (%)</option>
@@ -363,16 +422,25 @@
               <input type="number" id="valorDesc" class="form-control form-control-sm fw-bold" placeholder="Ej. 25" oninput="calcularPreviewDesc()">
             </div>
           </div>
-          <div class="small fw-bold text-dark mb-2" id="previewDescTexto">Precio final estimado: -</div>
+          <div class="fw-bold text-dark mb-1" style="font-size: 0.76rem;" id="previewDescTexto">Precio final estimado: -</div>
           <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
         </div>
 
-        <!-- 7. Comentario opcional + 5 Botones de Decisión -->
-        <div class="mb-2">
-          <input type="text" id="cMotivo" class="form-control form-control-sm rounded-3" placeholder="Nota opcional (ej. Enviar a Sede Américas)...">
+        <!-- 6B. Subpanel contextual para Cambiar de tienda -->
+        <div id="panelCambiarTienda" class="card border-primary bg-primary-subtle p-2 rounded-3 mb-2 d-none">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong class="text-primary" style="font-size: 0.78rem;">🚚 ¿A qué tienda se traslada?</strong>
+            <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
+          </div>
+          <div class="input-group input-group-sm">
+            <input type="text" id="inputTiendaDestino" list="listaTiendasDatalist" class="form-control fw-semibold" placeholder="Escribe o elige tienda destino (ej. Sede Américas)...">
+            <datalist id="listaTiendasDatalist"></datalist>
+            <button type="button" class="btn btn-primary fw-bold" onclick="confirmarCambioTienda()">Confirmar →</button>
+          </div>
         </div>
 
-        <div class="row g-2 mb-3">
+        <!-- 7. 5 Botones de Decisión Compactos -->
+        <div class="row g-2 mb-2">
           <div class="col-6">
             <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
           </div>
@@ -380,7 +448,7 @@
             <button type="button" class="btn-decision btn-obs w-100" onclick="votarComite('Obsequio')">🎁 Obsequio</button>
           </div>
           <div class="col-6">
-            <button type="button" class="btn-decision btn-tras w-100" onclick="votarComite('Cambiar de tienda')">🚚 Cambiar tienda</button>
+            <button type="button" class="btn-decision btn-tras w-100" onclick="abrirPanelCambiarTienda()">🚚 Cambiar tienda</button>
           </div>
           <div class="col-6">
             <button type="button" class="btn-decision btn-reem w-100" onclick="votarComite('Reempacar p/ venta')">📦 Reempacar venta</button>
@@ -390,27 +458,66 @@
           </div>
         </div>
 
-        <div id="msgComite" class="text-success fw-bold small text-center mb-2"></div>
+        <div id="msgComite" class="text-success fw-bold small text-center mb-1"></div>
 
-        <!-- 8. Barra inferior para volver y rectificar o avanzar -->
+        <!-- 8. Barra inferior de navegación -->
         <div class="nav-bottom-bar">
-          <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3" onclick="moverComite(-1)">← Anterior</button>
+          <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
           <div class="text-center">
-            <div class="fw-bold small" id="contadorComite">Producto 1 de 1</div>
-            <div style="font-size: 0.68rem; opacity: 0.8;">Avance automático al votar</div>
+            <div class="fw-bold" style="font-size: 0.8rem;" id="contadorComite">Producto 1 de 1</div>
+            <div style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</div>
           </div>
-          <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3" onclick="moverComite(1)">Siguiente →</button>
+          <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3 py-1" onclick="moverComite(1)">Siguiente →</button>
         </div>
 
       </div>
 
-      <!-- Listado General Estético (Tarjetas táctiles) -->
-      <div class="mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
-          <h6 class="fw-bold mb-0">Listado General (<span id="totalComite">0</span> lotes)</h6>
-          <small class="text-muted">Toca cualquiera para abrir</small>
+      <!-- SECCIÓN INFERIOR 1: Únicamente la tarjeta del producto activo (se mueve al ir pasando) -->
+      <div id="bloqueTarjetaActiva" class="mb-2 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-1 px-1">
+          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
+          <small class="text-muted" style="font-size: 0.68rem;">Sincronizado automáticamente</small>
         </div>
-        <div id="listaTarjetasComite"></div>
+        <div id="tarjetaLoteActivo"></div>
+      </div>
+
+      <!-- SECCIÓN INFERIOR 2: Caja aparte con los valores sumados dinámicos en tiempo real -->
+      <div id="bloqueResumenFinanciero" class="resumen-financiero-card mb-3 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="fw-bold text-dark" style="font-size: 0.78rem;">💰 Resumen Financiero en Tiempo Real</span>
+          <span class="badge bg-light text-dark border" style="font-size: 0.66rem;" id="lblFiltroFinanciero">Todas las tiendas</span>
+        </div>
+        <div class="row g-2">
+          <div class="col-4">
+            <div class="fin-box fin-bajas">
+              <span class="fin-lbl">Bajas ($)</span>
+              <span class="fin-val" id="sumBajas">$0</span>
+              <span class="fin-sub" id="cntBajas">0 lotes</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="fin-box fin-recup">
+              <span class="fin-lbl">Recup. / Cambios</span>
+              <span class="fin-val" id="sumRecuperacion">$0</span>
+              <span class="fin-sub" id="cntRecuperacion">0 lotes</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="fin-box fin-total">
+              <span class="fin-lbl">Total Lote ($)</span>
+              <span class="fin-val" id="sumTotalGeneral">$0</span>
+              <span class="fin-sub" id="cntTotalGeneral">0 lotes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desplegable opcional por si desean saltar rápido a cualquier lote -->
+        <div class="mt-2 pt-2 border-top text-center">
+          <button type="button" class="btn btn-link btn-sm text-decoration-none fw-semibold p-0" style="font-size: 0.74rem;" onclick="toggleListaCompleta()">
+            <span id="txtToggleLista">▾ Ver todos los lotes para salto rápido</span>
+          </button>
+          <div id="contenedorListaCompleta" class="mt-2 text-start d-none"></div>
+        </div>
       </div>
 
     </div>
@@ -418,8 +525,8 @@
     <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
     <div class="tab-pane fade" id="tabCargaFotos">
       <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
-        <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades desde Excel</h6>
-        <p class="small text-muted mb-2">Sube tu plantilla con la hoja <code>Toma(pistoleo)</code>. Se agrupan automáticamente por Tienda + Código + Novedad.</p>
+        <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades Recuperables desde Excel</h6>
+        <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Los productos marcados como <strong>Dañado</strong> se excluyen automáticamente (van directo a baja) y solo suben al comité los que tienen recuperación comercial.</p>
         <div class="row g-2 align-items-end">
           <div class="col-12 col-md-5">
             <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
@@ -543,6 +650,112 @@
     });
   }
 
+  function formatearDiasConEquivalencia(diasNum) {
+    const d = Number(diasNum || 0);
+    if (d < 30) return `${d} d`;
+    const totalMeses = Math.floor(d / 30);
+    if (totalMeses < 12) {
+      return `${d} d (${totalMeses} ${totalMeses === 1 ? 'mes' : 'meses'})`;
+    }
+    const anos = Math.floor(totalMeses / 12);
+    const mesesRest = totalMeses % 12;
+    const txtAno = `${anos} ${anos === 1 ? 'año' : 'años'}`;
+    if (mesesRest === 0) return `${d} d (${txtAno})`;
+    return `${d} d (${txtAno} y ${mesesRest} ${mesesRest === 1 ? 'mes' : 'meses'})`;
+  }
+
+  function obtenerEstadoVotosUI(item) {
+    const votosArr = [item.votos.OSMEL, item.votos.ANGELICA, item.votos.ORLANDO, item.votos.ANDRES].filter(v => v && v.trim() !== '');
+    const total = votosArr.length;
+    if (total === 0) {
+      return { texto: 'PENDIENTE (0/4)', clase: 'status-progreso' };
+    }
+    const baseDecisiones = votosArr.map(v => v.split('(')[0].trim());
+    const unicos = new Set(baseDecisiones);
+    if (total < 4) {
+      const muestra = unicos.size === 1 ? ` - ${baseDecisiones[0]}` : '';
+      return { texto: `PENDIENTE (${total}/4${muestra})`, clase: 'status-revisar' };
+    }
+    if (unicos.size === 1) {
+      return { texto: `✓ APROBADO 4/4 (${baseDecisiones[0]})`, clase: 'status-aprobado' };
+    }
+    return { texto: '⚠️ REVISAR VOTOS (4/4)', clase: 'status-revisar' };
+  }
+
+  // Cálculo dinámico en tiempo real de Bajas vs Recuperación/Cambios vs Total
+  function actualizarResumenFinanciero() {
+    const suc = document.getElementById('filtroSucursal').value;
+    document.getElementById('lblFiltroFinanciero').innerText = suc === 'TODAS' ? 'Todas las tiendas' : suc;
+
+    let sumaBajas = 0, cntBajas = 0;
+    let sumaRecup = 0, cntRecup = 0;
+    let sumaTotal = 0;
+
+    listaFiltrada.forEach(it => {
+      const val = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+      sumaTotal += val;
+
+      const votosArr = [it.votos.OSMEL, it.votos.ANGELICA, it.votos.ORLANDO, it.votos.ANDRES]
+        .filter(v => v && v.trim() !== '')
+        .map(v => v.split('(')[0].trim().toLowerCase());
+
+      if (votosArr.length > 0) {
+        const votosBaja = votosArr.filter(v => v.includes('baja')).length;
+        const votosRecup = votosArr.length - votosBaja;
+        if (votosBaja > 0 && votosBaja >= votosRecup) {
+          sumaBajas += val;
+          cntBajas += 1;
+        } else {
+          sumaRecup += val;
+          cntRecup += 1;
+        }
+      }
+    });
+
+    document.getElementById('sumBajas').innerText = '$' + sumaBajas.toLocaleString('es-CO');
+    document.getElementById('cntBajas').innerText = `${cntBajas} ${cntBajas === 1 ? 'lote' : 'lotes'}`;
+
+    document.getElementById('sumRecuperacion').innerText = '$' + sumaRecup.toLocaleString('es-CO');
+    document.getElementById('cntRecuperacion').innerText = `${cntRecup} ${cntRecup === 1 ? 'lote' : 'lotes'}`;
+
+    document.getElementById('sumTotalGeneral').innerText = '$' + sumaTotal.toLocaleString('es-CO');
+    document.getElementById('cntTotalGeneral').innerText = `${listaFiltrada.length} ${listaFiltrada.length === 1 ? 'lote' : 'lotes'}`;
+  }
+
+  function renderTarjetaUnicaActiva(it) {
+    const est = obtenerEstadoVotosUI(it);
+    const totalVal = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+    document.getElementById('tarjetaLoteActivo').innerHTML = `
+      <div class="lote-item seleccionado">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <span class="pill-meta pill-code">${it.codigo}</span>
+            <span class="pill-meta pill-store">${it.sucursal}</span>
+            <span class="pill-meta pill-days">${it.dias} d</span>
+            <div class="fw-bold small mt-1">${it.descripcion}</div>
+            <div class="text-muted" style="font-size: 0.74rem;">
+              Cant: <strong>${it.cantidad}</strong> · Total: <strong>$${totalVal.toLocaleString('es-CO')}</strong> · ${it.estado}
+            </div>
+          </div>
+          <span class="pill-meta ${est.clase}">${est.texto}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function toggleListaCompleta() {
+    const cont = document.getElementById('contenedorListaCompleta');
+    const txt = document.getElementById('txtToggleLista');
+    const oculto = cont.classList.contains('d-none');
+    if (oculto) {
+      cont.classList.remove('d-none');
+      txt.innerText = '▴ Ocultar listado completo';
+    } else {
+      cont.classList.add('d-none');
+      txt.innerText = '▾ Ver todos los lotes para salto rápido';
+    }
+  }
+
   async function cargarDatos() {
     const loader = document.getElementById('loader');
     loader.classList.remove('d-none');
@@ -558,7 +771,7 @@
         seleccionarParaFoto(listaComite[0].fila);
       }
     } catch (e) {
-      loader.className = 'alert alert-danger text-center rounded-4';
+      loader.className = 'alert alert-danger text-center rounded-4 py-2 small';
       loader.innerText = 'Error al conectar con Google Sheets.';
     }
   }
@@ -570,6 +783,11 @@
     sel.innerHTML = '<option value="TODAS">Todas las tiendas (' + listaComite.length + ')</option>' +
       sucs.map(s => `<option value="${s}">${s}</option>`).join('');
     if (sucs.includes(actual)) sel.value = actual;
+
+    const dl = document.getElementById('listaTiendasDatalist');
+    if (dl) {
+      dl.innerHTML = sucs.map(s => `<option value="${s}">`).join('');
+    }
   }
 
   // ================= PESTAÑA 1: COMITÉ GERENCIAL =================
@@ -584,28 +802,24 @@
     });
 
     document.getElementById('totalComite').innerText = listaFiltrada.length;
-    document.getElementById('listaTarjetasComite').innerHTML = listaFiltrada.map((it, i) => `
-      <div class="lote-item ${i === idxComite ? 'seleccionado' : ''}" onclick="mostrarFichaComite(${i}); window.scrollTo({top: 0, behavior: 'smooth'});">
-        <div class="d-flex justify-content-between align-items-start gap-2">
-          <div>
-            <span class="badge bg-dark">${it.codigo}</span>
-            <span class="badge bg-light text-dark border">${it.sucursal}</span>
-            <span class="badge bg-danger-subtle text-danger">${it.dias} d</span>
-            <div class="fw-bold small mt-1">${it.descripcion}</div>
-            <div class="text-muted" style="font-size: 0.76rem;">
-              Cant: <strong>${it.cantidad}</strong> · Total: <strong>$${it.costoTotal.toLocaleString('es-CO')}</strong> · ${it.estado}
-            </div>
-          </div>
-          <span class="badge ${badgeConsenso(it.consenso)}" style="font-size: 0.7rem;">${it.consenso}</span>
-        </div>
+
+    // Alimentar el desplegable opcional de salto rápido
+    document.getElementById('contenedorListaCompleta').innerHTML = listaFiltrada.map((it, i) => `
+      <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom small" style="cursor:pointer;" onclick="mostrarFichaComite(${i}); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <span><strong>${it.codigo}</strong> · ${it.descripcion}</span>
+        <span class="badge bg-light text-dark border">${it.sucursal}</span>
       </div>
     `).join('');
 
     if (listaFiltrada.length > 0) {
       if (idxComite >= listaFiltrada.length) idxComite = 0;
+      document.getElementById('bloqueTarjetaActiva').classList.remove('d-none');
+      document.getElementById('bloqueResumenFinanciero').classList.remove('d-none');
       mostrarFichaComite(idxComite);
     } else {
       document.getElementById('fichaComite').classList.add('d-none');
+      document.getElementById('bloqueTarjetaActiva').classList.add('d-none');
+      document.getElementById('bloqueResumenFinanciero').classList.add('d-none');
     }
   }
 
@@ -614,19 +828,18 @@
     const it = listaFiltrada[i];
     itemActivo = it;
     slideFotoIdx = 0;
-    cerrarPanelDescuento();
+    cerrarSubpaneles();
 
     document.getElementById('fichaComite').classList.remove('d-none');
     document.getElementById('contadorComite').innerText = `Producto ${i + 1} de ${listaFiltrada.length}`;
 
-    document.getElementById('cCodigo').innerText = it.codigo;
     document.getElementById('cSucursal').innerText = it.sucursal;
     document.getElementById('cEstadoNovedad').innerText = it.estado;
     document.getElementById('cDescripcion').innerText = it.descripcion;
+    document.getElementById('cCodigo').innerText = it.codigo;
     document.getElementById('cCantidad').innerText = it.cantidad + ' und.';
-    document.getElementById('cDias').innerText = it.dias + ' d';
+    document.getElementById('cDias').innerText = formatearDiasConEquivalencia(it.dias);
     document.getElementById('cCostoUnit').innerText = '$' + it.costoUnit.toLocaleString('es-CO');
-    document.getElementById('cCostoTotal').innerText = '$' + it.costoTotal.toLocaleString('es-CO');
     document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación';
     document.getElementById('cSeriales').innerText = it.seriales || 'N/A';
 
@@ -635,17 +848,17 @@
     pintarVotoTarjeta('vOrlando', it.votos.ORLANDO);
     pintarVotoTarjeta('vAndres', it.votos.ANDRES);
 
-    const badge = document.getElementById('cBadgeConsenso');
-    badge.innerText = it.consenso;
-    badge.className = 'badge rounded-pill px-2 py-1 ' + badgeConsenso(it.consenso);
+    const est = obtenerEstadoVotosUI(it);
+    const badge = document.getElementById('cBadgeEstadoVotos');
+    badge.innerText = est.texto;
+    badge.className = 'pill-meta ' + est.clase;
 
     actualizarPasarelaFoto();
-    document.getElementById('cMotivo').value = '';
     document.getElementById('msgComite').innerText = '';
 
-    document.querySelectorAll('#listaTarjetasComite .lote-item').forEach((el, idx) => {
-      el.classList.toggle('seleccionado', idx === i);
-    });
+    // Sincronizar tarjeta inferior única y totales financieros
+    renderTarjetaUnicaActiva(it);
+    actualizarResumenFinanciero();
   }
 
   function pintarVotoTarjeta(elId, texto) {
@@ -670,8 +883,7 @@
     const f1 = itemActivo.foto1 || 'https://via.placeholder.com/400x260?text=Sin+Foto+1+(Producto)';
     const f2 = itemActivo.foto2 || 'https://via.placeholder.com/400x260?text=Sin+Foto+2+(Caja+o+Estado)';
     document.getElementById('cFotoPasarela').src = slideFotoIdx === 0 ? f1 : f2;
-    document.getElementById('pillFoto1').classList.toggle('active', slideFotoIdx === 0);
-    document.getElementById('pillFoto2').classList.toggle('active', slideFotoIdx === 1);
+    document.getElementById('cContadorFoto').innerText = `${slideFotoIdx + 1} / 2`;
   }
 
   function moverComite(delta) {
@@ -680,20 +892,21 @@
     mostrarFichaComite(idxComite);
   }
 
-  // Calculadora de descuento
+  function cerrarSubpaneles() {
+    document.getElementById('panelDescuento').classList.add('d-none');
+    document.getElementById('panelCambiarTienda').classList.add('d-none');
+  }
+
   function abrirPanelDescuento() {
     if (!evaluadorActivo) {
       alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
       return;
     }
+    cerrarSubpaneles();
     document.getElementById('panelDescuento').classList.remove('d-none');
     document.getElementById('valorDesc').value = '';
     document.getElementById('previewDescTexto').innerText = 'Ingresa el % o valor a descontar';
     document.getElementById('valorDesc').focus();
-  }
-
-  function cerrarPanelDescuento() {
-    document.getElementById('panelDescuento').classList.add('d-none');
   }
 
   function setPorcentajeRapido(porc) {
@@ -726,17 +939,36 @@
   function confirmarDescuento() {
     const resumen = calcularPreviewDesc();
     if (!resumen) return alert('Por favor indica el porcentaje o valor del descuento.');
-    cerrarPanelDescuento();
-    votarComite(resumen);
+    cerrarSubpaneles();
+    votarComite(resumen, '');
   }
 
-  async function votarComite(decision) {
+  function abrirPanelCambiarTienda() {
+    if (!evaluadorActivo) {
+      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+      return;
+    }
+    cerrarSubpaneles();
+    document.getElementById('panelCambiarTienda').classList.remove('d-none');
+    const inp = document.getElementById('inputTiendaDestino');
+    inp.value = '';
+    inp.focus();
+  }
+
+  function confirmarCambioTienda() {
+    const destino = document.getElementById('inputTiendaDestino').value.trim();
+    if (!destino) return alert('Por favor escribe o selecciona la tienda destino.');
+    cerrarSubpaneles();
+    votarComite('Cambiar de tienda', destino);
+  }
+
+  async function votarComite(decision, motivo = '') {
     if (!itemActivo) return;
     if (!evaluadorActivo) {
       alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
       return;
     }
-    const motivo = document.getElementById('cMotivo').value.trim();
+    cerrarSubpaneles();
     const msg = document.getElementById('msgComite');
     msg.innerText = `Guardando voto de ${NOMBRES_EVAL[evaluadorActivo]}...`;
 
@@ -762,19 +994,13 @@
     }
   }
 
-  function badgeConsenso(c) {
-    if (c.startsWith('APROBADO 4/4')) return 'bg-success';
-    if (c.startsWith('EN DISENSO')) return 'bg-danger';
-    return 'bg-warning text-dark';
-  }
-
   // ================= PESTAÑA 2: IMPORTAR EXCEL Y 2 FOTOS =================
   function importarNovedadesExcel() {
     const file = document.getElementById('inputExcel').files[0];
     if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
     const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim() || 'TIENDA PRINCIPAL';
     const msg = document.getElementById('msgImport');
-    msg.innerText = 'Procesando novedades del Excel...';
+    msg.innerText = 'Procesando novedades recuperables del Excel...';
 
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -783,6 +1009,8 @@
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
 
       const grupos = {};
+      let omitidosDanados = 0;
+
       rows.forEach(r => {
         const clean = {};
         Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
@@ -798,11 +1026,19 @@
         const obs = String(clean['Observacion'] || '').trim();
 
         if (!codigo || codigo === '0' || !desc || desc === '0') return;
-        const tieneEstadoNovedad = estado !== '' && estado.toLowerCase() !== 'buen estado';
+
+        // Excluir automáticamente productos marcados como Dañado (van directo a baja)
+        const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
+          omitidosDanados += 1;
+          return;
+        }
+
+        const tieneEstadoNovedad = estado !== '' && estadoNorm !== 'buen estado';
         const esNovedad = obs !== '' || tieneEstadoNovedad || diferencia !== 0 || dias >= 130;
         if (!esNovedad) return;
 
-        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Novedad' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >130d'));
+        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Empaque / Estética' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >130d'));
         const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
 
         if (!grupos[clave]) {
@@ -823,17 +1059,20 @@
       }));
 
       if (lotes.length === 0) {
-        msg.innerText = 'No se encontraron novedades válidas en el archivo.';
+        msg.innerText = omitidosDanados > 0
+          ? `No hay lotes recuperables para Comité (se separaron ${omitidosDanados} unidades dañadas directas para baja).`
+          : 'No se encontraron novedades válidas en el archivo.';
         return;
       }
 
-      msg.innerText = `Subiendo ${lotes.length} lotes agrupados...`;
+      msg.innerText = `Subiendo ${lotes.length} lotes recuperables...`;
       const resp = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({ accion: 'importar_novedades', lotes })
       });
       const res = await resp.json();
-      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes.`;
+      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes al Comité` +
+        (omitidosDanados > 0 ? ` (y se excluyeron ${omitidosDanados} dañados directos para baja).` : '.');
       cargarDatos();
     };
     reader.readAsArrayBuffer(file);
@@ -846,10 +1085,10 @@
       <div class="lote-item ${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'seleccionado' : ''}" onclick="seleccionarParaFoto(${it.fila}); window.scrollTo({top: 0, behavior: 'smooth'});">
         <div class="d-flex justify-content-between align-items-center gap-2">
           <div>
-            <span class="badge bg-dark">${it.codigo}</span>
-            <span class="badge bg-light text-dark border">${it.sucursal}</span>
-            <div class="fw-bold small mt-1">${it.descripcion} (${it.cantidad} und.)</div>
-            <div class="text-muted" style="font-size: 0.75rem;">${it.estado} · ${it.observacion}</div>
+            <span class="pill-meta pill-store">${it.sucursal}</span>
+            <span class="pill-meta pill-issue">${it.estado}</span>
+            <div class="fw-bold small mt-1">${it.descripcion}</div>
+            <div class="text-muted" style="font-size: 0.72rem;">Código: ${it.codigo} · ${it.cantidad} und. · ${it.observacion}</div>
           </div>
           <div class="text-end small">
             <div>Foto 1: ${it.foto1 ? '✅' : '❌'}</div>
