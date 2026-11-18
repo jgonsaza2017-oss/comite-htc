@@ -3,29 +3,352 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comité Obsolescencia | HTC</title>
+  <title>Comité Obsolescencia 4/4 | HTC</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background-color: #f4f6f9;
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: block;
-    }
+    body { background-color: #f4f6f9; }
+    .img-preview { max-height: 240px; object-fit: contain; border-radius: 8px; background: #fff; }
+    .voto-card { font-size: 0.82rem; border-radius: 6px; padding: 8px; border: 1px solid #dee2e6; background: #fff; }
   </style>
 </head>
 <body>
-  <iframe
-    src="https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec"
-    allow="camera; microphone"
-    allowfullscreen>
-  </iframe>
+<div class="container py-3">
+  <div class="card p-3 shadow-sm mb-3 border-dark">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <h5 class="fw-bold text-primary mb-0">Comité Obsolescencia (Unanimidad 4/4) | HTC</h5>
+        <small class="text-muted">Aprobación unánime: Gerencia, Admin., Comercial y Bodega</small>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold text-danger mb-1">¿Quién está evaluando ahora?</label>
+        <select id="selectEvaluador" class="form-select border-danger fw-bold">
+          <option value="ANGELICA">Angélica (Gerente Administrativa)</option>
+          <option value="OSMEL">Osmel (Gerente)</option>
+          <option value="ORLANDO">Orlando (Director Comercial)</option>
+          <option value="ANDRES">Andrés (Jefe de Bodega)</option>
+        </select>
+      </div>
+      <div class="col-md-3 text-end">
+        <button class="btn btn-success btn-sm fw-semibold w-100 mt-md-3" onclick="descargarCSV()">
+          Descargar Base Filtrada (.CSV)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3 shadow-sm mb-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label small fw-bold">Escanear o Digitar Código de Barras</label>
+        <input type="text" id="txtBuscar" class="form-control border-primary"
+               placeholder="Ej. 81239994972" oninput="filtrarProducto()">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-bold">Filtrar por Estado de Consenso</label>
+        <select id="filtroConsenso" class="form-select" onchange="renderLista()">
+          <option value="TODOS">Todos los productos</option>
+          <option value="APROBADO 4/4">Aprobados 4/4 (Listos para LIKE)</option>
+          <option value="PENDIENTE">Pendientes por votos</option>
+          <option value="EN DISENSO">En Disenso (Opiniones divididas)</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-outline-secondary w-100" onclick="cargarDatos()">Actualizar Datos</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="loader" class="alert alert-info text-center fw-bold">Conectando con inventario...</div>
+
+  <div id="fichaProducto" class="card p-3 p-md-4 shadow-sm mb-4 d-none border-primary border-2">
+    <div class="row g-4">
+      <div class="col-md-4 text-center">
+        <img id="pFoto" src="https://via.placeholder.com/300x200?text=Sin+Foto+Adjunta" class="img-fluid img-preview border p-2 w-100 mb-2">
+        <label class="btn btn-outline-primary btn-sm w-100">
+          Tomar / Subir Foto del Estado
+          <input type="file" id="inputFoto" accept="image/*" capture="environment" hidden onchange="subirFoto()">
+        </label>
+        <div id="estadoFoto" class="small text-muted mt-1"></div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+          <div>
+            <span class="badge bg-dark mb-1" id="pCodigo"></span>
+            <span class="badge bg-info text-dark mb-1" id="pPdv"></span>
+            <h5 class="fw-bold mb-1" id="pDescripcion"></h5>
+          </div>
+          <span class="badge fs-6" id="pBadgeConsenso">PENDIENTE (0/4)</span>
+        </div>
+
+        <div class="row g-2 my-2 p-2 bg-light rounded border text-center">
+          <div class="col-4">
+            <small class="text-muted d-block">Días Inventario</small>
+            <strong class="text-danger fs-5" id="pDias">0</strong>
+          </div>
+          <div class="col-4">
+            <small class="text-muted d-block">Costo Unitario</small>
+            <strong class="fs-5" id="pCosto">$0</strong>
+          </div>
+          <div class="col-4">
+            <small class="text-muted d-block">Última Gestión</small>
+            <span class="small fw-semibold" id="pFecha">-</span>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6 col-md-3">
+            <div class="voto-card">
+              <strong class="d-block text-primary">Osmel (Gerente)</strong>
+              <span id="votoOsmel" class="text-muted">Sin voto</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="voto-card">
+              <strong class="d-block text-primary">Angélica (Admin.)</strong>
+              <span id="votoAngelica" class="text-muted">Sin voto</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="voto-card">
+              <strong class="d-block text-primary">Orlando (Comercial)</strong>
+              <span id="votoOrlando" class="text-muted">Sin voto</span>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="voto-card">
+              <strong class="d-block text-primary">Andrés (Bodega)</strong>
+              <span id="votoAndres" class="text-muted">Sin voto</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label small fw-bold">Estado Físico / Caja (Auditoría):</label>
+          <input type="text" id="pEstado" class="form-control form-control-sm" placeholder="Ej. Caja golpeada / falta mouse bluetooth">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-bold">Justificación de tu voto (Opcional):</label>
+          <input type="text" id="pMotivo" class="form-control form-control-sm" placeholder="Ej. Descuento 30% por estado de caja / Traslado a Sede Américas">
+        </div>
+
+        <label class="form-label small fw-bold text-primary d-block">Emitir mi voto (requiere unanimidad 4/4 para aprobar):</label>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-danger fw-semibold flex-fill" onclick="enviarVoto('DESCUENTO AUTORIZADO')">
+            1. Descuento
+          </button>
+          <button class="btn btn-warning fw-semibold flex-fill" onclick="enviarVoto('OBSEQUIO / BONIFICACION')">
+            2. Obsequio / Bonificación
+          </button>
+          <button class="btn btn-primary fw-semibold flex-fill" onclick="enviarVoto('TRASLADO / REMISION')">
+            3. Traslado / Remisión
+          </button>
+        </div>
+        <div id="msgGuardado" class="text-success fw-bold small mt-2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3 shadow-sm">
+    <h6 class="fw-bold mb-3">Listado de Base Cargada (<span id="totalItems">0</span> ítems)</h6>
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle small">
+        <thead class="table-dark">
+          <tr>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th>PDV</th>
+            <th>Días</th>
+            <th>Costo</th>
+            <th>Estado Consenso (4/4)</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
+  let inventario = [];
+  let itemActivo = null;
+
+  window.onload = cargarDatos;
+
+  async function cargarDatos() {
+    const loader = document.getElementById('loader');
+    loader.classList.remove('d-none');
+    try {
+      const resp = await fetch(API_URL);
+      const data = await resp.json();
+      inventario = data.inventario || [];
+      loader.classList.add('d-none');
+      renderLista();
+      if (itemActivo) {
+        const actualizado = inventario.find(x => x.fila === itemActivo.fila);
+        if (actualizado) seleccionarItem(actualizado);
+      } else if (inventario.length > 0) {
+        seleccionarItem(inventario[0]);
+      }
+    } catch (e) {
+      loader.className = 'alert alert-danger text-center';
+      loader.innerText = 'Error al cargar datos. Revisa conexión o permisos.';
+    }
+  }
+
+  function filtrarProducto() {
+    const q = document.getElementById('txtBuscar').value.trim().toLowerCase();
+    renderLista();
+    if (!q) return;
+    const exacto = inventario.find(x => x.codigo.toLowerCase() === q || x.descripcion.toLowerCase().includes(q));
+    if (exacto) seleccionarItem(exacto);
+  }
+
+  function seleccionarItem(item) {
+    itemActivo = item;
+    document.getElementById('fichaProducto').classList.remove('d-none');
+    document.getElementById('pCodigo').innerText = item.codigo;
+    document.getElementById('pPdv').innerText = item.pdv;
+    document.getElementById('pDescripcion').innerText = item.descripcion;
+    document.getElementById('pDias').innerText = item.dias + ' días';
+    document.getElementById('pCosto').innerText = '$' + item.costo.toLocaleString('es-CO');
+    document.getElementById('pFecha').innerText = item.fecha || 'Sin revisar';
+    document.getElementById('pEstado').value = item.estado;
+    document.getElementById('pMotivo').value = '';
+    document.getElementById('msgGuardado').innerText = '';
+
+    document.getElementById('votoOsmel').innerText = item.votos.OSMEL || 'Sin voto';
+    document.getElementById('votoAngelica').innerText = item.votos.ANGELICA || 'Sin voto';
+    document.getElementById('votoOrlando').innerText = item.votos.ORLANDO || 'Sin voto';
+    document.getElementById('votoAndres').innerText = item.votos.ANDRES || 'Sin voto';
+
+    const badge = document.getElementById('pBadgeConsenso');
+    badge.innerText = item.consenso;
+    badge.className = 'badge fs-6 ' + colorBadge(item.consenso);
+
+    document.getElementById('pFoto').src = item.fotoUrl
+      ? item.fotoUrl
+      : 'https://via.placeholder.com/300x200?text=Sin+Foto+Adjunta';
+  }
+
+  async function enviarVoto(decision) {
+    if (!itemActivo) return;
+    const evaluador = document.getElementById('selectEvaluador').value;
+    const motivo = document.getElementById('pMotivo').value.trim();
+    const estado = document.getElementById('pEstado').value.trim();
+    const msg = document.getElementById('msgGuardado');
+    msg.innerText = `Registrando voto de ${evaluador}...`;
+
+    try {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'votar',
+          fila: itemActivo.fila,
+          evaluador,
+          decision,
+          motivo,
+          estado
+        })
+      });
+      const res = await resp.json();
+      msg.innerText = `Voto guardado. Estado actual: ${res.consenso}`;
+      cargarDatos();
+    } catch (e) {
+      msg.innerText = 'Error al guardar el voto. Intenta de nuevo.';
+    }
+  }
+
+  function subirFoto() {
+    const file = document.getElementById('inputFoto').files[0];
+    if (!file || !itemActivo) return;
+    const status = document.getElementById('estadoFoto');
+    status.innerText = 'Subiendo foto a Drive...';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const resp = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            accion: 'foto',
+            fila: itemActivo.fila,
+            codigo: itemActivo.codigo,
+            base64Data: e.target.result,
+            mimeType: file.type
+          })
+        });
+        const res = await resp.json();
+        status.innerText = 'Foto vinculada';
+        document.getElementById('pFoto').src = res.fotoUrl;
+        cargarDatos();
+      } catch (err) {
+        status.innerText = 'Error al subir foto.';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function colorBadge(consenso) {
+    if (consenso.startsWith('APROBADO 4/4')) return 'bg-success';
+    if (consenso.startsWith('EN DISENSO')) return 'bg-danger';
+    return 'bg-warning text-dark';
+  }
+
+  function renderLista() {
+    const filtro = document.getElementById('filtroConsenso').value;
+    const q = document.getElementById('txtBuscar').value.trim().toLowerCase();
+    const tbody = document.getElementById('tablaBody');
+    tbody.innerHTML = '';
+
+    const filtrados = inventario.filter(item => {
+      const okCons = (filtro === 'TODOS') || item.consenso.startsWith(filtro);
+      const okBusq = !q || item.codigo.toLowerCase().includes(q) || item.descripcion.toLowerCase().includes(q);
+      return okCons && okBusq;
+    });
+
+    document.getElementById('totalItems').innerText = filtrados.length;
+
+    filtrados.forEach((item, idx) => {
+      tbody.innerHTML += `
+        <tr>
+          <td class="fw-bold">${item.codigo}</td>
+          <td>${item.descripcion}</td>
+          <td>${item.pdv}</td>
+          <td class="text-danger fw-bold">${item.dias}</td>
+          <td>$${item.costo.toLocaleString('es-CO')}</td>
+          <td><span class="badge ${colorBadge(item.consenso)}">${item.consenso}</span></td>
+          <td><button class="btn btn-outline-primary btn-sm" onclick="seleccionarPorIndice(${idx})">Evaluar</button></td>
+        </tr>`;
+    });
+    window._listaFiltrada = filtrados;
+  }
+
+  function seleccionarPorIndice(idx) {
+    if (window._listaFiltrada && window._listaFiltrada[idx]) {
+      seleccionarItem(window._listaFiltrada[idx]);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function descargarCSV() {
+    const filtro = document.getElementById('filtroConsenso').value;
+    const filtrados = inventario.filter(x => filtro === 'TODOS' || x.consenso.startsWith(filtro));
+
+    let csv = 'Codigo;Descripcion;PDV;Dias_Inventario;Costo;Estado_Caja;Osmel;Angelica;Orlando;Andres;Consenso_Final;Fecha;Foto_URL\n';
+    filtrados.forEach(r => {
+      csv += `"${r.codigo}";"${r.descripcion}";"${r.pdv}";${r.dias};${r.costo};"${r.estado}";"${r.votos.OSMEL}";"${r.votos.ANGELICA}";"${r.votos.ORLANDO}";"${r.votos.ANDRES}";"${r.consenso}";"${r.fecha}";"${r.fotoUrl}"\n`;
+    });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Comite_Obsolescencia_${filtro.replace(/[^a-zA-Z0-9]/g, '_')}.csv`;
+    link.click();
+  }
+</script>
 </body>
 </html>
