@@ -126,8 +126,9 @@
       background: #eff6ff;
       box-shadow: 0 3px 10px rgba(30, 58, 138, 0.18);
     }
-    .eval-nombre { font-weight: 700; font-size: 0.88rem; color: var(--corp-dark); }
-    .eval-voto { font-size: 0.76rem; color: #475569; margin-top: 2px; line-height: 1.25; }
+    .eval-nombre { font-weight: 700; font-size: 0.88rem; color: var(--corp-dark); line-height: 1.15; }
+    .eval-cargo { font-size: 0.68rem; color: #64748b; font-weight: 500; display: block; }
+    .eval-voto { font-size: 0.76rem; color: #475569; margin-top: 4px; line-height: 1.25; }
     .eval-voto.votado { color: #15803d; font-weight: 700; }
 
     /* Botones de decisión corporativos */
@@ -286,30 +287,54 @@
         <!-- 5. Identificación y Estado de los 4 directivos (Tocar tu nombre para evaluar) -->
         <div class="d-flex justify-content-between align-items-center mb-1">
           <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Toca tu nombre para evaluar:</small>
-          <span class="badge bg-primary" id="badgeQuienEvalua" style="font-size: 0.72rem;">Evaluando: Angélica</span>
+          <span class="badge bg-danger" id="badgeQuienEvalua" style="font-size: 0.72rem;">⚠️ Selecciona tu nombre primero</span>
         </div>
         <div class="row g-2 mb-3">
           <div class="col-6">
             <div class="eval-card" id="card_OSMEL" onclick="seleccionarEvaluador('OSMEL')">
-              <div class="d-flex justify-content-between"><span class="eval-nombre">Osmel</span><span class="badge bg-primary d-none" id="tag_OSMEL">Tú</span></div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="eval-nombre">Oswal</span>
+                  <span class="eval-cargo">Gerente General</span>
+                </div>
+                <span class="badge bg-primary d-none" id="tag_OSMEL">Tú</span>
+              </div>
               <div class="eval-voto" id="vOsmel">Pendiente</div>
             </div>
           </div>
           <div class="col-6">
             <div class="eval-card" id="card_ANGELICA" onclick="seleccionarEvaluador('ANGELICA')">
-              <div class="d-flex justify-content-between"><span class="eval-nombre">Angélica</span><span class="badge bg-primary d-none" id="tag_ANGELICA">Tú</span></div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="eval-nombre">Angélica</span>
+                  <span class="eval-cargo">Gerente Administrativa</span>
+                </div>
+                <span class="badge bg-primary d-none" id="tag_ANGELICA">Tú</span>
+              </div>
               <div class="eval-voto" id="vAngelica">Pendiente</div>
             </div>
           </div>
           <div class="col-6">
             <div class="eval-card" id="card_ORLANDO" onclick="seleccionarEvaluador('ORLANDO')">
-              <div class="d-flex justify-content-between"><span class="eval-nombre">Orlando</span><span class="badge bg-primary d-none" id="tag_ORLANDO">Tú</span></div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="eval-nombre">Orlando</span>
+                  <span class="eval-cargo">Director Comercial</span>
+                </div>
+                <span class="badge bg-primary d-none" id="tag_ORLANDO">Tú</span>
+              </div>
               <div class="eval-voto" id="vOrlando">Pendiente</div>
             </div>
           </div>
           <div class="col-6">
             <div class="eval-card" id="card_ANDRES" onclick="seleccionarEvaluador('ANDRES')">
-              <div class="d-flex justify-content-between"><span class="eval-nombre">Andrés</span><span class="badge bg-primary d-none" id="tag_ANDRES">Tú</span></div>
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <span class="eval-nombre">Andrés</span>
+                  <span class="eval-cargo">Jefe de Bodega</span>
+                </div>
+                <span class="badge bg-primary d-none" id="tag_ANDRES">Tú</span>
+              </div>
               <div class="eval-voto" id="vAndres">Pendiente</div>
             </div>
           </div>
@@ -469,9 +494,14 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
-  const NOMBRES_EVAL = { OSMEL: 'Osmel', ANGELICA: 'Angélica', ORLANDO: 'Orlando', ANDRES: 'Andrés' };
+  const NOMBRES_EVAL = {
+    OSMEL: 'Oswal (Gerente General)',
+    ANGELICA: 'Angélica (Gerente Administrativa)',
+    ORLANDO: 'Orlando (Director Comercial)',
+    ANDRES: 'Andrés (Jefe de Bodega)'
+  };
 
-  let evaluadorActivo = localStorage.getItem('htc_evaluador') || 'ANGELICA';
+  let evaluadorActivo = localStorage.getItem('htc_evaluador') || '';
   let listaComite = [];
   let listaFiltrada = [];
   let idxComite = 0;
@@ -492,7 +522,14 @@
   }
 
   function actualizarUIEvaluador() {
-    document.getElementById('badgeQuienEvalua').innerText = 'Evaluando: ' + NOMBRES_EVAL[evaluadorActivo];
+    const badge = document.getElementById('badgeQuienEvalua');
+    if (evaluadorActivo && NOMBRES_EVAL[evaluadorActivo]) {
+      badge.className = 'badge bg-primary';
+      badge.innerText = 'Evaluando: ' + NOMBRES_EVAL[evaluadorActivo];
+    } else {
+      badge.className = 'badge bg-danger';
+      badge.innerText = '⚠️ Selecciona tu nombre primero';
+    }
     ['OSMEL', 'ANGELICA', 'ORLANDO', 'ANDRES'].forEach(k => {
       const card = document.getElementById('card_' + k);
       const tag = document.getElementById('tag_' + k);
@@ -645,6 +682,10 @@
 
   // Calculadora de descuento
   function abrirPanelDescuento() {
+    if (!evaluadorActivo) {
+      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+      return;
+    }
     document.getElementById('panelDescuento').classList.remove('d-none');
     document.getElementById('valorDesc').value = '';
     document.getElementById('previewDescTexto').innerText = 'Ingresa el % o valor a descontar';
@@ -691,6 +732,10 @@
 
   async function votarComite(decision) {
     if (!itemActivo) return;
+    if (!evaluadorActivo) {
+      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+      return;
+    }
     const motivo = document.getElementById('cMotivo').value.trim();
     const msg = document.getElementById('msgComite');
     msg.innerText = `Guardando voto de ${NOMBRES_EVAL[evaluadorActivo]}...`;
@@ -887,7 +932,7 @@
   }
 
   function descargarCSV() {
-    let csv = 'Sucursal;Codigo;Descripcion;Cantidad;Seriales;Dias;Costo_Unit;Costo_Total;Estado;Observacion;Osmel;Angelica;Orlando;Andres;Consenso;Foto1_Producto;Foto2_Caja\n';
+    let csv = 'Sucursal;Codigo;Descripcion;Cantidad;Seriales;Dias;Costo_Unit;Costo_Total;Estado;Observacion;Oswal;Angelica;Orlando;Andres;Consenso;Foto1_Producto;Foto2_Caja\n';
     listaFiltrada.forEach(r => {
       csv += `"${r.sucursal}";"${r.codigo}";"${r.descripcion}";${r.cantidad};"${r.seriales}";${r.dias};${r.costoUnit};${r.costoTotal};"${r.estado}";"${r.observacion}";"${r.votos.OSMEL}";"${r.votos.ANGELICA}";"${r.votos.ORLANDO}";"${r.votos.ANDRES}";"${r.consenso}";"${r.foto1}";"${r.foto2}"\n`;
     });
