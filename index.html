@@ -18,6 +18,7 @@
       background-color: var(--corp-bg);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #0f172a;
+      padding-bottom: 84px; /* Espacio inferior para que la barra flotante no tape contenido */
     }
     .app-header {
       background: linear-gradient(135deg, var(--corp-dark) 0%, var(--corp-primary) 100%);
@@ -122,7 +123,7 @@
     }
     .pasarela-img {
       width: 100%;
-      height: 205px;
+      height: 195px;
       object-fit: contain;
       border-radius: 8px;
       background: #ffffff;
@@ -203,16 +204,31 @@
     .btn-reem { background: #059669; color: #ffffff; }
     .btn-baja { background: #334155; color: #ffffff; }
 
-    /* Barra inferior compacta */
+    /* Barra flotante fija abajo */
+    .floating-nav-wrap {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1030;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+      background: linear-gradient(to top, rgba(241, 245, 249, 0.98) 75%, rgba(241, 245, 249, 0));
+      pointer-events: none;
+    }
     .nav-bottom-bar {
+      max-width: 696px;
+      margin: 0 auto;
       background: var(--corp-dark);
       color: #ffffff;
-      border-radius: 11px;
-      padding: 7px 12px;
+      border-radius: 14px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
+      box-shadow: 0 6px 20px rgba(11, 25, 44, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      pointer-events: auto;
     }
 
     /* Tarjeta sincronizada del lote activo */
@@ -265,12 +281,12 @@
       </div>
       <ul class="nav nav-segmented" role="tablist">
         <li class="nav-item">
-          <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabComite" type="button">
+          <button class="nav-link active" id="btnTabComite" data-bs-toggle="pill" data-bs-target="#tabComite" type="button" onclick="toggleBarraFlotante(true)">
             <span>📋</span> 1. Comité
           </button>
         </li>
         <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCargaFotos" type="button">
+          <button class="nav-link" id="btnTabCarga" data-bs-toggle="pill" data-bs-target="#tabCargaFotos" type="button" onclick="toggleBarraFlotante(false)">
             <span>📸</span> 2. Carga y Fotos
           </button>
         </li>
@@ -440,7 +456,7 @@
         </div>
 
         <!-- 7. 5 Botones de Decisión Compactos -->
-        <div class="row g-2 mb-2">
+        <div class="row g-2 mb-1">
           <div class="col-6">
             <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
           </div>
@@ -458,21 +474,11 @@
           </div>
         </div>
 
-        <div id="msgComite" class="text-success fw-bold small text-center mb-1"></div>
-
-        <!-- 8. Barra inferior de navegación -->
-        <div class="nav-bottom-bar">
-          <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
-          <div class="text-center">
-            <div class="fw-bold" style="font-size: 0.8rem;" id="contadorComite">Producto 1 de 1</div>
-            <div style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</div>
-          </div>
-          <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3 py-1" onclick="moverComite(1)">Siguiente →</button>
-        </div>
+        <div id="msgComite" class="text-success fw-bold small text-center"></div>
 
       </div>
 
-      <!-- SECCIÓN INFERIOR 1: Únicamente la tarjeta del producto activo (se mueve al ir pasando) -->
+      <!-- SECCIÓN INFERIOR 1: Únicamente la tarjeta del producto activo -->
       <div id="bloqueTarjetaActiva" class="mb-2 d-none">
         <div class="d-flex justify-content-between align-items-center mb-1 px-1">
           <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
@@ -587,6 +593,18 @@
   </div>
 </div>
 
+<!-- BARRA FLOTANTE FIJA ABAJO -->
+<div id="barraFlotanteComite" class="floating-nav-wrap d-none">
+  <div class="nav-bottom-bar">
+    <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
+    <div class="text-center">
+      <div class="fw-bold" style="font-size: 0.8rem;" id="contadorComite">Producto 1 de 1</div>
+      <div style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</div>
+    </div>
+    <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3 py-1" onclick="moverComite(1)">Siguiente →</button>
+  </div>
+</div>
+
 <!-- Modal para ampliar foto -->
 <div class="modal fade" id="modalFoto" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -615,11 +633,22 @@
   let slideFotoIdx = 0;
   let itemActivo = null;
   let itemFotoActivo = null;
+  let enPestanaComite = true;
 
   window.onload = () => {
     actualizarUIEvaluador();
     cargarDatos();
   };
+
+  function toggleBarraFlotante(mostrar) {
+    enPestanaComite = mostrar;
+    const barra = document.getElementById('barraFlotanteComite');
+    if (mostrar && listaFiltrada.length > 0) {
+      barra.classList.remove('d-none');
+    } else {
+      barra.classList.add('d-none');
+    }
+  }
 
   function seleccionarEvaluador(codigo) {
     evaluadorActivo = codigo;
@@ -682,7 +711,6 @@
     return { texto: '⚠️ REVISAR VOTOS (4/4)', clase: 'status-revisar' };
   }
 
-  // Cálculo dinámico en tiempo real de Bajas vs Recuperación/Cambios vs Total
   function actualizarResumenFinanciero() {
     const suc = document.getElementById('filtroSucursal').value;
     document.getElementById('lblFiltroFinanciero').innerText = suc === 'TODAS' ? 'Todas las tiendas' : suc;
@@ -803,7 +831,6 @@
 
     document.getElementById('totalComite').innerText = listaFiltrada.length;
 
-    // Alimentar el desplegable opcional de salto rápido
     document.getElementById('contenedorListaCompleta').innerHTML = listaFiltrada.map((it, i) => `
       <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom small" style="cursor:pointer;" onclick="mostrarFichaComite(${i}); window.scrollTo({top: 0, behavior: 'smooth'});">
         <span><strong>${it.codigo}</strong> · ${it.descripcion}</span>
@@ -815,11 +842,13 @@
       if (idxComite >= listaFiltrada.length) idxComite = 0;
       document.getElementById('bloqueTarjetaActiva').classList.remove('d-none');
       document.getElementById('bloqueResumenFinanciero').classList.remove('d-none');
+      if (enPestanaComite) document.getElementById('barraFlotanteComite').classList.remove('d-none');
       mostrarFichaComite(idxComite);
     } else {
       document.getElementById('fichaComite').classList.add('d-none');
       document.getElementById('bloqueTarjetaActiva').classList.add('d-none');
       document.getElementById('bloqueResumenFinanciero').classList.add('d-none');
+      document.getElementById('barraFlotanteComite').classList.add('d-none');
     }
   }
 
@@ -856,7 +885,6 @@
     actualizarPasarelaFoto();
     document.getElementById('msgComite').innerText = '';
 
-    // Sincronizar tarjeta inferior única y totales financieros
     renderTarjetaUnicaActiva(it);
     actualizarResumenFinanciero();
   }
@@ -1027,7 +1055,6 @@
 
         if (!codigo || codigo === '0' || !desc || desc === '0') return;
 
-        // Excluir automáticamente productos marcados como Dañado (van directo a baja)
         const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
           omitidosDanados += 1;
