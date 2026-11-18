@@ -3,234 +3,437 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comité Obsolescencia 4/4 & Evidencias | HTC</title>
+  <title>Comité Obsolescencia 4/4 | HTC</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    body { background-color: #f4f6f9; }
-    .img-preview { height: 185px; object-fit: contain; border-radius: 8px; background: #fff; cursor: zoom-in; }
-    .voto-card { font-size: 0.8rem; border-radius: 6px; padding: 8px; border: 1px solid #dee2e6; background: #fff; }
-    .nav-pills .nav-link.active { font-weight: 700; }
+    :root {
+      --corp-dark: #0b192c;
+      --corp-primary: #1e3a8a;
+      --corp-accent: #0284c7;
+      --corp-gold: #d97706;
+      --corp-bg: #f1f5f9;
+    }
+    body {
+      background-color: var(--corp-bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #0f172a;
+    }
+    .app-header {
+      background: linear-gradient(135deg, var(--corp-dark) 0%, var(--corp-primary) 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 6px 18px rgba(11, 25, 44, 0.22);
+      border-bottom: 3px solid var(--corp-accent);
+    }
+    .nav-tabs-custom .nav-link {
+      color: rgba(255, 255, 255, 0.85);
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      padding: 8px 14px;
+    }
+    .nav-tabs-custom .nav-link.active {
+      background-color: #ffffff;
+      color: var(--corp-dark);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .ficha-card {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #cbd5e1;
+      border-top: 4px solid var(--corp-primary);
+      box-shadow: 0 8px 24px rgba(11, 25, 44, 0.08);
+      overflow: hidden;
+    }
+    /* Pasarela / Carrusel de foto única */
+    .pasarela-box {
+      position: relative;
+      background: #f8fafc;
+      border-radius: 14px;
+      border: 1px solid #cbd5e1;
+      padding: 10px;
+      text-align: center;
+    }
+    .pasarela-img {
+      width: 100%;
+      height: 240px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: #ffffff;
+      cursor: zoom-in;
+    }
+    .pasarela-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(11, 25, 44, 0.82);
+      color: #ffffff;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+    .pasarela-btn.prev { left: 14px; }
+    .pasarela-btn.next { right: 14px; }
+    .pill-foto {
+      font-size: 0.78rem;
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid #94a3b8;
+      background: #ffffff;
+      color: #334155;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .pill-foto.active {
+      background: var(--corp-primary);
+      color: #ffffff;
+      border-color: var(--corp-primary);
+    }
+    /* Métricas limpias */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+    .metric-label { font-size: 0.7rem; color: #475569; display: block; font-weight: 600; }
+    .metric-val { font-size: 0.94rem; font-weight: 800; }
+
+    /* 4 Tarjetas interactivas de directivos */
+    .eval-card {
+      border-radius: 12px;
+      padding: 10px;
+      border: 2px solid #cbd5e1;
+      background: #f8fafc;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      height: 100%;
+    }
+    .eval-card.activo {
+      border-color: var(--corp-primary);
+      background: #eff6ff;
+      box-shadow: 0 3px 10px rgba(30, 58, 138, 0.18);
+    }
+    .eval-nombre { font-weight: 700; font-size: 0.88rem; color: var(--corp-dark); }
+    .eval-voto { font-size: 0.76rem; color: #475569; margin-top: 2px; line-height: 1.25; }
+    .eval-voto.votado { color: #15803d; font-weight: 700; }
+
+    /* Botones de decisión corporativos */
+    .btn-decision {
+      border-radius: 12px;
+      padding: 12px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      border: none;
+      transition: transform 0.1s ease, box-shadow 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-decision:active { transform: scale(0.98); }
+    .btn-desc { background: #dc2626; color: #ffffff; }
+    .btn-obs  { background: #d97706; color: #ffffff; }
+    .btn-tras { background: var(--corp-primary); color: #ffffff; }
+    .btn-reem { background: #059669; color: #ffffff; }
+    .btn-baja { background: #334155; color: #ffffff; }
+
+    /* Barra inferior de navegación para volver / avanzar */
+    .nav-bottom-bar {
+      background: var(--corp-dark);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    /* Listado general en tarjetas móviles */
+    .lote-item {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .lote-item.seleccionado {
+      border-color: var(--corp-primary);
+      border-width: 2px;
+      background: #eff6ff;
+    }
+    .img-preview-aud { height: 180px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
   </style>
 </head>
 <body>
-<div class="container py-3">
+<div class="container py-3" style="max-width: 760px;">
 
-  <!-- Encabezado con las 2 pestañas -->
-  <div class="card p-3 shadow-sm mb-3 border-dark">
+  <!-- Encabezado Principal -->
+  <div class="app-header mb-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
       <div>
-        <h5 class="fw-bold text-primary mb-0">Comité Obsolescencia (Unanimidad 4/4) | HTC</h5>
-        <small class="text-muted">Gestión de novedades de inventario y aprobación gerencial</small>
+        <h6 class="fw-bold mb-0">Comité Obsolescencia 4/4 | HTC</h6>
+        <small style="opacity: 0.85; font-size: 0.78rem;">Evaluación ejecutiva y control de inventario</small>
       </div>
-      <ul class="nav nav-pills" role="tablist">
+      <ul class="nav nav-pills nav-tabs-custom" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tabComite" type="button">
-            1. Comité Gerencial (Votación)
+            1. Comité
           </button>
         </li>
         <li class="nav-item">
           <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tabCargaFotos" type="button">
-            2. Cargar Excel y Tomar Fotos
+            2. Carga y Fotos
           </button>
         </li>
       </ul>
     </div>
   </div>
 
-  <div id="loader" class="alert alert-info text-center fw-bold">Cargando inventario...</div>
+  <div id="loader" class="alert alert-info text-center fw-bold rounded-4">Sincronizando inventario...</div>
 
   <div class="tab-content">
 
     <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
     <div class="tab-pane fade show active" id="tabComite">
-      <div class="card p-3 shadow-sm mb-3">
-        <div class="row g-2 align-items-end">
-          <div class="col-md-4">
-            <label class="form-label small fw-bold text-danger mb-1">¿Quién está evaluando ahora?</label>
-            <select id="selectEvaluador" class="form-select border-danger fw-bold" onchange="renderComite()">
-              <option value="ANGELICA">Angélica (Gerente Administrativa)</option>
-              <option value="OSMEL">Osmel (Gerente)</option>
-              <option value="ORLANDO">Orlando (Director Comercial)</option>
-              <option value="ANDRES">Andrés (Jefe de Bodega)</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label small fw-bold mb-1">Tienda / Sucursal</label>
-            <select id="filtroSucursal" class="form-select" onchange="renderComite()">
+
+      <!-- Barra superior limpia: Tienda + Buscador + Exportar -->
+      <div class="card border-0 shadow-sm rounded-4 p-2 p-md-3 mb-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-7 col-md-5">
+            <select id="filtroSucursal" class="form-select form-select-sm fw-semibold rounded-3" onchange="idxComite=0; renderComite()">
               <option value="TODAS">Todas las tiendas</option>
             </select>
           </div>
-          <div class="col-md-3">
-            <label class="form-label small fw-bold mb-1">Filtrar por Estado</label>
-            <select id="filtroConsenso" class="form-select" onchange="renderComite()">
-              <option value="MIS_PENDIENTES">Pendientes de MI voto</option>
-              <option value="TODOS">Todos los productos</option>
-              <option value="APROBADO 4/4">Aprobados 4/4 (Listos LIKE)</option>
-              <option value="EN DISENSO">En Disenso</option>
-            </select>
+          <div class="col-5 col-md-4">
+            <input type="text" id="buscarComite" class="form-control form-control-sm rounded-3" placeholder="Buscar código..." oninput="idxComite=0; renderComite()">
           </div>
-          <div class="col-md-2">
-            <button class="btn btn-success btn-sm fw-semibold w-100" onclick="descargarCSV()">Exportar .CSV</button>
+          <div class="col-12 col-md-3">
+            <button class="btn btn-success btn-sm w-100 fw-semibold rounded-3" onclick="descargarCSV()">Exportar .CSV</button>
           </div>
         </div>
       </div>
 
-      <!-- Barra de salto rápido entre productos -->
-      <div id="navRapidaComite" class="card p-2 shadow-sm mb-3 bg-dark text-white d-none">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <button class="btn btn-outline-light btn-sm" onclick="moverComite(-1)">← Anterior</button>
+      <!-- Ficha Principal del Producto -->
+      <div id="fichaComite" class="ficha-card p-3 p-md-4 mb-3 d-none">
+
+        <!-- 1. Datos del producto ENCIMA de la foto -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-1 mb-2">
+          <div class="d-flex flex-wrap align-items-center gap-1">
+            <span class="badge bg-dark rounded-pill px-2 py-1" id="cCodigo"></span>
+            <span class="badge bg-primary rounded-pill px-2 py-1" id="cSucursal"></span>
+            <span class="badge bg-danger rounded-pill px-2 py-1" id="cEstadoNovedad"></span>
+          </div>
+          <span class="badge rounded-pill px-2 py-1" id="cBadgeConsenso">PENDIENTE</span>
+        </div>
+
+        <h5 class="fw-bold mb-3" style="line-height: 1.3; font-size: 1.08rem;" id="cDescripcion"></h5>
+
+        <!-- 2. Foto en un solo cuadro estilo pasarela -->
+        <div class="pasarela-box mb-3">
+          <div class="d-flex justify-content-center gap-2 mb-2">
+            <button type="button" id="pillFoto1" class="pill-foto active" onclick="cambiarSlideFoto(0)">1. Producto</button>
+            <button type="button" id="pillFoto2" class="pill-foto" onclick="cambiarSlideFoto(1)">2. Caja / Estado</button>
+          </div>
+          <div class="position-relative">
+            <button type="button" class="pasarela-btn prev" onclick="cambiarSlideFoto(-1, true)">‹</button>
+            <img id="cFotoPasarela" src="" class="pasarela-img" onclick="ampliarFoto(this.src)">
+            <button type="button" class="pasarela-btn next" onclick="cambiarSlideFoto(1, true)">›</button>
+          </div>
+          <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Desliza con las flechas o toca la imagen para ampliar</small>
+        </div>
+
+        <!-- 3. Métricas del lote -->
+        <div class="metric-grid mb-3">
+          <div>
+            <span class="metric-label">Cantidad</span>
+            <span class="metric-val text-primary" id="cCantidad">1</span>
+          </div>
+          <div>
+            <span class="metric-label">Días Inv.</span>
+            <span class="metric-val text-danger" id="cDias">0</span>
+          </div>
+          <div>
+            <span class="metric-label">Costo Unit.</span>
+            <span class="metric-val" id="cCostoUnit">$0</span>
+          </div>
+          <div>
+            <span class="metric-label">Costo Total</span>
+            <span class="metric-val text-dark" id="cCostoTotal">$0</span>
+          </div>
+        </div>
+
+        <!-- 4. Novedad y Seriales -->
+        <div class="rounded-3 p-2 px-3 mb-3" style="background: #fffbeb; border: 1px solid #fcd34d; font-size: 0.83rem;">
+          <div class="mb-1"><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
+          <div class="text-muted" style="font-size: 0.76rem; word-break: break-all;"><strong>Seriales:</strong> <span id="cSeriales">-</span></div>
+        </div>
+
+        <!-- 5. Identificación y Estado de los 4 directivos (Tocar tu nombre para evaluar) -->
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Toca tu nombre para evaluar:</small>
+          <span class="badge bg-primary" id="badgeQuienEvalua" style="font-size: 0.72rem;">Evaluando: Angélica</span>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="eval-card" id="card_OSMEL" onclick="seleccionarEvaluador('OSMEL')">
+              <div class="d-flex justify-content-between"><span class="eval-nombre">Osmel</span><span class="badge bg-primary d-none" id="tag_OSMEL">Tú</span></div>
+              <div class="eval-voto" id="vOsmel">Pendiente</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="eval-card" id="card_ANGELICA" onclick="seleccionarEvaluador('ANGELICA')">
+              <div class="d-flex justify-content-between"><span class="eval-nombre">Angélica</span><span class="badge bg-primary d-none" id="tag_ANGELICA">Tú</span></div>
+              <div class="eval-voto" id="vAngelica">Pendiente</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="eval-card" id="card_ORLANDO" onclick="seleccionarEvaluador('ORLANDO')">
+              <div class="d-flex justify-content-between"><span class="eval-nombre">Orlando</span><span class="badge bg-primary d-none" id="tag_ORLANDO">Tú</span></div>
+              <div class="eval-voto" id="vOrlando">Pendiente</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="eval-card" id="card_ANDRES" onclick="seleccionarEvaluador('ANDRES')">
+              <div class="d-flex justify-content-between"><span class="eval-nombre">Andrés</span><span class="badge bg-primary d-none" id="tag_ANDRES">Tú</span></div>
+              <div class="eval-voto" id="vAndres">Pendiente</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Subpanel dinámico para Descuento (% o $) -->
+        <div id="panelDescuento" class="card border-danger bg-danger-subtle p-3 rounded-4 mb-3 d-none">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong class="text-danger small">Configurar Descuento</strong>
+            <button type="button" class="btn-close btn-sm" onclick="cerrarPanelDescuento()"></button>
+          </div>
+          <div class="d-flex gap-1 mb-2">
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(10)">10%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(20)">20%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(30)">30%</button>
+            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold" onclick="setPorcentajeRapido(50)">50%</button>
+          </div>
+          <div class="row g-2 align-items-center mb-2">
+            <div class="col-5">
+              <select id="tipoDesc" class="form-select form-select-sm fw-bold" onchange="calcularPreviewDesc()">
+                <option value="PORC">Porcentaje (%)</option>
+                <option value="VALOR">Valor fijo ($)</option>
+              </select>
+            </div>
+            <div class="col-7">
+              <input type="number" id="valorDesc" class="form-control form-control-sm fw-bold" placeholder="Ej. 25" oninput="calcularPreviewDesc()">
+            </div>
+          </div>
+          <div class="small fw-bold text-dark mb-2" id="previewDescTexto">Precio final estimado: -</div>
+          <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
+        </div>
+
+        <!-- 7. Comentario opcional + 5 Botones de Decisión -->
+        <div class="mb-2">
+          <input type="text" id="cMotivo" class="form-control form-control-sm rounded-3" placeholder="Nota opcional (ej. Enviar a Sede Américas)...">
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
+          </div>
+          <div class="col-6">
+            <button type="button" class="btn-decision btn-obs w-100" onclick="votarComite('Obsequio')">🎁 Obsequio</button>
+          </div>
+          <div class="col-6">
+            <button type="button" class="btn-decision btn-tras w-100" onclick="votarComite('Cambiar de tienda')">🚚 Cambiar tienda</button>
+          </div>
+          <div class="col-6">
+            <button type="button" class="btn-decision btn-reem w-100" onclick="votarComite('Reempacar p/ venta')">📦 Reempacar venta</button>
+          </div>
+          <div class="col-12">
+            <button type="button" class="btn-decision btn-baja w-100" onclick="votarComite('Dar de baja')">🗑️ Dar de baja</button>
+          </div>
+        </div>
+
+        <div id="msgComite" class="text-success fw-bold small text-center mb-2"></div>
+
+        <!-- 8. Barra inferior para volver y rectificar o avanzar -->
+        <div class="nav-bottom-bar">
+          <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3" onclick="moverComite(-1)">← Anterior</button>
           <div class="text-center">
-            <span class="fw-bold" id="contadorComite">Producto 1 de 1</span>
-            <div class="form-check form-switch d-inline-block ms-3 small">
-              <input class="form-check-input" type="checkbox" id="chkAutoAvance" checked>
-              <label class="form-check-label" for="chkAutoAvance">Pasar al siguiente al votar</label>
-            </div>
+            <div class="fw-bold small" id="contadorComite">Producto 1 de 1</div>
+            <div style="font-size: 0.68rem; opacity: 0.8;">Avance automático al votar</div>
           </div>
-          <button class="btn btn-warning btn-sm fw-bold" onclick="moverComite(1)">Siguiente →</button>
+          <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3" onclick="moverComite(1)">Siguiente →</button>
         </div>
+
       </div>
 
-      <!-- Ficha del producto con 2 fotos para Gerencia -->
-      <div id="fichaComite" class="card p-3 p-md-4 shadow-sm mb-4 d-none border-primary border-2">
-        <div class="row g-4">
-          <div class="col-md-5">
-            <div class="row g-2 text-center">
-              <div class="col-6">
-                <span class="badge bg-secondary mb-1 d-block">1. Producto</span>
-                <img id="cFoto1" src="https://via.placeholder.com/250x185?text=Sin+Foto+1" class="img-fluid img-preview border p-1 w-100" onclick="ampliarFoto(this.src)">
-              </div>
-              <div class="col-6">
-                <span class="badge bg-secondary mb-1 d-block">2. Caja / Estado</span>
-                <img id="cFoto2" src="https://via.placeholder.com/250x185?text=Sin+Foto+2" class="img-fluid img-preview border p-1 w-100" onclick="ampliarFoto(this.src)">
-              </div>
-            </div>
-            <small class="text-muted d-block text-center mt-1">Toca cualquier foto para ampliarla</small>
-          </div>
-
-          <div class="col-md-7">
-            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
-              <div>
-                <span class="badge bg-dark" id="cCodigo"></span>
-                <span class="badge bg-info text-dark" id="cSucursal"></span>
-                <span class="badge bg-danger" id="cEstadoNovedad"></span>
-                <h5 class="fw-bold mt-1 mb-0" id="cDescripcion"></h5>
-              </div>
-              <span class="badge fs-6" id="cBadgeConsenso">PENDIENTE</span>
-            </div>
-
-            <div class="row g-2 my-2 p-2 bg-light rounded border text-center">
-              <div class="col-3">
-                <small class="text-muted d-block">Cantidad</small>
-                <strong class="fs-5 text-primary" id="cCantidad">1</strong>
-              </div>
-              <div class="col-3">
-                <small class="text-muted d-block">Días Inv.</small>
-                <strong class="fs-5 text-danger" id="cDias">0</strong>
-              </div>
-              <div class="col-3">
-                <small class="text-muted d-block">Costo Unit.</small>
-                <strong class="fs-6" id="cCostoUnit">$0</strong>
-              </div>
-              <div class="col-3">
-                <small class="text-muted d-block">Costo Total</small>
-                <strong class="fs-6 text-dark" id="cCostoTotal">$0</strong>
-              </div>
-            </div>
-
-            <div class="alert alert-warning py-2 px-3 small mb-2">
-              <strong>Novedad reportada:</strong> <span id="cObservacion">-</span><br>
-              <strong>Seriales:</strong> <span id="cSeriales" class="text-muted">-</span>
-            </div>
-
-            <div class="row g-2 mb-3">
-              <div class="col-6 col-md-3"><div class="voto-card"><strong class="d-block text-primary">Osmel</strong><span id="vOsmel">-</span></div></div>
-              <div class="col-6 col-md-3"><div class="voto-card"><strong class="d-block text-primary">Angélica</strong><span id="vAngelica">-</span></div></div>
-              <div class="col-6 col-md-3"><div class="voto-card"><strong class="d-block text-primary">Orlando</strong><span id="vOrlando">-</span></div></div>
-              <div class="col-6 col-md-3"><div class="voto-card"><strong class="d-block text-primary">Andrés</strong><span id="vAndres">-</span></div></div>
-            </div>
-
-            <div class="mb-2">
-              <input type="text" id="cMotivo" class="form-control form-control-sm" placeholder="Comentario opcional (ej. Descuento 30% por caja dañada)">
-            </div>
-
-            <div class="d-flex flex-wrap gap-2">
-              <button class="btn btn-danger fw-semibold flex-fill" onclick="votarComite('DESCUENTO AUTORIZADO')">1. Descuento</button>
-              <button class="btn btn-warning fw-semibold flex-fill" onclick="votarComite('OBSEQUIO / BONIFICACION')">2. Obsequio / Bonificación</button>
-              <button class="btn btn-primary fw-semibold flex-fill" onclick="votarComite('TRASLADO / REMISION')">3. Traslado / Remisión</button>
-            </div>
-            <div id="msgComite" class="text-success fw-bold small mt-2"></div>
-          </div>
+      <!-- Listado General Estético (Tarjetas táctiles) -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+          <h6 class="fw-bold mb-0">Listado General (<span id="totalComite">0</span> lotes)</h6>
+          <small class="text-muted">Toca cualquiera para abrir</small>
         </div>
+        <div id="listaTarjetasComite"></div>
       </div>
 
-      <div class="card p-3 shadow-sm">
-        <h6 class="fw-bold mb-2">Listado General (<span id="totalComite">0</span> lotes)</h6>
-        <div class="table-responsive">
-          <table class="table table-hover table-sm align-middle small">
-            <thead class="table-dark">
-              <tr>
-                <th>Tienda</th>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Cant.</th>
-                <th>Días</th>
-                <th>Costo Total</th>
-                <th>Fotos</th>
-                <th>Consenso</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyComite"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
     <div class="tab-pane fade" id="tabCargaFotos">
-      <div class="card p-3 shadow-sm mb-3 border-success">
-        <h6 class="fw-bold text-success mb-2">Paso 1: Subir Novedades desde tu Excel de Pistoleo</h6>
-        <p class="small text-muted mb-2">Sube tu archivo Excel (`plantilla.xlsx`). El sistema lee la hoja <code>Toma(pistoleo)</code>, filtra únicamente las filas con novedad o >130 días con observación, y las agrupa automáticamente por Tienda + Código + Novedad.</p>
+      <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+        <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades desde Excel</h6>
+        <p class="small text-muted mb-2">Sube tu plantilla con la hoja <code>Toma(pistoleo)</code>. Se agrupan automáticamente por Tienda + Código + Novedad.</p>
         <div class="row g-2 align-items-end">
-          <div class="col-md-5">
-            <label class="form-label small fw-bold">Archivo Excel (.xlsx / .csv)</label>
+          <div class="col-12 col-md-5">
+            <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
             <input type="file" id="inputExcel" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
           </div>
-          <div class="col-md-3">
-            <label class="form-label small fw-bold">Tienda (si no viene en columna)</label>
+          <div class="col-12 col-md-3">
+            <label class="form-label small fw-bold mb-1">Tienda por defecto</label>
             <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. LTE BOSA HOLANDA">
           </div>
-          <div class="col-md-4">
-            <button class="btn btn-success btn-sm w-100 fw-bold" onclick="importarNovedadesExcel()">Importar y Agrupar Novedades</button>
+          <div class="col-12 col-md-4">
+            <button class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="importarNovedadesExcel()">Importar y Agrupar</button>
           </div>
         </div>
         <div id="msgImport" class="small fw-bold text-primary mt-2"></div>
       </div>
 
-      <!-- Ficha de captura rápida de 2 fotos en tienda -->
-      <div id="panelFotosAud" class="card p-3 shadow-sm mb-3 border-primary d-none">
+      <!-- Panel de 2 Fotos en tienda -->
+      <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="fw-bold text-primary mb-0" id="fTitulo">Selecciona un producto abajo para tomar sus 2 fotos</h6>
-          <button class="btn btn-outline-primary btn-sm" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
+          <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un producto abajo</h6>
+          <button class="btn btn-outline-primary btn-sm rounded-3" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
         </div>
-        <div class="row g-3 text-center">
+        <div class="row g-2 text-center">
           <div class="col-6">
-            <div class="border rounded p-2 bg-light">
-              <span class="badge bg-dark mb-1">Foto 1: Producto / Serial</span>
-              <img id="aFoto1" src="https://via.placeholder.com/250x185?text=Sin+Foto+1" class="img-fluid img-preview d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-              <label class="btn btn-primary btn-sm w-100 fw-semibold">
-                Tomar / Subir Foto 1
+            <div class="border rounded-3 p-2 bg-light">
+              <span class="badge bg-dark mb-1">1. Producto</span>
+              <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+              <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
+                Tomar Foto 1
                 <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(1, this)">
               </label>
             </div>
           </div>
           <div class="col-6">
-            <div class="border rounded p-2 bg-light">
-              <span class="badge bg-danger mb-1">Foto 2: Estado / Caja Dañada</span>
-              <img id="aFoto2" src="https://via.placeholder.com/250x185?text=Sin+Foto+2" class="img-fluid img-preview d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-              <label class="btn btn-danger btn-sm w-100 fw-semibold">
-                Tomar / Subir Foto 2
+            <div class="border rounded-3 p-2 bg-light">
+              <span class="badge bg-danger mb-1">2. Caja / Estado</span>
+              <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+              <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
+                Tomar Foto 2
                 <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(2, this)">
               </label>
             </div>
@@ -239,29 +442,13 @@
         <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
       </div>
 
-      <!-- Tabla de lotes pendientes de foto -->
-      <div class="card p-3 shadow-sm">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h6 class="fw-bold mb-0">Paso 2: Toca un producto para tomarle las 2 fotos en tienda</h6>
-          <input type="text" id="buscarFoto" class="form-control form-control-sm w-auto" placeholder="Buscar código o tienda..." oninput="renderTablaFotos()">
+      <!-- Listado para tomar fotos -->
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+          <h6 class="fw-bold mb-0 small">Paso 2: Toca un lote para tomar sus 2 fotos</h6>
+          <input type="text" id="buscarFoto" class="form-control form-control-sm w-50" placeholder="Buscar..." oninput="renderTablaFotos()">
         </div>
-        <div class="table-responsive">
-          <table class="table table-sm table-hover align-middle small">
-            <thead class="table-secondary">
-              <tr>
-                <th>Tienda</th>
-                <th>Código</th>
-                <th>Descripción</th>
-                <th>Cant.</th>
-                <th>Novedad</th>
-                <th>Foto 1</th>
-                <th>Foto 2</th>
-                <th>Acción</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyFotos"></tbody>
-          </table>
-        </div>
+        <div id="listaTarjetasFotos"></div>
       </div>
     </div>
 
@@ -271,7 +458,7 @@
 <!-- Modal para ampliar foto -->
 <div class="modal fade" id="modalFoto" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content bg-dark">
+    <div class="modal-content bg-dark border-0">
       <div class="modal-body text-center p-2">
         <img id="imgModalGrande" src="" class="img-fluid rounded">
       </div>
@@ -282,13 +469,42 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
+  const NOMBRES_EVAL = { OSMEL: 'Osmel', ANGELICA: 'Angélica', ORLANDO: 'Orlando', ANDRES: 'Andrés' };
+
+  let evaluadorActivo = localStorage.getItem('htc_evaluador') || 'ANGELICA';
   let listaComite = [];
   let listaFiltrada = [];
   let idxComite = 0;
+  let slideFotoIdx = 0;
   let itemActivo = null;
   let itemFotoActivo = null;
 
-  window.onload = cargarDatos;
+  window.onload = () => {
+    actualizarUIEvaluador();
+    cargarDatos();
+  };
+
+  function seleccionarEvaluador(codigo) {
+    evaluadorActivo = codigo;
+    localStorage.setItem('htc_evaluador', codigo);
+    actualizarUIEvaluador();
+    if (itemActivo) mostrarFichaComite(idxComite);
+  }
+
+  function actualizarUIEvaluador() {
+    document.getElementById('badgeQuienEvalua').innerText = 'Evaluando: ' + NOMBRES_EVAL[evaluadorActivo];
+    ['OSMEL', 'ANGELICA', 'ORLANDO', 'ANDRES'].forEach(k => {
+      const card = document.getElementById('card_' + k);
+      const tag = document.getElementById('tag_' + k);
+      if (k === evaluadorActivo) {
+        card.classList.add('activo');
+        tag.classList.remove('d-none');
+      } else {
+        card.classList.remove('activo');
+        tag.classList.add('d-none');
+      }
+    });
+  }
 
   async function cargarDatos() {
     const loader = document.getElementById('loader');
@@ -305,7 +521,7 @@
         seleccionarParaFoto(listaComite[0].fila);
       }
     } catch (e) {
-      loader.className = 'alert alert-danger text-center';
+      loader.className = 'alert alert-danger text-center rounded-4';
       loader.innerText = 'Error al conectar con Google Sheets.';
     }
   }
@@ -314,53 +530,55 @@
     const sucs = [...new Set(listaComite.map(x => x.sucursal).filter(Boolean))];
     const sel = document.getElementById('filtroSucursal');
     const actual = sel.value;
-    sel.innerHTML = '<option value="TODAS">Todas las tiendas</option>' + sucs.map(s => `<option value="${s}">${s}</option>`).join('');
+    sel.innerHTML = '<option value="TODAS">Todas las tiendas (' + listaComite.length + ')</option>' +
+      sucs.map(s => `<option value="${s}">${s}</option>`).join('');
     if (sucs.includes(actual)) sel.value = actual;
   }
 
   // ================= PESTAÑA 1: COMITÉ GERENCIAL =================
   function renderComite() {
-    const evalActual = document.getElementById('selectEvaluador').value;
     const suc = document.getElementById('filtroSucursal').value;
-    const cons = document.getElementById('filtroConsenso').value;
+    const q = document.getElementById('buscarComite').value.trim().toLowerCase();
 
     listaFiltrada = listaComite.filter(item => {
       const okSuc = (suc === 'TODAS') || item.sucursal === suc;
-      let okCons = true;
-      if (cons === 'MIS_PENDIENTES') okCons = !item.votos[evalActual];
-      else if (cons !== 'TODOS') okCons = item.consenso.startsWith(cons);
-      return okSuc && okCons;
+      const okQ = !q || item.codigo.toLowerCase().includes(q) || item.descripcion.toLowerCase().includes(q);
+      return okSuc && okQ;
     });
 
     document.getElementById('totalComite').innerText = listaFiltrada.length;
-    document.getElementById('tbodyComite').innerHTML = listaFiltrada.map((it, i) => `
-      <tr class="${i === idxComite ? 'table-primary' : ''}">
-        <td>${it.sucursal}</td>
-        <td class="fw-bold">${it.codigo}</td>
-        <td>${it.descripcion}</td>
-        <td class="fw-bold text-center">${it.cantidad}</td>
-        <td class="text-danger fw-bold">${it.dias}</td>
-        <td>$${it.costoTotal.toLocaleString('es-CO')}</td>
-        <td>${(it.foto1 ? '📷1 ' : '') + (it.foto2 ? '📷2' : '') || '—'}</td>
-        <td><span class="badge ${badgeConsenso(it.consenso)}">${it.consenso}</span></td>
-        <td><button class="btn btn-outline-primary btn-sm" onclick="seleccionarComite(${i})">Ver</button></td>
-      </tr>
+    document.getElementById('listaTarjetasComite').innerHTML = listaFiltrada.map((it, i) => `
+      <div class="lote-item ${i === idxComite ? 'seleccionado' : ''}" onclick="mostrarFichaComite(${i}); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <span class="badge bg-dark">${it.codigo}</span>
+            <span class="badge bg-light text-dark border">${it.sucursal}</span>
+            <span class="badge bg-danger-subtle text-danger">${it.dias} d</span>
+            <div class="fw-bold small mt-1">${it.descripcion}</div>
+            <div class="text-muted" style="font-size: 0.76rem;">
+              Cant: <strong>${it.cantidad}</strong> · Total: <strong>$${it.costoTotal.toLocaleString('es-CO')}</strong> · ${it.estado}
+            </div>
+          </div>
+          <span class="badge ${badgeConsenso(it.consenso)}" style="font-size: 0.7rem;">${it.consenso}</span>
+        </div>
+      </div>
     `).join('');
 
     if (listaFiltrada.length > 0) {
       if (idxComite >= listaFiltrada.length) idxComite = 0;
-      seleccionarComite(idxComite);
+      mostrarFichaComite(idxComite);
     } else {
       document.getElementById('fichaComite').classList.add('d-none');
-      document.getElementById('navRapidaComite').classList.add('d-none');
     }
   }
 
-  function seleccionarComite(i) {
+  function mostrarFichaComite(i) {
     idxComite = i;
     const it = listaFiltrada[i];
     itemActivo = it;
-    document.getElementById('navRapidaComite').classList.remove('d-none');
+    slideFotoIdx = 0;
+    cerrarPanelDescuento();
+
     document.getElementById('fichaComite').classList.remove('d-none');
     document.getElementById('contadorComite').innerText = `Producto ${i + 1} de ${listaFiltrada.length}`;
 
@@ -375,48 +593,127 @@
     document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación';
     document.getElementById('cSeriales').innerText = it.seriales || 'N/A';
 
-    document.getElementById('vOsmel').innerText = it.votos.OSMEL || 'Pendiente';
-    document.getElementById('vAngelica').innerText = it.votos.ANGELICA || 'Pendiente';
-    document.getElementById('vOrlando').innerText = it.votos.ORLANDO || 'Pendiente';
-    document.getElementById('vAndres').innerText = it.votos.ANDRES || 'Pendiente';
+    pintarVotoTarjeta('vOsmel', it.votos.OSMEL);
+    pintarVotoTarjeta('vAngelica', it.votos.ANGELICA);
+    pintarVotoTarjeta('vOrlando', it.votos.ORLANDO);
+    pintarVotoTarjeta('vAndres', it.votos.ANDRES);
 
     const badge = document.getElementById('cBadgeConsenso');
     badge.innerText = it.consenso;
-    badge.className = 'badge fs-6 ' + badgeConsenso(it.consenso);
+    badge.className = 'badge rounded-pill px-2 py-1 ' + badgeConsenso(it.consenso);
 
-    document.getElementById('cFoto1').src = it.foto1 || 'https://via.placeholder.com/250x185?text=Sin+Foto+Producto';
-    document.getElementById('cFoto2').src = it.foto2 || 'https://via.placeholder.com/250x185?text=Sin+Foto+Caja';
+    actualizarPasarelaFoto();
     document.getElementById('cMotivo').value = '';
     document.getElementById('msgComite').innerText = '';
+
+    document.querySelectorAll('#listaTarjetasComite .lote-item').forEach((el, idx) => {
+      el.classList.toggle('seleccionado', idx === i);
+    });
+  }
+
+  function pintarVotoTarjeta(elId, texto) {
+    const el = document.getElementById(elId);
+    if (texto) {
+      el.innerText = texto;
+      el.classList.add('votado');
+    } else {
+      el.innerText = 'Pendiente';
+      el.classList.remove('votado');
+    }
+  }
+
+  function cambiarSlideFoto(val, relativo = false) {
+    if (relativo) slideFotoIdx = (slideFotoIdx + val + 2) % 2;
+    else slideFotoIdx = val;
+    actualizarPasarelaFoto();
+  }
+
+  function actualizarPasarelaFoto() {
+    if (!itemActivo) return;
+    const f1 = itemActivo.foto1 || 'https://via.placeholder.com/400x260?text=Sin+Foto+1+(Producto)';
+    const f2 = itemActivo.foto2 || 'https://via.placeholder.com/400x260?text=Sin+Foto+2+(Caja+o+Estado)';
+    document.getElementById('cFotoPasarela').src = slideFotoIdx === 0 ? f1 : f2;
+    document.getElementById('pillFoto1').classList.toggle('active', slideFotoIdx === 0);
+    document.getElementById('pillFoto2').classList.toggle('active', slideFotoIdx === 1);
   }
 
   function moverComite(delta) {
     if (listaFiltrada.length === 0) return;
     idxComite = (idxComite + delta + listaFiltrada.length) % listaFiltrada.length;
-    seleccionarComite(idxComite);
+    mostrarFichaComite(idxComite);
+  }
+
+  // Calculadora de descuento
+  function abrirPanelDescuento() {
+    document.getElementById('panelDescuento').classList.remove('d-none');
+    document.getElementById('valorDesc').value = '';
+    document.getElementById('previewDescTexto').innerText = 'Ingresa el % o valor a descontar';
+    document.getElementById('valorDesc').focus();
+  }
+
+  function cerrarPanelDescuento() {
+    document.getElementById('panelDescuento').classList.add('d-none');
+  }
+
+  function setPorcentajeRapido(porc) {
+    document.getElementById('tipoDesc').value = 'PORC';
+    document.getElementById('valorDesc').value = porc;
+    calcularPreviewDesc();
+  }
+
+  function calcularPreviewDesc() {
+    if (!itemActivo) return '';
+    const tipo = document.getElementById('tipoDesc').value;
+    const val = Number(document.getElementById('valorDesc').value || 0);
+    const base = itemActivo.costoUnit || 0;
+    if (val <= 0) {
+      document.getElementById('previewDescTexto').innerText = 'Ingresa un valor mayor a 0';
+      return '';
+    }
+    let resumen = '';
+    if (tipo === 'PORC') {
+      const finalUnit = Math.max(0, Math.round(base * (1 - val / 100)));
+      resumen = `Descuento ${val}% ($${finalUnit.toLocaleString('es-CO')} c/u)`;
+    } else {
+      const finalUnit = Math.max(0, base - val);
+      resumen = `Descuento -$${val.toLocaleString('es-CO')} ($${finalUnit.toLocaleString('es-CO')} c/u)`;
+    }
+    document.getElementById('previewDescTexto').innerText = 'Se registrará: ' + resumen;
+    return resumen;
+  }
+
+  function confirmarDescuento() {
+    const resumen = calcularPreviewDesc();
+    if (!resumen) return alert('Por favor indica el porcentaje o valor del descuento.');
+    cerrarPanelDescuento();
+    votarComite(resumen);
   }
 
   async function votarComite(decision) {
     if (!itemActivo) return;
-    const evaluador = document.getElementById('selectEvaluador').value;
     const motivo = document.getElementById('cMotivo').value.trim();
     const msg = document.getElementById('msgComite');
-    msg.innerText = 'Guardando voto...';
+    msg.innerText = `Guardando voto de ${NOMBRES_EVAL[evaluadorActivo]}...`;
 
     const resp = await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ accion: 'votar', fila: itemActivo.fila, evaluador, decision, motivo })
+      body: JSON.stringify({ accion: 'votar', fila: itemActivo.fila, evaluador: evaluadorActivo, decision, motivo })
     });
     const res = await resp.json();
     if (res.ok) {
-      itemActivo.votos[evaluador] = motivo ? `${decision} | ${motivo}` : decision;
+      itemActivo.votos[evaluadorActivo] = motivo ? `${decision} (${motivo})` : decision;
       itemActivo.consenso = res.consenso;
-      msg.innerText = `¡Voto registrado! (${res.consenso})`;
-      if (document.getElementById('chkAutoAvance').checked) {
-        setTimeout(() => renderComite(), 400);
-      } else {
-        renderComite();
-      }
+
+      mostrarFichaComite(idxComite);
+      msg.innerText = `✓ Voto de ${NOMBRES_EVAL[evaluadorActivo]} guardado. Pasando al siguiente...`;
+
+      setTimeout(() => {
+        if (listaFiltrada.length > 1) {
+          moverComite(1);
+        } else {
+          renderComite();
+        }
+      }, 650);
     }
   }
 
@@ -438,35 +735,35 @@
     reader.onload = async function(e) {
       const wb = XLSX.read(e.target.result, { type: 'array' });
       const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre]);
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
 
       const grupos = {};
       rows.forEach(r => {
-        const codigo = String(r['Codigo'] || r['Código Producto'] || '').split('(')[0].trim();
-        const serial = String(r['Serial'] || r['Serial 1'] || '').trim();
-        const desc = String(r['Descripcion'] || r['Producto'] || '').trim();
-        const sucursal = String(r['Sucursal'] || tiendaDefault).trim();
-        const dias = Number(r['Antiguedad'] || r['Dias en inventario'] || 0);
-        const costo = Number(r['costo de compra'] || r['Costo de compra'] || 0);
-        const estado = String(r['Novedades(estado)'] || '').trim();
-        const obs = String(r['Observacion '] || r['Observacion'] || '').trim();
+        const clean = {};
+        Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
 
-        if (!codigo && !serial) return;
-        const esNovedad = ['Danado', 'Reempaque', 'Faltante', 'Cruce', 'Sobrante'].includes(estado) || (dias >= 130 && obs !== '');
+        const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
+        const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
+        const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
+        const sucursal = String(clean['Sucursal'] || tiendaDefault).trim();
+        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
+        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
+        const diferencia = Number(clean['Diferencia'] || 0);
+        const estado = String(clean['Novedades(estado)'] || '').trim();
+        const obs = String(clean['Observacion'] || '').trim();
+
+        if (!codigo || codigo === '0' || !desc || desc === '0') return;
+        const tieneEstadoNovedad = estado !== '' && estado.toLowerCase() !== 'buen estado';
+        const esNovedad = obs !== '' || tieneEstadoNovedad || diferencia !== 0 || dias >= 130;
         if (!esNovedad) return;
 
-        const clave = `${sucursal}||${codigo}||${estado}||${obs}`;
+        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Novedad' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >130d'));
+        const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
+
         if (!grupos[clave]) {
           grupos[clave] = {
-            sucursal,
-            codigo,
-            descripcion: desc,
-            cantidad: 0,
-            serialesArr: [],
-            dias,
-            costoUnit: costo,
-            estado: estado || 'Obsolescencia',
-            observacion: obs
+            sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [],
+            dias, costoUnit: costo, estado: estadoFinal, observacion: obs
           };
         }
         grupos[clave].cantidad += 1;
@@ -474,20 +771,14 @@
       });
 
       const lotes = Object.values(grupos).map(g => ({
-        sucursal: g.sucursal,
-        codigo: g.codigo,
-        descripcion: g.descripcion,
-        cantidad: g.cantidad,
-        seriales: g.serialesArr.join(', '),
-        dias: g.dias,
-        costoUnit: g.costoUnit,
-        costoTotal: g.costoUnit * g.cantidad,
-        estado: g.estado,
-        observacion: g.observacion
+        sucursal: g.sucursal, codigo: g.codigo, descripcion: g.descripcion,
+        cantidad: g.cantidad, seriales: g.serialesArr.join(', '),
+        dias: g.dias, costoUnit: g.costoUnit, costoTotal: g.costoUnit * g.cantidad,
+        estado: g.estado, observacion: g.observacion
       }));
 
       if (lotes.length === 0) {
-        msg.innerText = 'No se encontraron filas con Danado, Reempaque, Faltante, Cruce u observación >130 días.';
+        msg.innerText = 'No se encontraron novedades válidas en el archivo.';
         return;
       }
 
@@ -497,7 +788,7 @@
         body: JSON.stringify({ accion: 'importar_novedades', lotes })
       });
       const res = await resp.json();
-      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes al Comité.`;
+      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes.`;
       cargarDatos();
     };
     reader.readAsArrayBuffer(file);
@@ -506,17 +797,21 @@
   function renderTablaFotos() {
     const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
     const filtrados = listaComite.filter(x => !q || x.codigo.toLowerCase().includes(q) || x.descripcion.toLowerCase().includes(q) || x.sucursal.toLowerCase().includes(q));
-    document.getElementById('tbodyFotos').innerHTML = filtrados.map(it => `
-      <tr class="${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'table-warning' : ''}">
-        <td>${it.sucursal}</td>
-        <td class="fw-bold">${it.codigo}</td>
-        <td>${it.descripcion}</td>
-        <td class="fw-bold text-center">${it.cantidad}</td>
-        <td><span class="badge bg-secondary">${it.estado}</span> ${it.observacion}</td>
-        <td class="text-center">${it.foto1 ? '✅' : '❌'}</td>
-        <td class="text-center">${it.foto2 ? '✅' : '❌'}</td>
-        <td><button class="btn btn-primary btn-sm" onclick="seleccionarParaFoto(${it.fila})">Fotos</button></td>
-      </tr>
+    document.getElementById('listaTarjetasFotos').innerHTML = filtrados.map(it => `
+      <div class="lote-item ${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'seleccionado' : ''}" onclick="seleccionarParaFoto(${it.fila}); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <div>
+            <span class="badge bg-dark">${it.codigo}</span>
+            <span class="badge bg-light text-dark border">${it.sucursal}</span>
+            <div class="fw-bold small mt-1">${it.descripcion} (${it.cantidad} und.)</div>
+            <div class="text-muted" style="font-size: 0.75rem;">${it.estado} · ${it.observacion}</div>
+          </div>
+          <div class="text-end small">
+            <div>Foto 1: ${it.foto1 ? '✅' : '❌'}</div>
+            <div>Foto 2: ${it.foto2 ? '✅' : '❌'}</div>
+          </div>
+        </div>
+      </div>
     `).join('');
   }
 
@@ -525,21 +820,17 @@
     if (!it) return;
     itemFotoActivo = it;
     document.getElementById('panelFotosAud').classList.remove('d-none');
-    document.getElementById('fTitulo').innerText = `${it.codigo} - ${it.descripcion} (${it.sucursal} | ${it.cantidad} und.)`;
-    document.getElementById('aFoto1').src = it.foto1 || 'https://via.placeholder.com/250x185?text=Sin+Foto+1';
-    document.getElementById('aFoto2').src = it.foto2 || 'https://via.placeholder.com/250x185?text=Sin+Foto+2';
+    document.getElementById('fTitulo').innerText = `${it.codigo} - ${it.descripcion} (${it.sucursal})`;
+    document.getElementById('aFoto1').src = it.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
+    document.getElementById('aFoto2').src = it.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
     document.getElementById('msgFotoAud').innerText = '';
     renderTablaFotos();
   }
 
   function siguienteSinFoto() {
     const pendiente = listaComite.find(x => !x.foto1 || !x.foto2);
-    if (pendiente) {
-      seleccionarParaFoto(pendiente.fila);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      alert('¡Todos los productos ya tienen sus 2 fotos cargadas!');
-    }
+    if (pendiente) seleccionarParaFoto(pendiente.fila);
+    else alert('¡Todos los lotes ya tienen sus 2 fotos!');
   }
 
   function subirFotoComprimida(numFoto, inputEl) {
@@ -580,9 +871,9 @@
             itemFotoActivo.foto2 = res.fotoUrl;
             document.getElementById('aFoto2').src = res.fotoUrl;
           }
-          msg.innerText = `¡Foto ${numFoto} guardada con éxito!`;
+          msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
           renderTablaFotos();
-          renderComite();
+          if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
         }
       };
       img.src = ev.target.result;
