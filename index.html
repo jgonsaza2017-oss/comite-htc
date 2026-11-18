@@ -18,7 +18,7 @@
       background-color: var(--corp-bg);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: #0f172a;
-      padding-bottom: 84px; /* Espacio inferior para que la barra flotante no tape contenido */
+      padding-bottom: 84px;
     }
     .app-header {
       background: linear-gradient(135deg, var(--corp-dark) 0%, var(--corp-primary) 100%);
@@ -28,7 +28,6 @@
       box-shadow: 0 5px 15px rgba(11, 25, 44, 0.2);
       border-bottom: 3px solid var(--corp-accent);
     }
-    /* Selector segmentado interactivo */
     .nav-segmented {
       background: rgba(255, 255, 255, 0.14);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -231,7 +230,7 @@
       pointer-events: auto;
     }
 
-    /* Tarjeta sincronizada del lote activo */
+    /* Tarjeta sincronizada y tarjetas de fotos */
     .lote-item {
       background: #ffffff;
       border-radius: 12px;
@@ -241,8 +240,27 @@
     }
     .lote-item.seleccionado {
       border-color: var(--corp-primary);
-      background: #ffffff;
+      background: #eff6ff;
       box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
+    }
+
+    /* Botón de seriales desplegable */
+    .btn-seriales-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e2e8f0;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-seriales-pill:hover {
+      background: #cbd5e1;
     }
 
     /* Caja independiente de Totales Financieros */
@@ -356,7 +374,9 @@
         <!-- 4. Novedad y Seriales en formato compacto -->
         <div class="rounded-3 px-2 py-1 mb-2" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 0.76rem;">
           <div><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
-          <div class="text-muted" style="font-size: 0.7rem; word-break: break-all;"><strong>Seriales:</strong> <span id="cSeriales">-</span></div>
+          <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.7rem;">
+            <strong>Seriales:</strong> <span id="cSeriales">-</span>
+          </div>
         </div>
 
         <!-- 5. Identificación y Estado de los 4 directivos -->
@@ -551,9 +571,9 @@
 
       <!-- Panel de 2 Fotos en tienda -->
       <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
           <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un producto abajo</h6>
-          <button class="btn btn-outline-primary btn-sm rounded-3" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
+          <button class="btn btn-outline-primary btn-sm rounded-3 flex-shrink-0" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
         </div>
         <div class="row g-2 text-center">
           <div class="col-6">
@@ -580,13 +600,41 @@
         <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
       </div>
 
-      <!-- Listado para tomar fotos -->
+      <!-- Listado colaborativo para tomar fotos (2 personas a la vez) -->
       <div class="card border-0 shadow-sm rounded-4 p-3">
-        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-          <h6 class="fw-bold mb-0 small">Paso 2: Toca un lote para tomar sus 2 fotos</h6>
-          <input type="text" id="buscarFoto" class="form-control form-control-sm w-50" placeholder="Buscar..." oninput="renderTablaFotos()">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+          <div>
+            <h6 class="fw-bold mb-0 small">Paso 2: Pendientes por fotografiar (<span id="cntPendientesFoto">0</span>)</h6>
+            <small class="text-success fw-semibold" style="font-size: 0.68rem;" id="estadoSyncFotos">● Sincronización en vivo cada 6s</small>
+          </div>
+          <div class="d-flex gap-1">
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 fw-bold" title="Actualizar ahora" onclick="sincronizarSilencioso(true)">🔄</button>
+          </div>
         </div>
-        <div id="listaTarjetasFotos"></div>
+
+        <!-- Barra de división de trabajo entre 2 personas + Buscador -->
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <select id="filtroBloquePersona" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderTablaFotos()">
+              <option value="TODOS">👥 Ver todos los pendientes</option>
+              <option value="MITAD1">👤 Persona 1 (Primera mitad)</option>
+              <option value="MITAD2">👤 Persona 2 (Segunda mitad)</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <input type="text" id="buscarFoto" class="form-control form-control-sm rounded-3" placeholder="Buscar código o serial..." oninput="renderTablaFotos()">
+          </div>
+        </div>
+
+        <div id="listaTarjetasFotos" class="d-flex flex-column gap-2"></div>
+
+        <!-- Desplegable opcional para lotes que ya tienen sus 2 chulos verdes -->
+        <div id="bloqueFotosCompletadas" class="mt-3 pt-2 border-top text-center d-none">
+          <button type="button" class="btn btn-link btn-sm text-decoration-none text-success fw-semibold p-0" style="font-size: 0.75rem;" onclick="toggleFotosCompletadas()">
+            <span id="txtToggleCompletadas">▾ Ver lotes ya fotografiados (0)</span>
+          </button>
+          <div id="listaFotosCompletadas" class="mt-2 text-start d-flex flex-column gap-2 d-none"></div>
+        </div>
       </div>
     </div>
 
@@ -616,6 +664,26 @@
   </div>
 </div>
 
+<!-- Modal desplegable para ver todos los seriales de un lote -->
+<div class="modal fade" id="modalSeriales" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header py-2 px-3 bg-dark text-white">
+        <div>
+          <h6 class="modal-title fw-bold mb-0" style="font-size: 0.9rem;" id="modalSerialesTitulo">Seriales del lote</h6>
+          <small style="font-size: 0.72rem; opacity: 0.85;" id="modalSerialesSubtitulo"></small>
+        </div>
+        <button type="button" class="btn-close btn-close-white btn-sm" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-3" id="modalSerialesLista" style="max-height: 340px;"></div>
+      <div class="modal-footer py-2 px-3 bg-light">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" onclick="copiarSerialesModal()">Copiar lista</button>
+        <button type="button" class="btn btn-primary btn-sm rounded-3 fw-bold" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
@@ -634,10 +702,18 @@
   let itemActivo = null;
   let itemFotoActivo = null;
   let enPestanaComite = true;
+  let serialesModalActuales = [];
+  let subiendoFotoActualmente = false;
 
   window.onload = () => {
     actualizarUIEvaluador();
     cargarDatos();
+    // Auto-sincronización silenciosa cada 6 segundos cuando están tomando fotos
+    setInterval(() => {
+      if (!enPestanaComite && !subiendoFotoActualmente && !document.hidden) {
+        sincronizarSilencioso(false);
+      }
+    }, 6000);
   };
 
   function toggleBarraFlotante(mostrar) {
@@ -647,6 +723,46 @@
       barra.classList.remove('d-none');
     } else {
       barra.classList.add('d-none');
+    }
+    if (!mostrar) {
+      sincronizarSilencioso(false);
+    }
+  }
+
+  async function sincronizarSilencioso(manual = false) {
+    const lbl = document.getElementById('estadoSyncFotos');
+    if (manual && lbl) lbl.innerText = '🔄 Actualizando lista...';
+    try {
+      const resp = await fetch(API_URL);
+      const data = await resp.json();
+      if (!data.comite) return;
+
+      listaComite = data.comite;
+      renderTablaFotos();
+
+      // Si el lote que tienes abierto en cámara ya fue completado por tu compañero, avisar y pasar al siguiente
+      if (itemFotoActivo) {
+        const actualizado = listaComite.find(x => x.fila === itemFotoActivo.fila);
+        if (actualizado) {
+          const yaEstabaCompleto = itemFotoActivo.foto1 && itemFotoActivo.foto2;
+          const ahoraCompleto = actualizado.foto1 && actualizado.foto2;
+          itemFotoActivo = actualizado;
+
+          if (!yaEstabaCompleto && ahoraCompleto) {
+            document.getElementById('msgFotoAud').innerText = 'ℹ️ Tu compañero acaba de completar este lote. Pasando al siguiente...';
+            setTimeout(() => siguienteSinFoto(), 900);
+          } else {
+            document.getElementById('aFoto1').src = actualizado.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
+            document.getElementById('aFoto2').src = actualizado.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
+          }
+        }
+      }
+      if (lbl) {
+        const hora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        lbl.innerText = `● Sincronizado (${hora})`;
+      }
+    } catch (e) {
+      if (lbl) lbl.innerText = '⚠️ Sin conexión temporal';
     }
   }
 
@@ -676,6 +792,52 @@
         card.classList.remove('activo');
         tag.classList.add('d-none');
       }
+    });
+  }
+
+  function renderHtmlSeriales(it, maxInline = 2) {
+    const raw = String(it.seriales || '').trim();
+    if (!raw || raw === 'N/A' || raw === '-') {
+      return '<span class="text-muted">Sin serial</span>';
+    }
+    const lista = raw.split(',').map(s => s.trim()).filter(Boolean);
+    if (lista.length <= maxInline) {
+      return `<span>${lista.join(', ')}</span>`;
+    }
+    const preview = lista.slice(0, 1).join(', ');
+    return `
+      <span>${preview}...</span>
+      <button type="button" class="btn-seriales-pill" onclick="event.stopPropagation(); abrirModalSeriales(${it.fila})">
+        Seriales (${lista.length}) ▾
+      </button>
+    `;
+  }
+
+  function abrirModalSeriales(fila) {
+    const it = listaComite.find(x => x.fila === fila);
+    if (!it) return;
+    const lista = String(it.seriales || '').split(',').map(s => s.trim()).filter(Boolean);
+    serialesModalActuales = lista;
+
+    document.getElementById('modalSerialesTitulo').innerText = `Código: ${it.codigo} (${lista.length} seriales)`;
+    document.getElementById('modalSerialesSubtitulo').innerText = `${it.descripcion} · ${it.sucursal}`;
+
+    document.getElementById('modalSerialesLista').innerHTML = lista.length > 0
+      ? lista.map((s, idx) => `
+          <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom small">
+            <span class="text-muted fw-semibold">#${idx + 1}</span>
+            <span class="font-monospace fw-bold text-dark">${s}</span>
+          </div>
+        `).join('')
+      : '<div class="text-muted small text-center py-3">Este lote no tiene seriales registrados.</div>';
+
+    new bootstrap.Modal(document.getElementById('modalSeriales')).show();
+  }
+
+  function copiarSerialesModal() {
+    if (serialesModalActuales.length === 0) return;
+    navigator.clipboard.writeText(serialesModalActuales.join('\n')).then(() => {
+      alert('✓ Lista de seriales copiada al portapapeles.');
     });
   }
 
@@ -795,7 +957,10 @@
       poblarSucursales();
       renderComite();
       renderTablaFotos();
-      if (listaComite.length > 0 && !itemFotoActivo) {
+      const primerPendiente = listaComite.find(x => !x.foto1 || !x.foto2);
+      if (primerPendiente && !itemFotoActivo) {
+        seleccionarParaFoto(primerPendiente.fila);
+      } else if (listaComite.length > 0 && !itemFotoActivo) {
         seleccionarParaFoto(listaComite[0].fila);
       }
     } catch (e) {
@@ -870,7 +1035,7 @@
     document.getElementById('cDias').innerText = formatearDiasConEquivalencia(it.dias);
     document.getElementById('cCostoUnit').innerText = '$' + it.costoUnit.toLocaleString('es-CO');
     document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación';
-    document.getElementById('cSeriales').innerText = it.seriales || 'N/A';
+    document.getElementById('cSeriales').innerHTML = renderHtmlSeriales(it, 2);
 
     pintarVotoTarjeta('vOsmel', it.votos.OSMEL);
     pintarVotoTarjeta('vAngelica', it.votos.ANGELICA);
@@ -1105,25 +1270,83 @@
     reader.readAsArrayBuffer(file);
   }
 
-  function renderTablaFotos() {
-    const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
-    const filtrados = listaComite.filter(x => !q || x.codigo.toLowerCase().includes(q) || x.descripcion.toLowerCase().includes(q) || x.sucursal.toLowerCase().includes(q));
-    document.getElementById('listaTarjetasFotos').innerHTML = filtrados.map(it => `
+  function construirTarjetaFoto(it) {
+    return `
       <div class="lote-item ${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'seleccionado' : ''}" onclick="seleccionarParaFoto(${it.fila}); window.scrollTo({top: 0, behavior: 'smooth'});">
         <div class="d-flex justify-content-between align-items-center gap-2">
           <div>
             <span class="pill-meta pill-store">${it.sucursal}</span>
             <span class="pill-meta pill-issue">${it.estado}</span>
             <div class="fw-bold small mt-1">${it.descripcion}</div>
-            <div class="text-muted" style="font-size: 0.72rem;">Código: ${it.codigo} · ${it.cantidad} und. · ${it.observacion}</div>
+            <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+              <span>Código: <strong>${it.codigo}</strong></span>
+              <span>· <strong>${it.cantidad} und.</strong></span>
+              <span>· Serial: ${renderHtmlSeriales(it, 1)}</span>
+            </div>
+            <div class="text-muted" style="font-size: 0.71rem;">${it.observacion || ''}</div>
           </div>
-          <div class="text-end small">
+          <div class="text-end small flex-shrink-0">
             <div>Foto 1: ${it.foto1 ? '✅' : '❌'}</div>
             <div>Foto 2: ${it.foto2 ? '✅' : '❌'}</div>
           </div>
         </div>
       </div>
-    `).join('');
+    `;
+  }
+
+  function renderTablaFotos() {
+    const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
+    const bloque = document.getElementById('filtroBloquePersona').value;
+
+    const filtrados = listaComite.filter(x =>
+      !q ||
+      x.codigo.toLowerCase().includes(q) ||
+      x.descripcion.toLowerCase().includes(q) ||
+      x.sucursal.toLowerCase().includes(q) ||
+      String(x.seriales || '').toLowerCase().includes(q)
+    );
+
+    let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
+    const completados = filtrados.filter(x => x.foto1 && x.foto2);
+
+    // Dividir pendientes en 2 mitades si 2 personas trabajan en la misma tienda
+    if (bloque === 'MITAD1') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(0, corte);
+    } else if (bloque === 'MITAD2') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(corte);
+    }
+
+    document.getElementById('cntPendientesFoto').innerText = pendientes.length;
+
+    if (pendientes.length > 0) {
+      document.getElementById('listaTarjetasFotos').innerHTML = pendientes.map(construirTarjetaFoto).join('');
+    } else {
+      document.getElementById('listaTarjetasFotos').innerHTML = `
+        <div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">
+          🎉 ¡Todos los lotes de este bloque ya tienen sus 2 fotos completas!
+        </div>
+      `;
+    }
+
+    const bloqueComp = document.getElementById('bloqueFotosCompletadas');
+    if (completados.length > 0) {
+      bloqueComp.classList.remove('d-none');
+      const listaCompEl = document.getElementById('listaFotosCompletadas');
+      const estaAbierto = !listaCompEl.classList.contains('d-none');
+      document.getElementById('txtToggleCompletadas').innerText =
+        `${estaAbierto ? '▴ Ocultar' : '▾ Ver'} lotes ya fotografiados (${completados.length})`;
+      listaCompEl.innerHTML = completados.map(construirTarjetaFoto).join('');
+    } else {
+      bloqueComp.classList.add('d-none');
+    }
+  }
+
+  function toggleFotosCompletadas() {
+    const listaCompEl = document.getElementById('listaFotosCompletadas');
+    listaCompEl.classList.toggle('d-none');
+    renderTablaFotos();
   }
 
   function seleccionarParaFoto(fila) {
@@ -1139,7 +1362,14 @@
   }
 
   function siguienteSinFoto() {
-    const pendiente = listaComite.find(x => !x.foto1 || !x.foto2);
+    const bloque = document.getElementById('filtroBloquePersona').value;
+    let pendientes = listaComite.filter(x => !x.foto1 || !x.foto2);
+    if (bloque === 'MITAD1') {
+      pendientes = pendientes.slice(0, Math.ceil(pendientes.length / 2));
+    } else if (bloque === 'MITAD2') {
+      pendientes = pendientes.slice(Math.ceil(pendientes.length / 2));
+    }
+    const pendiente = pendientes[0] || listaComite.find(x => !x.foto1 || !x.foto2);
     if (pendiente) seleccionarParaFoto(pendiente.fila);
     else alert('¡Todos los lotes ya tienen sus 2 fotos!');
   }
@@ -1147,6 +1377,7 @@
   function subirFotoComprimida(numFoto, inputEl) {
     const file = inputEl.files[0];
     if (!file || !itemFotoActivo) return;
+    subiendoFotoActualmente = true;
     const msg = document.getElementById('msgFotoAud');
     msg.innerText = `Comprimiendo y subiendo Foto ${numFoto}...`;
 
@@ -1154,37 +1385,47 @@
     reader.onload = function(ev) {
       const img = new Image();
       img.onload = async function() {
-        const canvas = document.createElement('canvas');
-        const MAX_W = 900;
-        const scale = Math.min(1, MAX_W / img.width);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        const comprimida = canvas.toDataURL('image/jpeg', 0.72);
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_W = 900;
+          const scale = Math.min(1, MAX_W / img.width);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const comprimida = canvas.toDataURL('image/jpeg', 0.72);
 
-        const resp = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            accion: 'foto',
-            fila: itemFotoActivo.fila,
-            codigo: itemFotoActivo.codigo,
-            numFoto,
-            base64Data: comprimida,
-            mimeType: 'image/jpeg'
-          })
-        });
-        const res = await resp.json();
-        if (res.ok) {
-          if (numFoto === 1) {
-            itemFotoActivo.foto1 = res.fotoUrl;
-            document.getElementById('aFoto1').src = res.fotoUrl;
-          } else {
-            itemFotoActivo.foto2 = res.fotoUrl;
-            document.getElementById('aFoto2').src = res.fotoUrl;
+          const resp = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              accion: 'foto',
+              fila: itemFotoActivo.fila,
+              codigo: itemFotoActivo.codigo,
+              numFoto,
+              base64Data: comprimida,
+              mimeType: 'image/jpeg'
+            })
+          });
+          const res = await resp.json();
+          if (res.ok) {
+            if (numFoto === 1) {
+              itemFotoActivo.foto1 = res.fotoUrl;
+              document.getElementById('aFoto1').src = res.fotoUrl;
+            } else {
+              itemFotoActivo.foto2 = res.fotoUrl;
+              document.getElementById('aFoto2').src = res.fotoUrl;
+            }
+            renderTablaFotos();
+            if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
+
+            if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
+              msg.innerText = '✓ ¡2 fotos listas! Lote archivado. Cargando siguiente pendiente...';
+              setTimeout(() => siguienteSinFoto(), 700);
+            } else {
+              msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
+            }
           }
-          msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
-          renderTablaFotos();
-          if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
+        } finally {
+          subiendoFotoActualmente = false;
         }
       };
       img.src = ev.target.result;
