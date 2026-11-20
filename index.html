@@ -92,6 +92,28 @@
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
 
+    /* Botones segmentados Persona 1 / Persona 2 */
+    .btn-bloque-persona {
+      border: 1.5px solid #cbd5e1;
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.76rem;
+      border-radius: 10px;
+      padding: 7px 6px;
+      transition: all 0.15s ease;
+    }
+    .btn-bloque-persona:hover {
+      border-color: var(--corp-primary);
+      background: #eff6ff;
+    }
+    .btn-bloque-persona.activo {
+      background: var(--corp-primary);
+      border-color: var(--corp-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    }
+
     /* Ficha compacta */
     .ficha-card {
       background: #ffffff;
@@ -615,7 +637,7 @@
         </div>
         <div class="col-12 col-md-3">
           <label class="form-label small fw-bold mb-1">Tienda por defecto</label>
-          <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. LTE BOSA HOLANDA">
+          <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. RESTREPO 3">
         </div>
         <div class="col-12 col-md-4">
           <button type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="importarNovedadesExcel()">Importar y Agrupar</button>
@@ -655,7 +677,7 @@
       <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
     </div>
 
-    <!-- Listado Colaborativo -->
+    <!-- Listado Colaborativo con Filtro por Tienda + Botones Persona 1 / Persona 2 -->
     <div class="card border-0 shadow-sm rounded-4 p-3">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
         <div>
@@ -667,12 +689,30 @@
         </div>
       </div>
 
+      <!-- 3 Botones directos: Todos / Persona 1 / Persona 2 -->
+      <div class="row g-2 mb-2">
+        <div class="col-4">
+          <button type="button" id="btnBloque_TODOS" class="btn-bloque-persona activo w-100" onclick="seleccionarBloquePersona('TODOS')">
+            👥 Todos
+          </button>
+        </div>
+        <div class="col-4">
+          <button type="button" id="btnBloque_MITAD1" class="btn-bloque-persona w-100" onclick="seleccionarBloquePersona('MITAD1')">
+            👤 Persona 1
+          </button>
+        </div>
+        <div class="col-4">
+          <button type="button" id="btnBloque_MITAD2" class="btn-bloque-persona w-100" onclick="seleccionarBloquePersona('MITAD2')">
+            👤 Persona 2
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtro por Tienda + Buscador rápido -->
       <div class="row g-2 mb-2">
         <div class="col-6">
-          <select id="filtroBloquePersona" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderTablaFotos()">
-            <option value="TODOS">👥 Ver todos los pendientes</option>
-            <option value="MITAD1">👤 Persona 1 (Primera mitad)</option>
-            <option value="MITAD2">👤 Persona 2 (Segunda mitad)</option>
+          <select id="filtroTiendaFotos" class="form-select form-select-sm fw-semibold rounded-3" onchange="alCambiarTiendaFotos()">
+            <option value="TODAS">🏪 Todas las tiendas</option>
           </select>
         </div>
         <div class="col-6">
@@ -748,6 +788,7 @@
   };
 
   let usuarioActivo = localStorage.getItem('htc_usuario') || '';
+  let bloquePersonaActivo = 'TODOS';
   let listaComite = [];
   let listaFiltrada = [];
   let idxComite = 0;
@@ -780,6 +821,30 @@
     usuarioActivo = rol;
     localStorage.setItem('htc_usuario', rol);
     mostrarAppPrincipal();
+  }
+
+  function seleccionarBloquePersona(bloque) {
+    bloquePersonaActivo = bloque;
+    ['TODOS', 'MITAD1', 'MITAD2'].forEach(b => {
+      const btn = document.getElementById('btnBloque_' + b);
+      if (btn) {
+        if (b === bloque) btn.classList.add('activo');
+        else btn.classList.remove('activo');
+      }
+    });
+    renderTablaFotos();
+    const pendientes = obtenerPendientesFiltradosFotos();
+    if (pendientes.length > 0 && (!itemFotoActivo || !pendientes.some(x => x.fila === itemFotoActivo.fila))) {
+      seleccionarParaFoto(pendientes[0].fila);
+    }
+  }
+
+  function alCambiarTiendaFotos() {
+    renderTablaFotos();
+    const pendientes = obtenerPendientesFiltradosFotos();
+    if (pendientes.length > 0) {
+      seleccionarParaFoto(pendientes[0].fila);
+    }
   }
 
   function cambiarVistaPestana(vista) {
@@ -853,6 +918,7 @@
       if (!data.comite) return;
 
       listaComite = data.comite;
+      poblarSucursales();
       renderTablaFotos();
 
       if (itemFotoActivo) {
@@ -1043,9 +1109,9 @@
       poblarSucursales();
       renderComite();
       renderTablaFotos();
-      const primerPendiente = listaComite.find(x => !x.foto1 || !x.foto2);
-      if (primerPendiente && !itemFotoActivo) {
-        seleccionarParaFoto(primerPendiente.fila);
+      const pendientes = obtenerPendientesFiltradosFotos();
+      if (pendientes.length > 0 && !itemFotoActivo) {
+        seleccionarParaFoto(pendientes[0].fila);
       } else if (listaComite.length > 0 && !itemFotoActivo) {
         seleccionarParaFoto(listaComite[0].fila);
       }
@@ -1057,11 +1123,26 @@
 
   function poblarSucursales() {
     const sucs = [...new Set(listaComite.map(x => x.sucursal).filter(Boolean))];
+    
+    // Selector de Pestaña 1: Comité
     const sel = document.getElementById('filtroSucursal');
     const actual = sel.value;
     sel.innerHTML = '<option value="TODAS">Todas las tiendas (' + listaComite.length + ')</option>' +
       sucs.map(s => `<option value="${s}">${s}</option>`).join('');
     if (sucs.includes(actual)) sel.value = actual;
+
+    // Selector de Pestaña 2: Carga y Fotos (muestra cuántos pendientes tiene cada tienda)
+    const selFotos = document.getElementById('filtroTiendaFotos');
+    if (selFotos) {
+      const actualFotos = selFotos.value;
+      const totalPend = listaComite.filter(x => !x.foto1 || !x.foto2).length;
+      selFotos.innerHTML = `<option value="TODAS">🏪 Todas las tiendas (${totalPend})</option>` +
+        sucs.map(s => {
+          const pendSuc = listaComite.filter(x => x.sucursal === s && (!x.foto1 || !x.foto2)).length;
+          return `<option value="${s}">${s} (${pendSuc} pend.)</option>`;
+        }).join('');
+      if (sucs.includes(actualFotos)) selFotos.value = actualFotos;
+    }
 
     const dl = document.getElementById('listaTiendasDatalist');
     if (dl) {
@@ -1341,9 +1422,43 @@
       const res = await resp.json();
       msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes al Comité` +
         (omitidosDanados > 0 ? ` (y se excluyeron ${omitidosDanados} dañados directos para baja).` : '.');
-      cargarDatos();
+
+      // Seleccionar automáticamente la tienda recién importada en el filtro de fotos
+      await cargarDatos();
+      const selFotos = document.getElementById('filtroTiendaFotos');
+      if (selFotos && [...selFotos.options].some(o => o.value === tiendaDefault)) {
+        selFotos.value = tiendaDefault;
+        alCambiarTiendaFotos();
+      }
     };
     reader.readAsArrayBuffer(file);
+  }
+
+  function obtenerPendientesFiltradosFotos() {
+    const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
+    const tienda = document.getElementById('filtroTiendaFotos').value;
+
+    const filtrados = listaComite.filter(x => {
+      const okTienda = (tienda === 'TODAS') || x.sucursal === tienda;
+      const okQ = !q ||
+        x.codigo.toLowerCase().includes(q) ||
+        x.descripcion.toLowerCase().includes(q) ||
+        x.sucursal.toLowerCase().includes(q) ||
+        String(x.seriales || '').toLowerCase().includes(q);
+      return okTienda && okQ;
+    });
+
+    let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
+
+    if (bloquePersonaActivo === 'MITAD1') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(0, corte);
+    } else if (bloquePersonaActivo === 'MITAD2') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(corte);
+    }
+
+    return pendientes;
   }
 
   function construirTarjetaFoto(it) {
@@ -1372,26 +1487,20 @@
 
   function renderTablaFotos() {
     const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
-    const bloque = document.getElementById('filtroBloquePersona').value;
+    const tienda = document.getElementById('filtroTiendaFotos').value;
 
-    const filtrados = listaComite.filter(x =>
-      !q ||
-      x.codigo.toLowerCase().includes(q) ||
-      x.descripcion.toLowerCase().includes(q) ||
-      x.sucursal.toLowerCase().includes(q) ||
-      String(x.seriales || '').toLowerCase().includes(q)
-    );
+    const filtradosTiendaYBusqueda = listaComite.filter(x => {
+      const okTienda = (tienda === 'TODAS') || x.sucursal === tienda;
+      const okQ = !q ||
+        x.codigo.toLowerCase().includes(q) ||
+        x.descripcion.toLowerCase().includes(q) ||
+        x.sucursal.toLowerCase().includes(q) ||
+        String(x.seriales || '').toLowerCase().includes(q);
+      return okTienda && okQ;
+    });
 
-    let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
-    const completados = filtrados.filter(x => x.foto1 && x.foto2);
-
-    if (bloque === 'MITAD1') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(0, corte);
-    } else if (bloque === 'MITAD2') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(corte);
-    }
+    const pendientes = obtenerPendientesFiltradosFotos();
+    const completados = filtradosTiendaYBusqueda.filter(x => x.foto1 && x.foto2);
 
     document.getElementById('cntPendientesFoto').innerText = pendientes.length;
 
@@ -1400,7 +1509,7 @@
     } else {
       document.getElementById('listaTarjetasFotos').innerHTML = `
         <div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">
-          🎉 ¡Todos los lotes de este bloque ya tienen sus 2 fotos completas!
+          🎉 ¡Todos los lotes de este filtro ya tienen sus 2 fotos completas!
         </div>
       `;
     }
@@ -1437,16 +1546,14 @@
   }
 
   function siguienteSinFoto() {
-    const bloque = document.getElementById('filtroBloquePersona').value;
-    let pendientes = listaComite.filter(x => !x.foto1 || !x.foto2);
-    if (bloque === 'MITAD1') {
-      pendientes = pendientes.slice(0, Math.ceil(pendientes.length / 2));
-    } else if (bloque === 'MITAD2') {
-      pendientes = pendientes.slice(Math.ceil(pendientes.length / 2));
+    const pendientes = obtenerPendientesFiltradosFotos();
+    if (pendientes.length > 0) {
+      // Si el actual sigue en la lista (por ejemplo si se saltó sin tomar foto), pasa al siguiente distinto
+      const distinto = pendientes.find(x => !itemFotoActivo || x.fila !== itemFotoActivo.fila);
+      seleccionarParaFoto((distinto || pendientes[0]).fila);
+    } else {
+      alert('🎉 ¡Todos los lotes de esta tienda/bloque ya tienen sus 2 fotos!');
     }
-    const pendiente = pendientes[0] || listaComite.find(x => !x.foto1 || !x.foto2);
-    if (pendiente) seleccionarParaFoto(pendiente.fila);
-    else alert('¡Todos los lotes ya tienen sus 2 fotos!');
   }
 
   function subirFotoComprimida(numFoto, inputEl) {
@@ -1489,6 +1596,7 @@
               itemFotoActivo.foto2 = res.fotoUrl;
               document.getElementById('aFoto2').src = res.fotoUrl;
             }
+            poblarSucursales();
             renderTablaFotos();
             if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
 
