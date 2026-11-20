@@ -28,7 +28,6 @@
       box-shadow: 0 5px 15px rgba(11, 25, 44, 0.2);
       border-bottom: 3px solid var(--corp-accent);
     }
-    /* Selector segmentado */
     .nav-segmented {
       background: rgba(255, 255, 255, 0.14);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -194,6 +193,51 @@
     .pasarela-btn.prev { left: 10px; }
     .pasarela-btn.next { right: 10px; }
 
+    /* Caja mejorada de Novedad y Seriales */
+    .novedad-box-pro {
+      background: #fffdf7;
+      border: 1px solid #fde68a;
+      border-left: 4px solid #f59e0b;
+      border-radius: 10px;
+      padding: 9px 12px;
+      margin-bottom: 10px;
+    }
+    .novedad-label {
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #b45309;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .novedad-texto {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #1e293b;
+      line-height: 1.35;
+    }
+    .seriales-row-pro {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #fcd34d;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+    }
+    .serial-chip {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-weight: 700;
+      font-size: 0.7rem;
+      padding: 1px 7px;
+      border-radius: 5px;
+    }
+
     /* Botones de decisión */
     .btn-decision {
       border-radius: 10px;
@@ -260,17 +304,17 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: #e2e8f0;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
       border-radius: 6px;
-      padding: 1px 7px;
+      padding: 2px 8px;
       font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: opacity 0.15s;
     }
-    .btn-seriales-pill:hover { background: #cbd5e1; }
+    .btn-seriales-pill:hover { opacity: 0.88; }
 
     /* Resumen Financiero */
     .resumen-financiero-card {
@@ -407,10 +451,10 @@
         </div>
       </div>
 
-      <!-- Ficha Principal del Producto (Compacta y Ejecutiva) -->
+      <!-- Ficha Principal del Producto -->
       <div id="fichaComite" class="ficha-card p-3 mb-2 d-none">
 
-        <!-- 1. Tienda + Estado + Contador limpio -->
+        <!-- 1. Tienda + Estado + Contador -->
         <div class="ficha-top-meta">
           <div class="d-flex flex-wrap align-items-center gap-1">
             <span class="pill-meta pill-store" id="cSucursal"></span>
@@ -442,11 +486,13 @@
           </div>
         </div>
 
-        <!-- 4. Novedad y Seriales -->
-        <div class="rounded-3 px-2 py-1 mb-2" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 0.76rem;">
-          <div><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
-          <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.7rem;">
-            <strong>Seriales:</strong> <span id="cSeriales">-</span>
+        <!-- 4. Novedad y Seriales con diseño limpio y legible -->
+        <div class="novedad-box-pro">
+          <span class="novedad-label">📋 Novedad reportada en tienda</span>
+          <div class="novedad-texto" id="cObservacion">-</div>
+          <div class="seriales-row-pro">
+            <span class="text-muted fw-bold">Seriales:</span>
+            <span id="cSeriales" class="d-flex flex-wrap align-items-center gap-1">-</span>
           </div>
         </div>
 
@@ -652,7 +698,7 @@
   </div>
 </div>
 
-<!-- BARRA FLOTANTE -->
+<!-- BARRA FLOTANTE (Solo visible dentro de 1. Comité cuando ya hay sesión activa) -->
 <div id="barraFlotanteComite" class="floating-nav-wrap d-none">
   <div class="nav-bottom-bar">
     <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
@@ -722,10 +768,10 @@
       mostrarAppPrincipal();
     } else {
       document.getElementById('pantallaIdentificacion').classList.remove('d-none');
+      document.getElementById('barraFlotanteComite').classList.add('d-none');
     }
     cargarDatos();
     
-    // Auto-sincronización silenciosa cada 6 segundos
     setInterval(() => {
       if (usuarioActivo === 'JOHAN_OSCAR' && !enPestanaComite && !subiendoFotoActualmente && !document.hidden) {
         sincronizarSilencioso(false);
@@ -749,25 +795,14 @@
       label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
     }
 
-    // Configuración según usuario
     if (usuarioActivo === 'JOHAN_OSCAR') {
-      // Lleva directamente a la pestaña de fotos y oculta el tab de Comité
       document.getElementById('btnTabComite').parentElement.classList.add('d-none');
       document.getElementById('btnTabCarga').click();
       toggleBarraFlotante(false);
     } else {
-      // Visualización estándar para integrantes del comité
       document.getElementById('btnTabComite').parentElement.classList.remove('d-none');
       document.getElementById('btnTabComite').click();
       toggleBarraFlotante(true);
-      
-      // Control de opciones en base al rol
-      const bajaBtn = document.getElementById('bloqueOpcionBaja');
-      if (usuarioActivo === 'ANGELICA') {
-        bajaBtn.classList.remove('d-none'); // mantiene dar de baja si se requiere
-      } else {
-        bajaBtn.classList.remove('d-none');
-      }
     }
   }
 
@@ -782,7 +817,8 @@
   function toggleBarraFlotante(mostrar) {
     enPestanaComite = mostrar;
     const barra = document.getElementById('barraFlotanteComite');
-    if (mostrar && listaFiltrada.length > 0 && usuarioActivo !== 'JOHAN_OSCAR') {
+    const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
+    if (appVisible && mostrar && listaFiltrada.length > 0 && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
       barra.classList.remove('d-none');
     } else {
       barra.classList.add('d-none');
@@ -835,13 +871,12 @@
     }
     const lista = raw.split(',').map(s => s.trim()).filter(Boolean);
     if (lista.length <= maxInline) {
-      return `<span>${lista.join(', ')}</span>`;
+      return lista.map(s => `<span class="serial-chip">${s}</span>`).join('');
     }
-    const preview = lista.slice(0, 1).join(', ');
     return `
-      <span>${preview}...</span>
+      <span class="serial-chip">${lista[0]}</span>
       <button type="button" class="btn-seriales-pill" onclick="event.stopPropagation(); abrirModalSeriales(${it.fila})">
-        Seriales (${lista.length}) ▾
+        +${lista.length - 1} seriales ▾
       </button>
     `;
   }
@@ -981,7 +1016,9 @@
 
   async function cargarDatos() {
     const loader = document.getElementById('loader');
-    loader.classList.remove('d-none');
+    if (!document.getElementById('appPrincipal').classList.contains('d-none')) {
+      loader.classList.remove('d-none');
+    }
     try {
       const resp = await fetch(API_URL);
       const data = await resp.json();
@@ -1036,11 +1073,17 @@
       </div>
     `).join('');
 
+    const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
+
     if (listaFiltrada.length > 0) {
       if (idxComite >= listaFiltrada.length) idxComite = 0;
       document.getElementById('bloqueTarjetaActiva').classList.remove('d-none');
       document.getElementById('bloqueResumenFinanciero').classList.remove('d-none');
-      if (enPestanaComite && usuarioActivo !== 'JOHAN_OSCAR') document.getElementById('barraFlotanteComite').classList.remove('d-none');
+      if (appVisible && enPestanaComite && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
+        document.getElementById('barraFlotanteComite').classList.remove('d-none');
+      } else {
+        document.getElementById('barraFlotanteComite').classList.add('d-none');
+      }
       mostrarFichaComite(idxComite);
     } else {
       document.getElementById('fichaComite').classList.add('d-none');
@@ -1067,7 +1110,7 @@
     document.getElementById('cCantidad').innerText = it.cantidad + ' und.';
     document.getElementById('cDias').innerText = formatearDiasConEquivalencia(it.dias);
     document.getElementById('cCostoUnit').innerText = '$' + it.costoUnit.toLocaleString('es-CO');
-    document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación';
+    document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación específica registrada';
     document.getElementById('cSeriales').innerHTML = renderHtmlSeriales(it, 2);
 
     const est = obtenerEstadoVotosUI(it);
@@ -1209,262 +1252,4 @@
     const file = document.getElementById('inputExcel').files[0];
     if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
     const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim() || 'TIENDA PRINCIPAL';
-    const msg = document.getElementById('msgImport');
-    msg.innerText = 'Procesando novedades recuperables del Excel...';
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const wb = XLSX.read(e.target.result, { type: 'array' });
-      const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
-
-      const grupos = {};
-      let omitidosDanados = 0;
-
-      rows.forEach(r => {
-        const clean = {};
-        Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
-
-        const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
-        const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
-        const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
-        const sucursal = String(clean['Sucursal'] || tiendaDefault).trim();
-        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
-        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
-        const diferencia = Number(clean['Diferencia'] || 0);
-        const estado = String(clean['Novedades(estado)'] || '').trim();
-        const obs = String(clean['Observacion'] || '').trim();
-
-        if (!codigo || codigo === '0' || !desc || desc === '0') return;
-
-        const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
-          omitidosDanados += 1;
-          return;
-        }
-
-        const tieneEstadoNovedad = estado !== '' && estadoNorm !== 'buen estado';
-        const esNovedad = obs !== '' || tieneEstadoNovedad || diferencia !== 0 || dias >= 130;
-        if (!esNovedad) return;
-
-        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Empaque / Estética' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >130d'));
-        const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
-
-        if (!grupos[clave]) {
-          grupos[clave] = {
-            sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [],
-            dias, costoUnit: costo, estado: estadoFinal, observacion: obs
-          };
-        }
-        grupos[clave].cantidad += 1;
-        if (serial) grupos[clave].serialesArr.push(serial);
-      });
-
-      const lotes = Object.values(grupos).map(g => ({
-        sucursal: g.sucursal, codigo: g.codigo, descripcion: g.descripcion,
-        cantidad: g.cantidad, seriales: g.serialesArr.join(', '),
-        dias: g.dias, costoUnit: g.costoUnit, costoTotal: g.costoUnit * g.cantidad,
-        estado: g.estado, observacion: g.observacion
-      }));
-
-      if (lotes.length === 0) {
-        msg.innerText = omitidosDanados > 0
-          ? `No hay lotes recuperables para Comité (se separaron ${omitidosDanados} unidades dañadas directas para baja).`
-          : 'No se encontraron novedades válidas en el archivo.';
-        return;
-      }
-
-      msg.innerText = `Subiendo ${lotes.length} lotes recuperables...`;
-      const resp = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ accion: 'importar_novedades', lotes })
-      });
-      const res = await resp.json();
-      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes al Comité` +
-        (omitidosDanados > 0 ? ` (y se excluyeron ${omitidosDanados} dañados directos para baja).` : '.');
-      cargarDatos();
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  function construirTarjetaFoto(it) {
-    return `
-      <div class="lote-item ${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'seleccionado' : ''}" onclick="seleccionarParaFoto(${it.fila}); window.scrollTo({top: 0, behavior: 'smooth'});">
-        <div class="d-flex justify-content-between align-items-center gap-2">
-          <div>
-            <span class="pill-meta pill-store">${it.sucursal}</span>
-            <span class="pill-meta pill-issue">${it.estado}</span>
-            <div class="fw-bold small mt-1">${it.descripcion}</div>
-            <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
-              <span>Código: <strong>${it.codigo}</strong></span>
-              <span>· <strong>${it.cantidad} und.</strong></span>
-              <span>· Serial: ${renderHtmlSeriales(it, 1)}</span>
-            </div>
-            <div class="text-muted" style="font-size: 0.71rem;">${it.observacion || ''}</div>
-          </div>
-          <div class="text-end small flex-shrink-0">
-            <div>Foto 1: ${it.foto1 ? '✅' : '❌'}</div>
-            <div>Foto 2: ${it.foto2 ? '✅' : '❌'}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  function renderTablaFotos() {
-    const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
-    const bloque = document.getElementById('filtroBloquePersona').value;
-
-    const filtrados = listaComite.filter(x =>
-      !q ||
-      x.codigo.toLowerCase().includes(q) ||
-      x.descripcion.toLowerCase().includes(q) ||
-      x.sucursal.toLowerCase().includes(q) ||
-      String(x.seriales || '').toLowerCase().includes(q)
-    );
-
-    let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
-    const completados = filtrados.filter(x => x.foto1 && x.foto2);
-
-    if (bloque === 'MITAD1') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(0, corte);
-    } else if (bloque === 'MITAD2') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(corte);
-    }
-
-    document.getElementById('cntPendientesFoto').innerText = pendientes.length;
-
-    if (pendientes.length > 0) {
-      document.getElementById('listaTarjetasFotos').innerHTML = pendientes.map(construirTarjetaFoto).join('');
-    } else {
-      document.getElementById('listaTarjetasFotos').innerHTML = `
-        <div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">
-          🎉 ¡Todos los lotes de este bloque ya tienen sus 2 fotos completas!
-        </div>
-      `;
-    }
-
-    const bloqueComp = document.getElementById('bloqueFotosCompletadas');
-    if (completados.length > 0) {
-      bloqueComp.classList.remove('d-none');
-      const listaCompEl = document.getElementById('listaFotosCompletadas');
-      const estaAbierto = !listaCompEl.classList.contains('d-none');
-      document.getElementById('txtToggleCompletadas').innerText =
-        `${estaAbierto ? '▴ Ocultar' : '▾ Ver'} lotes ya fotografiados (${completados.length})`;
-      listaCompEl.innerHTML = completados.map(construirTarjetaFoto).join('');
-    } else {
-      bloqueComp.classList.add('d-none');
-    }
-  }
-
-  function toggleFotosCompletadas() {
-    const listaCompEl = document.getElementById('listaFotosCompletadas');
-    listaCompEl.classList.toggle('d-none');
-    renderTablaFotos();
-  }
-
-  function seleccionarParaFoto(fila) {
-    const it = listaComite.find(x => x.fila === fila);
-    if (!it) return;
-    itemFotoActivo = it;
-    document.getElementById('panelFotosAud').classList.remove('d-none');
-    document.getElementById('fTitulo').innerText = `${it.codigo} - ${it.descripcion} (${it.sucursal})`;
-    document.getElementById('aFoto1').src = it.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
-    document.getElementById('aFoto2').src = it.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
-    document.getElementById('msgFotoAud').innerText = '';
-    renderTablaFotos();
-  }
-
-  function siguienteSinFoto() {
-    const bloque = document.getElementById('filtroBloquePersona').value;
-    let pendientes = listaComite.filter(x => !x.foto1 || !x.foto2);
-    if (bloque === 'MITAD1') {
-      pendientes = pendientes.slice(0, Math.ceil(pendientes.length / 2));
-    } else if (bloque === 'MITAD2') {
-      pendientes = pendientes.slice(Math.ceil(pendientes.length / 2));
-    }
-    const pendiente = pendientes[0] || listaComite.find(x => !x.foto1 || !x.foto2);
-    if (pendiente) seleccionarParaFoto(pendiente.fila);
-    else alert('¡Todos los lotes ya tienen sus 2 fotos!');
-  }
-
-  function subirFotoComprimida(numFoto, inputEl) {
-    const file = inputEl.files[0];
-    if (!file || !itemFotoActivo) return;
-    subiendoFotoActualmente = true;
-    const msg = document.getElementById('msgFotoAud');
-    msg.innerText = `Comprimiendo y subiendo Foto ${numFoto}...`;
-
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = new Image();
-      img.onload = async function() {
-        try {
-          const canvas = document.createElement('canvas');
-          const MAX_W = 900;
-          const scale = Math.min(1, MAX_W / img.width);
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          const comprimida = canvas.toDataURL('image/jpeg', 0.72);
-
-          const resp = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-              accion: 'foto',
-              fila: itemFotoActivo.fila,
-              codigo: itemFotoActivo.codigo,
-              numFoto,
-              base64Data: comprimida,
-              mimeType: 'image/jpeg'
-            })
-          });
-          const res = await resp.json();
-          if (res.ok) {
-            if (numFoto === 1) {
-              itemFotoActivo.foto1 = res.fotoUrl;
-              document.getElementById('aFoto1').src = res.fotoUrl;
-            } else {
-              itemFotoActivo.foto2 = res.fotoUrl;
-              document.getElementById('aFoto2').src = res.fotoUrl;
-            }
-            renderTablaFotos();
-            if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
-
-            if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
-              msg.innerText = '✓ ¡2 fotos listas! Lote archivado. Cargando siguiente pendiente...';
-              setTimeout(() => siguienteSinFoto(), 700);
-            } else {
-              msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
-            }
-          }
-        } finally {
-          subiendoFotoActualmente = false;
-        }
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function ampliarFoto(src) {
-    document.getElementById('imgModalGrande').src = src;
-    new bootstrap.Modal(document.getElementById('modalFoto')).show();
-  }
-
-  function descargarCSV() {
-    let csv = 'Sucursal;Codigo;Descripcion;Cantidad;Seriales;Dias;Costo_Unit;Costo_Total;Estado;Observacion;Oswal;Angelica;Orlando;Andres;Consenso;Foto1_Producto;Foto2_Caja\n';
-    listaFiltrada.forEach(r => {
-      csv += `"${r.sucursal}";"${r.codigo}";"${r.descripcion}";${r.cantidad};"${r.seriales}";${r.dias};${r.costoUnit};${r.costoTotal};"${r.estado}";"${r.observacion}";"${r.votos.OSMEL}";"${r.votos.ANGELICA}";"${r.votos.ORLANDO}";"${r.votos.ANDRES}";"${r.consenso}";"${r.foto1}";"${r.foto2}"\n`;
-    });
-    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'Comite_Obsolescencia_LIKE.csv';
-    a.click();
-  }
-</script>
-</body>
-</html>
+    const msg =
