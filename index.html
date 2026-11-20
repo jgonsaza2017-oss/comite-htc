@@ -28,6 +28,7 @@
       box-shadow: 0 5px 15px rgba(11, 25, 44, 0.2);
       border-bottom: 3px solid var(--corp-accent);
     }
+    /* Selector segmentado */
     .nav-segmented {
       background: rgba(255, 255, 255, 0.14);
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -57,6 +58,38 @@
       color: var(--corp-dark);
       font-weight: 700;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Pantalla de Bienvenida */
+    .welcome-card {
+      background: #ffffff;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 10px 30px rgba(11, 25, 44, 0.1);
+    }
+    .btn-perfil {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      transition: all 0.2s;
+      text-align: left;
+      height: 100%;
+      cursor: pointer;
+    }
+    .btn-perfil:hover {
+      border-color: var(--corp-primary);
+      background: #f8fafc;
+      transform: translateY(-2px);
+    }
+    .btn-perfil.btn-johanoscar {
+      background: linear-gradient(135deg, var(--corp-primary) 0%, var(--corp-accent) 100%);
+      color: #ffffff;
+      border: none;
+    }
+    .btn-perfil.btn-johanoscar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
 
     /* Ficha compacta */
@@ -90,12 +123,12 @@
     .pill-issue { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
     .pill-days  { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
 
-    /* Estados de votación limpios */
+    /* Estados de votación */
     .status-progreso { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
     .status-aprobado { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     .status-revisar  { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
 
-    /* Línea única de datos debajo del título */
+    /* Línea de datos del producto */
     .linea-datos-prod {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -111,7 +144,7 @@
     }
     .dato-sep { color: #cbd5e1; font-weight: 400; }
 
-    /* Pasarela limpia sin botones extra */
+    /* Pasarela de fotos */
     .pasarela-box {
       position: relative;
       background: #f8fafc;
@@ -161,28 +194,7 @@
     .pasarela-btn.prev { left: 10px; }
     .pasarela-btn.next { right: 10px; }
 
-    /* 4 Tarjetas compactas de directivos */
-    .eval-card {
-      border-radius: 10px;
-      padding: 6px 9px;
-      border: 1.5px solid #cbd5e1;
-      background: #f8fafc;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      height: 100%;
-    }
-    .eval-card:hover { border-color: #93c5fd; }
-    .eval-card.activo {
-      border-color: var(--corp-primary);
-      background: #eff6ff;
-      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.15);
-    }
-    .eval-nombre { font-weight: 700; font-size: 0.83rem; color: var(--corp-dark); line-height: 1.1; }
-    .eval-cargo { font-size: 0.64rem; color: #64748b; font-weight: 500; display: block; }
-    .eval-voto { font-size: 0.72rem; color: #475569; margin-top: 2px; line-height: 1.15; }
-    .eval-voto.votado { color: #15803d; font-weight: 700; }
-
-    /* Botones de decisión compactos */
+    /* Botones de decisión */
     .btn-decision {
       border-radius: 10px;
       padding: 8px 10px;
@@ -203,7 +215,7 @@
     .btn-reem { background: #059669; color: #ffffff; }
     .btn-baja { background: #334155; color: #ffffff; }
 
-    /* Barra flotante fija abajo */
+    /* Barra flotante inferior */
     .floating-nav-wrap {
       position: fixed;
       bottom: 0;
@@ -230,7 +242,7 @@
       pointer-events: auto;
     }
 
-    /* Tarjeta sincronizada y tarjetas de fotos */
+    /* Lista y Tarjetas */
     .lote-item {
       background: #ffffff;
       border-radius: 12px;
@@ -244,7 +256,6 @@
       box-shadow: 0 4px 12px rgba(30, 58, 138, 0.08);
     }
 
-    /* Botón de seriales desplegable */
     .btn-seriales-pill {
       display: inline-flex;
       align-items: center;
@@ -259,11 +270,9 @@
       cursor: pointer;
       transition: background 0.15s;
     }
-    .btn-seriales-pill:hover {
-      background: #cbd5e1;
-    }
+    .btn-seriales-pill:hover { background: #cbd5e1; }
 
-    /* Caja independiente de Totales Financieros */
+    /* Resumen Financiero */
     .resumen-financiero-card {
       background: #ffffff;
       border-radius: 14px;
@@ -288,14 +297,77 @@
   </style>
 </head>
 <body>
-<div class="container py-2" style="max-width: 720px;">
+
+<!-- ==================== PANTALLA DE INGRESO (IDENTIFICACIÓN) ==================== -->
+<div id="pantallaIdentificacion" class="container py-4" style="max-width: 540px;">
+  <div class="welcome-card p-4 text-center">
+    <div class="mb-3">
+      <span style="font-size: 2.8rem;">📦</span>
+    </div>
+    <h5 class="fw-bold text-dark">Comité Obsolescencia 4/4 | HTC</h5>
+    <p class="text-muted small">¿Quién ingresa a la aplicación hoy?</p>
+    <hr class="my-3">
+    
+    <div class="text-start mb-3">
+      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Integrantes del Comité:</small>
+    </div>
+    <div class="row g-2 mb-4">
+      <div class="col-6">
+        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('OSMEL')">
+          <span style="font-size: 1.25rem;">👔</span>
+          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Oswal</span>
+          <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Gerente General</small>
+        </button>
+      </div>
+      <div class="col-6">
+        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANGELICA')">
+          <span style="font-size: 1.25rem;">👩‍💼</span>
+          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Angélica</span>
+          <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Gerente Administrativa</small>
+        </button>
+      </div>
+      <div class="col-6">
+        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ORLANDO')">
+          <span style="font-size: 1.25rem;">📈</span>
+          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Orlando</span>
+          <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Director Comercial</small>
+        </button>
+      </div>
+      <div class="col-6">
+        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANDRES')">
+          <span style="font-size: 1.25rem;">⚙️</span>
+          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Andrés</span>
+          <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Jefe de Bodega</small>
+        </button>
+      </div>
+    </div>
+
+    <div class="text-start mb-2">
+      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Operación en Tienda:</small>
+    </div>
+    <button class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between" onclick="identificarUsuario('JOHAN_OSCAR')">
+      <div class="d-flex align-items-center gap-3 text-start">
+        <span style="font-size: 1.8rem;">📸</span>
+        <div>
+          <span class="fw-bold d-block" style="font-size: 0.94rem;">Johan y Oscar</span>
+          <small style="font-size: 0.72rem; opacity: 0.85;">Toma de Fotos y Carga Excel</small>
+        </div>
+      </div>
+      <span class="fw-bold" style="font-size: 1.1rem;">→</span>
+    </button>
+  </div>
+</div>
+
+<!-- ==================== CONTENEDOR PRINCIPAL DE LA APP ==================== -->
+<div id="appPrincipal" class="container py-2 d-none" style="max-width: 720px;">
 
   <!-- Encabezado Principal -->
   <div class="app-header mb-2">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
       <div>
         <h6 class="fw-bold mb-0" style="font-size: 0.96rem;">Comité Obsolescencia 4/4 | HTC</h6>
-        <small style="opacity: 0.82; font-size: 0.72rem;">Control ejecutivo de inventario</small>
+        <span class="badge bg-light text-dark fw-bold" id="badgeRolUsuario" style="font-size: 0.68rem;">👤 Sin identificar</span>
+        <button class="btn btn-link btn-sm text-white text-decoration-none p-0 ms-2" style="font-size: 0.68rem; opacity: 0.85;" onclick="cerrarSesionUsuario()">[Cambiar]</button>
       </div>
       <ul class="nav nav-segmented" role="tablist">
         <li class="nav-item">
@@ -312,14 +384,13 @@
     </div>
   </div>
 
-  <div id="loader" class="alert alert-info text-center fw-bold rounded-4 py-2 small mb-2">Sincronizando inventario...</div>
+  <div id="loader" class="alert alert-info text-center fw-bold rounded-4 py-2 small mb-2 d-none">Sincronizando inventario...</div>
 
   <div class="tab-content">
 
     <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
     <div class="tab-pane fade show active" id="tabComite">
 
-      <!-- Barra superior compacta: Tienda + Buscador + Exportar -->
       <div class="card border-0 shadow-sm rounded-4 p-2 mb-2">
         <div class="row g-2 align-items-center">
           <div class="col-7 col-md-5">
@@ -348,7 +419,7 @@
           <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
         </div>
 
-        <!-- 2. Título del producto + Línea única con Código, Und, Días (meses/años) y Valor Unit. -->
+        <!-- 2. Título del producto + Línea única de datos -->
         <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
 
         <div class="linea-datos-prod mb-2">
@@ -361,7 +432,7 @@
           <span><strong>Unit:</strong> <strong id="cCostoUnit" class="text-dark">$0</strong></span>
         </div>
 
-        <!-- 3. Foto en pasarela limpia (solo flechas e indicador 1/2) -->
+        <!-- 3. Foto en pasarela -->
         <div class="pasarela-box mb-2">
           <span class="pasarela-contador" id="cContadorFoto">1 / 2</span>
           <div class="position-relative">
@@ -371,7 +442,7 @@
           </div>
         </div>
 
-        <!-- 4. Novedad y Seriales en formato compacto -->
+        <!-- 4. Novedad y Seriales -->
         <div class="rounded-3 px-2 py-1 mb-2" style="background: #fffbeb; border: 1px solid #fde68a; font-size: 0.76rem;">
           <div><strong>Novedad:</strong> <span id="cObservacion">-</span></div>
           <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.7rem;">
@@ -379,63 +450,7 @@
           </div>
         </div>
 
-        <!-- 5. Identificación y Estado de los 4 directivos -->
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.66rem;">Toca tu nombre para evaluar:</small>
-          <span class="badge bg-danger" id="badgeQuienEvalua" style="font-size: 0.68rem;">⚠️ Selecciona tu nombre primero</span>
-        </div>
-        <div class="row g-2 mb-2">
-          <div class="col-6">
-            <div class="eval-card" id="card_OSMEL" onclick="seleccionarEvaluador('OSMEL')">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <span class="eval-nombre">Oswal</span>
-                  <span class="eval-cargo">Gerente General</span>
-                </div>
-                <span class="badge bg-primary d-none" id="tag_OSMEL" style="font-size: 0.65rem;">Tú</span>
-              </div>
-              <div class="eval-voto" id="vOsmel">Pendiente</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="eval-card" id="card_ANGELICA" onclick="seleccionarEvaluador('ANGELICA')">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <span class="eval-nombre">Angélica</span>
-                  <span class="eval-cargo">Gerente Administrativa</span>
-                </div>
-                <span class="badge bg-primary d-none" id="tag_ANGELICA" style="font-size: 0.65rem;">Tú</span>
-              </div>
-              <div class="eval-voto" id="vAngelica">Pendiente</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="eval-card" id="card_ORLANDO" onclick="seleccionarEvaluador('ORLANDO')">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <span class="eval-nombre">Orlando</span>
-                  <span class="eval-cargo">Director Comercial</span>
-                </div>
-                <span class="badge bg-primary d-none" id="tag_ORLANDO" style="font-size: 0.65rem;">Tú</span>
-              </div>
-              <div class="eval-voto" id="vOrlando">Pendiente</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="eval-card" id="card_ANDRES" onclick="seleccionarEvaluador('ANDRES')">
-              <div class="d-flex justify-content-between align-items-start">
-                <div>
-                  <span class="eval-nombre">Andrés</span>
-                  <span class="eval-cargo">Jefe de Bodega</span>
-                </div>
-                <span class="badge bg-primary d-none" id="tag_ANDRES" style="font-size: 0.65rem;">Tú</span>
-              </div>
-              <div class="eval-voto" id="vAndres">Pendiente</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 6A. Subpanel dinámico para Descuento (% o $) -->
+        <!-- 5. Subpanel de Descuento -->
         <div id="panelDescuento" class="card border-danger bg-danger-subtle p-2 rounded-3 mb-2 d-none">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <strong class="text-danger" style="font-size: 0.78rem;">Configurar Descuento</strong>
@@ -462,20 +477,20 @@
           <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
         </div>
 
-        <!-- 6B. Subpanel contextual para Cambiar de tienda -->
+        <!-- 6. Subpanel de Cambiar tienda -->
         <div id="panelCambiarTienda" class="card border-primary bg-primary-subtle p-2 rounded-3 mb-2 d-none">
           <div class="d-flex justify-content-between align-items-center mb-1">
             <strong class="text-primary" style="font-size: 0.78rem;">🚚 ¿A qué tienda se traslada?</strong>
             <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
           </div>
           <div class="input-group input-group-sm">
-            <input type="text" id="inputTiendaDestino" list="listaTiendasDatalist" class="form-control fw-semibold" placeholder="Escribe o elige tienda destino (ej. Sede Américas)...">
+            <input type="text" id="inputTiendaDestino" list="listaTiendasDatalist" class="form-control fw-semibold" placeholder="Escribe o elige tienda destino...">
             <datalist id="listaTiendasDatalist"></datalist>
             <button type="button" class="btn btn-primary fw-bold" onclick="confirmarCambioTienda()">Confirmar →</button>
           </div>
         </div>
 
-        <!-- 7. 5 Botones de Decisión Compactos -->
+        <!-- 7. Botones de Decisión -->
         <div class="row g-2 mb-1">
           <div class="col-6">
             <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
@@ -489,7 +504,7 @@
           <div class="col-6">
             <button type="button" class="btn-decision btn-reem w-100" onclick="votarComite('Reempacar p/ venta')">📦 Reempacar venta</button>
           </div>
-          <div class="col-12">
+          <div class="col-12" id="bloqueOpcionBaja">
             <button type="button" class="btn-decision btn-baja w-100" onclick="votarComite('Dar de baja')">🗑️ Dar de baja</button>
           </div>
         </div>
@@ -498,16 +513,15 @@
 
       </div>
 
-      <!-- SECCIÓN INFERIOR 1: Únicamente la tarjeta del producto activo -->
+      <!-- SECCIÓN INFERIOR 1: Tarjeta del producto activo -->
       <div id="bloqueTarjetaActiva" class="mb-2 d-none">
         <div class="d-flex justify-content-between align-items-center mb-1 px-1">
           <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
-          <small class="text-muted" style="font-size: 0.68rem;">Sincronizado automáticamente</small>
         </div>
         <div id="tarjetaLoteActivo"></div>
       </div>
 
-      <!-- SECCIÓN INFERIOR 2: Caja aparte con los valores sumados dinámicos en tiempo real -->
+      <!-- SECCIÓN INFERIOR 2: Caja de Totales -->
       <div id="bloqueResumenFinanciero" class="resumen-financiero-card mb-3 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="fw-bold text-dark" style="font-size: 0.78rem;">💰 Resumen Financiero en Tiempo Real</span>
@@ -537,7 +551,6 @@
           </div>
         </div>
 
-        <!-- Desplegable opcional por si desean saltar rápido a cualquier lote -->
         <div class="mt-2 pt-2 border-top text-center">
           <button type="button" class="btn btn-link btn-sm text-decoration-none fw-semibold p-0" style="font-size: 0.74rem;" onclick="toggleListaCompleta()">
             <span id="txtToggleLista">▾ Ver todos los lotes para salto rápido</span>
@@ -552,7 +565,7 @@
     <div class="tab-pane fade" id="tabCargaFotos">
       <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
         <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades Recuperables desde Excel</h6>
-        <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Los productos marcados como <strong>Dañado</strong> se excluyen automáticamente (van directo a baja) y solo suben al comité los que tienen recuperación comercial.</p>
+        <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Los productos marcados como <strong>Dañado</strong> se excluyen automáticamente y van directo a baja.</p>
         <div class="row g-2 align-items-end">
           <div class="col-12 col-md-5">
             <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
@@ -569,10 +582,10 @@
         <div id="msgImport" class="small fw-bold text-primary mt-2"></div>
       </div>
 
-      <!-- Panel de 2 Fotos en tienda -->
+      <!-- Panel de Fotos -->
       <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
         <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-          <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un producto abajo</h6>
+          <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un lote abajo</h6>
           <button class="btn btn-outline-primary btn-sm rounded-3 flex-shrink-0" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
         </div>
         <div class="row g-2 text-center">
@@ -600,7 +613,7 @@
         <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
       </div>
 
-      <!-- Listado colaborativo para tomar fotos (2 personas a la vez) -->
+      <!-- Listado Colaborativo -->
       <div class="card border-0 shadow-sm rounded-4 p-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
           <div>
@@ -612,7 +625,6 @@
           </div>
         </div>
 
-        <!-- Barra de división de trabajo entre 2 personas + Buscador -->
         <div class="row g-2 mb-2">
           <div class="col-6">
             <select id="filtroBloquePersona" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderTablaFotos()">
@@ -628,7 +640,6 @@
 
         <div id="listaTarjetasFotos" class="d-flex flex-column gap-2"></div>
 
-        <!-- Desplegable opcional para lotes que ya tienen sus 2 chulos verdes -->
         <div id="bloqueFotosCompletadas" class="mt-3 pt-2 border-top text-center d-none">
           <button type="button" class="btn btn-link btn-sm text-decoration-none text-success fw-semibold p-0" style="font-size: 0.75rem;" onclick="toggleFotosCompletadas()">
             <span id="txtToggleCompletadas">▾ Ver lotes ya fotografiados (0)</span>
@@ -641,19 +652,19 @@
   </div>
 </div>
 
-<!-- BARRA FLOTANTE FIJA ABAJO -->
+<!-- BARRA FLOTANTE -->
 <div id="barraFlotanteComite" class="floating-nav-wrap d-none">
   <div class="nav-bottom-bar">
     <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
     <div class="text-center">
       <div class="fw-bold" style="font-size: 0.8rem;" id="contadorComite">Producto 1 de 1</div>
-      <div style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</div>
+      <small style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</small>
     </div>
     <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3 py-1" onclick="moverComite(1)">Siguiente →</button>
   </div>
 </div>
 
-<!-- Modal para ampliar foto -->
+<!-- Modal Foto -->
 <div class="modal fade" id="modalFoto" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content bg-dark border-0">
@@ -664,7 +675,7 @@
   </div>
 </div>
 
-<!-- Modal desplegable para ver todos los seriales de un lote -->
+<!-- Modal Seriales -->
 <div class="modal fade" id="modalSeriales" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content rounded-4 border-0 shadow">
@@ -691,10 +702,11 @@
     OSMEL: 'Oswal (Gerente General)',
     ANGELICA: 'Angélica (Gerente Administrativa)',
     ORLANDO: 'Orlando (Director Comercial)',
-    ANDRES: 'Andrés (Jefe de Bodega)'
+    ANDRES: 'Andrés (Jefe de Bodega)',
+    JOHAN_OSCAR: 'Johan y Oscar (Operación)'
   };
 
-  let evaluadorActivo = localStorage.getItem('htc_evaluador') || '';
+  let usuarioActivo = localStorage.getItem('htc_usuario') || '';
   let listaComite = [];
   let listaFiltrada = [];
   let idxComite = 0;
@@ -706,25 +718,76 @@
   let subiendoFotoActualmente = false;
 
   window.onload = () => {
-    actualizarUIEvaluador();
+    if (usuarioActivo) {
+      mostrarAppPrincipal();
+    } else {
+      document.getElementById('pantallaIdentificacion').classList.remove('d-none');
+    }
     cargarDatos();
-    // Auto-sincronización silenciosa cada 6 segundos cuando están tomando fotos
+    
+    // Auto-sincronización silenciosa cada 6 segundos
     setInterval(() => {
-      if (!enPestanaComite && !subiendoFotoActualmente && !document.hidden) {
+      if (usuarioActivo === 'JOHAN_OSCAR' && !enPestanaComite && !subiendoFotoActualmente && !document.hidden) {
         sincronizarSilencioso(false);
       }
     }, 6000);
   };
 
+  function identificarUsuario(rol) {
+    usuarioActivo = rol;
+    localStorage.setItem('htc_usuario', rol);
+    mostrarAppPrincipal();
+  }
+
+  function mostrarAppPrincipal() {
+    document.getElementById('pantallaIdentificacion').classList.add('d-none');
+    const app = document.getElementById('appPrincipal');
+    app.classList.remove('d-none');
+    
+    const label = document.getElementById('badgeRolUsuario');
+    if (NOMBRES_EVAL[usuarioActivo]) {
+      label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
+    }
+
+    // Configuración según usuario
+    if (usuarioActivo === 'JOHAN_OSCAR') {
+      // Lleva directamente a la pestaña de fotos y oculta el tab de Comité
+      document.getElementById('btnTabComite').parentElement.classList.add('d-none');
+      document.getElementById('btnTabCarga').click();
+      toggleBarraFlotante(false);
+    } else {
+      // Visualización estándar para integrantes del comité
+      document.getElementById('btnTabComite').parentElement.classList.remove('d-none');
+      document.getElementById('btnTabComite').click();
+      toggleBarraFlotante(true);
+      
+      // Control de opciones en base al rol
+      const bajaBtn = document.getElementById('bloqueOpcionBaja');
+      if (usuarioActivo === 'ANGELICA') {
+        bajaBtn.classList.remove('d-none'); // mantiene dar de baja si se requiere
+      } else {
+        bajaBtn.classList.remove('d-none');
+      }
+    }
+  }
+
+  function cerrarSesionUsuario() {
+    localStorage.removeItem('htc_usuario');
+    usuarioActivo = '';
+    document.getElementById('appPrincipal').classList.add('d-none');
+    document.getElementById('barraFlotanteComite').classList.add('d-none');
+    document.getElementById('pantallaIdentificacion').classList.remove('d-none');
+  }
+
   function toggleBarraFlotante(mostrar) {
     enPestanaComite = mostrar;
     const barra = document.getElementById('barraFlotanteComite');
-    if (mostrar && listaFiltrada.length > 0) {
+    if (mostrar && listaFiltrada.length > 0 && usuarioActivo !== 'JOHAN_OSCAR') {
       barra.classList.remove('d-none');
     } else {
       barra.classList.add('d-none');
     }
-    if (!mostrar) {
+    if (!mostrar && usuarioActivo === 'JOHAN_OSCAR') {
       sincronizarSilencioso(false);
     }
   }
@@ -740,7 +803,6 @@
       listaComite = data.comite;
       renderTablaFotos();
 
-      // Si el lote que tienes abierto en cámara ya fue completado por tu compañero, avisar y pasar al siguiente
       if (itemFotoActivo) {
         const actualizado = listaComite.find(x => x.fila === itemFotoActivo.fila);
         if (actualizado) {
@@ -749,7 +811,7 @@
           itemFotoActivo = actualizado;
 
           if (!yaEstabaCompleto && ahoraCompleto) {
-            document.getElementById('msgFotoAud').innerText = 'ℹ️ Tu compañero acaba de completar este lote. Pasando al siguiente...';
+            document.getElementById('msgFotoAud').innerText = 'ℹ️ Lote completado por otro usuario. Cargando siguiente...';
             setTimeout(() => siguienteSinFoto(), 900);
           } else {
             document.getElementById('aFoto1').src = actualizado.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
@@ -764,35 +826,6 @@
     } catch (e) {
       if (lbl) lbl.innerText = '⚠️ Sin conexión temporal';
     }
-  }
-
-  function seleccionarEvaluador(codigo) {
-    evaluadorActivo = codigo;
-    localStorage.setItem('htc_evaluador', codigo);
-    actualizarUIEvaluador();
-    if (itemActivo) mostrarFichaComite(idxComite);
-  }
-
-  function actualizarUIEvaluador() {
-    const badge = document.getElementById('badgeQuienEvalua');
-    if (evaluadorActivo && NOMBRES_EVAL[evaluadorActivo]) {
-      badge.className = 'badge bg-primary';
-      badge.innerText = 'Evaluando: ' + NOMBRES_EVAL[evaluadorActivo];
-    } else {
-      badge.className = 'badge bg-danger';
-      badge.innerText = '⚠️ Selecciona tu nombre primero';
-    }
-    ['OSMEL', 'ANGELICA', 'ORLANDO', 'ANDRES'].forEach(k => {
-      const card = document.getElementById('card_' + k);
-      const tag = document.getElementById('tag_' + k);
-      if (k === evaluadorActivo) {
-        card.classList.add('activo');
-        tag.classList.remove('d-none');
-      } else {
-        card.classList.remove('activo');
-        tag.classList.add('d-none');
-      }
-    });
   }
 
   function renderHtmlSeriales(it, maxInline = 2) {
@@ -1007,7 +1040,7 @@
       if (idxComite >= listaFiltrada.length) idxComite = 0;
       document.getElementById('bloqueTarjetaActiva').classList.remove('d-none');
       document.getElementById('bloqueResumenFinanciero').classList.remove('d-none');
-      if (enPestanaComite) document.getElementById('barraFlotanteComite').classList.remove('d-none');
+      if (enPestanaComite && usuarioActivo !== 'JOHAN_OSCAR') document.getElementById('barraFlotanteComite').classList.remove('d-none');
       mostrarFichaComite(idxComite);
     } else {
       document.getElementById('fichaComite').classList.add('d-none');
@@ -1037,11 +1070,6 @@
     document.getElementById('cObservacion').innerText = it.observacion || 'Sin observación';
     document.getElementById('cSeriales').innerHTML = renderHtmlSeriales(it, 2);
 
-    pintarVotoTarjeta('vOsmel', it.votos.OSMEL);
-    pintarVotoTarjeta('vAngelica', it.votos.ANGELICA);
-    pintarVotoTarjeta('vOrlando', it.votos.ORLANDO);
-    pintarVotoTarjeta('vAndres', it.votos.ANDRES);
-
     const est = obtenerEstadoVotosUI(it);
     const badge = document.getElementById('cBadgeEstadoVotos');
     badge.innerText = est.texto;
@@ -1052,17 +1080,6 @@
 
     renderTarjetaUnicaActiva(it);
     actualizarResumenFinanciero();
-  }
-
-  function pintarVotoTarjeta(elId, texto) {
-    const el = document.getElementById(elId);
-    if (texto) {
-      el.innerText = texto;
-      el.classList.add('votado');
-    } else {
-      el.innerText = 'Pendiente';
-      el.classList.remove('votado');
-    }
   }
 
   function cambiarSlideFoto(val, relativo = false) {
@@ -1091,8 +1108,8 @@
   }
 
   function abrirPanelDescuento() {
-    if (!evaluadorActivo) {
-      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+    if (!usuarioActivo) {
+      alert('⚠️ Identifícate primero para participar.');
       return;
     }
     cerrarSubpaneles();
@@ -1137,8 +1154,8 @@
   }
 
   function abrirPanelCambiarTienda() {
-    if (!evaluadorActivo) {
-      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+    if (!usuarioActivo) {
+      alert('⚠️ Identifícate primero para participar.');
       return;
     }
     cerrarSubpaneles();
@@ -1157,25 +1174,25 @@
 
   async function votarComite(decision, motivo = '') {
     if (!itemActivo) return;
-    if (!evaluadorActivo) {
-      alert('⚠️ Antes de votar, toca tu propio nombre en las tarjetas (Oswal, Angélica, Orlando o Andrés).');
+    if (!usuarioActivo) {
+      alert('⚠️ Identifícate primero.');
       return;
     }
     cerrarSubpaneles();
     const msg = document.getElementById('msgComite');
-    msg.innerText = `Guardando voto de ${NOMBRES_EVAL[evaluadorActivo]}...`;
+    msg.innerText = `Guardando voto de ${NOMBRES_EVAL[usuarioActivo]}...`;
 
     const resp = await fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ accion: 'votar', fila: itemActivo.fila, evaluador: evaluadorActivo, decision, motivo })
+      body: JSON.stringify({ accion: 'votar', fila: itemActivo.fila, evaluador: usuarioActivo, decision, motivo })
     });
     const res = await resp.json();
     if (res.ok) {
-      itemActivo.votos[evaluadorActivo] = motivo ? `${decision} (${motivo})` : decision;
+      itemActivo.votos[usuarioActivo] = motivo ? `${decision} (${motivo})` : decision;
       itemActivo.consenso = res.consenso;
 
       mostrarFichaComite(idxComite);
-      msg.innerText = `✓ Voto de ${NOMBRES_EVAL[evaluadorActivo]} guardado. Pasando al siguiente...`;
+      msg.innerText = `✓ Voto de ${NOMBRES_EVAL[usuarioActivo]} guardado. Pasando al siguiente...`;
 
       setTimeout(() => {
         if (listaFiltrada.length > 1) {
@@ -1187,7 +1204,7 @@
     }
   }
 
-  // ================= PESTAÑA 2: IMPORTAR EXCEL Y 2 FOTOS =================
+  // ================= PESTAÑA 2: IMPORTAR EXCEL Y FOTOS =================
   function importarNovedadesExcel() {
     const file = document.getElementById('inputExcel').files[0];
     if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
@@ -1309,7 +1326,6 @@
     let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
     const completados = filtrados.filter(x => x.foto1 && x.foto2);
 
-    // Dividir pendientes en 2 mitades si 2 personas trabajan en la misma tienda
     if (bloque === 'MITAD1') {
       const corte = Math.ceil(pendientes.length / 2);
       pendientes = pendientes.slice(0, corte);
