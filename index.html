@@ -47,6 +47,7 @@
       align-items: center;
       gap: 5px;
       border: none;
+      cursor: pointer;
     }
     .nav-segmented .nav-link:hover {
       background: rgba(255, 255, 255, 0.12);
@@ -76,9 +77,9 @@
       height: 100%;
       cursor: pointer;
     }
-    .btn-perfil:hover {
+    .btn-perfil:hover, .btn-perfil:active {
       border-color: var(--corp-primary);
-      background: #f8fafc;
+      background: #eff6ff;
       transform: translateY(-2px);
     }
     .btn-perfil.btn-johanoscar {
@@ -86,7 +87,7 @@
       color: #ffffff;
       border: none;
     }
-    .btn-perfil.btn-johanoscar:hover {
+    .btn-perfil.btn-johanoscar:hover, .btn-perfil.btn-johanoscar:active {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
     }
@@ -293,6 +294,7 @@
       padding: 11px 13px;
       border: 1.5px solid #cbd5e1;
       transition: all 0.15s ease;
+      cursor: pointer;
     }
     .lote-item.seleccionado {
       border-color: var(--corp-primary);
@@ -357,28 +359,28 @@
     </div>
     <div class="row g-2 mb-4">
       <div class="col-6">
-        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('OSMEL')">
+        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('OSMEL')">
           <span style="font-size: 1.25rem;">👔</span>
           <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Oswal</span>
           <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Gerente General</small>
         </button>
       </div>
       <div class="col-6">
-        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANGELICA')">
+        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANGELICA')">
           <span style="font-size: 1.25rem;">👩‍💼</span>
           <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Angélica</span>
           <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Gerente Administrativa</small>
         </button>
       </div>
       <div class="col-6">
-        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ORLANDO')">
+        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ORLANDO')">
           <span style="font-size: 1.25rem;">📈</span>
           <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Orlando</span>
           <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Director Comercial</small>
         </button>
       </div>
       <div class="col-6">
-        <button class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANDRES')">
+        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANDRES')">
           <span style="font-size: 1.25rem;">⚙️</span>
           <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Andrés</span>
           <small class="text-muted" style="font-size: 0.68rem; line-height: 1.1;">Jefe de Bodega</small>
@@ -389,7 +391,7 @@
     <div class="text-start mb-2">
       <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Operación en Tienda:</small>
     </div>
-    <button class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between" onclick="identificarUsuario('JOHAN_OSCAR')">
+    <button type="button" class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between" onclick="identificarUsuario('JOHAN_OSCAR')">
       <div class="d-flex align-items-center gap-3 text-start">
         <span style="font-size: 1.8rem;">📸</span>
         <div>
@@ -411,291 +413,284 @@
       <div>
         <h6 class="fw-bold mb-0" style="font-size: 0.96rem;">Comité Obsolescencia 4/4 | HTC</h6>
         <span class="badge bg-light text-dark fw-bold" id="badgeRolUsuario" style="font-size: 0.68rem;">👤 Sin identificar</span>
-        <button class="btn btn-link btn-sm text-white text-decoration-none p-0 ms-2" style="font-size: 0.68rem; opacity: 0.85;" onclick="cerrarSesionUsuario()">[Cambiar]</button>
+        <button type="button" class="btn btn-link btn-sm text-white text-decoration-none p-0 ms-2" style="font-size: 0.68rem; opacity: 0.85;" onclick="cerrarSesionUsuario()">[Cambiar]</button>
       </div>
-      <ul class="nav nav-segmented" role="tablist">
-        <li class="nav-item">
-          <button class="nav-link active" id="btnTabComite" data-bs-toggle="pill" data-bs-target="#tabComite" type="button" onclick="toggleBarraFlotante(true)">
-            <span>📋</span> 1. Comité
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" id="btnTabCarga" data-bs-toggle="pill" data-bs-target="#tabCargaFotos" type="button" onclick="toggleBarraFlotante(false)">
-            <span>📸</span> 2. Carga y Fotos
-          </button>
-        </li>
-      </ul>
+      <div class="nav nav-segmented">
+        <button class="nav-link active" id="btnTabComite" type="button" onclick="cambiarVistaPestana('COMITE')">
+          <span>📋</span> 1. Comité
+        </button>
+        <button class="nav-link" id="btnTabCarga" type="button" onclick="cambiarVistaPestana('FOTOS')">
+          <span>📸</span> 2. Carga y Fotos
+        </button>
+      </div>
     </div>
   </div>
 
   <div id="loader" class="alert alert-info text-center fw-bold rounded-4 py-2 small mb-2 d-none">Sincronizando inventario...</div>
 
-  <div class="tab-content">
+  <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
+  <div id="tabComite">
 
-    <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
-    <div class="tab-pane fade show active" id="tabComite">
+    <div class="card border-0 shadow-sm rounded-4 p-2 mb-2">
+      <div class="row g-2 align-items-center">
+        <div class="col-7 col-md-5">
+          <select id="filtroSucursal" class="form-select form-select-sm fw-semibold rounded-3" onchange="idxComite=0; renderComite()">
+            <option value="TODAS">Todas las tiendas</option>
+          </select>
+        </div>
+        <div class="col-5 col-md-4">
+          <input type="text" id="buscarComite" class="form-control form-control-sm rounded-3" placeholder="Buscar código..." oninput="idxComite=0; renderComite()">
+        </div>
+        <div class="col-12 col-md-3">
+          <button type="button" class="btn btn-success btn-sm w-100 fw-semibold rounded-3" onclick="descargarCSV()">Exportar .CSV</button>
+        </div>
+      </div>
+    </div>
 
-      <div class="card border-0 shadow-sm rounded-4 p-2 mb-2">
-        <div class="row g-2 align-items-center">
-          <div class="col-7 col-md-5">
-            <select id="filtroSucursal" class="form-select form-select-sm fw-semibold rounded-3" onchange="idxComite=0; renderComite()">
-              <option value="TODAS">Todas las tiendas</option>
+    <!-- Ficha Principal del Producto -->
+    <div id="fichaComite" class="ficha-card p-3 mb-2 d-none">
+
+      <!-- 1. Tienda + Estado + Contador -->
+      <div class="ficha-top-meta">
+        <div class="d-flex flex-wrap align-items-center gap-1">
+          <span class="pill-meta pill-store" id="cSucursal"></span>
+          <span class="pill-meta pill-issue" id="cEstadoNovedad"></span>
+        </div>
+        <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
+      </div>
+
+      <!-- 2. Título del producto + Línea única de datos -->
+      <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
+
+      <div class="linea-datos-prod mb-2">
+        <span><strong>Código:</strong> <span id="cCodigo" class="text-dark fw-bold"></span></span>
+        <span class="dato-sep">|</span>
+        <span><strong id="cCantidad" class="text-primary">1 und.</strong></span>
+        <span class="dato-sep">|</span>
+        <span><strong id="cDias" class="text-danger">0 d</strong></span>
+        <span class="dato-sep">|</span>
+        <span><strong>Unit:</strong> <strong id="cCostoUnit" class="text-dark">$0</strong></span>
+      </div>
+
+      <!-- 3. Foto en pasarela -->
+      <div class="pasarela-box mb-2">
+        <span class="pasarela-contador" id="cContadorFoto">1 / 2</span>
+        <div class="position-relative">
+          <button type="button" class="pasarela-btn prev" onclick="cambiarSlideFoto(-1, true)">‹</button>
+          <img id="cFotoPasarela" src="" class="pasarela-img" onclick="ampliarFoto(this.src)">
+          <button type="button" class="pasarela-btn next" onclick="cambiarSlideFoto(1, true)">›</button>
+        </div>
+      </div>
+
+      <!-- 4. Novedad y Seriales con diseño limpio y legible -->
+      <div class="novedad-box-pro">
+        <span class="novedad-label">📋 Novedad reportada en tienda</span>
+        <div class="novedad-texto" id="cObservacion">-</div>
+        <div class="seriales-row-pro">
+          <span class="text-muted fw-bold">Seriales:</span>
+          <span id="cSeriales" class="d-flex flex-wrap align-items-center gap-1">-</span>
+        </div>
+      </div>
+
+      <!-- 5. Subpanel de Descuento -->
+      <div id="panelDescuento" class="card border-danger bg-danger-subtle p-2 rounded-3 mb-2 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <strong class="text-danger" style="font-size: 0.78rem;">Configurar Descuento</strong>
+          <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
+        </div>
+        <div class="d-flex gap-1 mb-2">
+          <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(10)">10%</button>
+          <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(20)">20%</button>
+          <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(30)">30%</button>
+          <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(50)">50%</button>
+        </div>
+        <div class="row g-2 align-items-center mb-1">
+          <div class="col-5">
+            <select id="tipoDesc" class="form-select form-select-sm fw-bold" onchange="calcularPreviewDesc()">
+              <option value="PORC">Porcentaje (%)</option>
+              <option value="VALOR">Valor fijo ($)</option>
             </select>
           </div>
-          <div class="col-5 col-md-4">
-            <input type="text" id="buscarComite" class="form-control form-control-sm rounded-3" placeholder="Buscar código..." oninput="idxComite=0; renderComite()">
+          <div class="col-7">
+            <input type="number" id="valorDesc" class="form-control form-control-sm fw-bold" placeholder="Ej. 25" oninput="calcularPreviewDesc()">
           </div>
-          <div class="col-12 col-md-3">
-            <button class="btn btn-success btn-sm w-100 fw-semibold rounded-3" onclick="descargarCSV()">Exportar .CSV</button>
-          </div>
+        </div>
+        <div class="fw-bold text-dark mb-1" style="font-size: 0.76rem;" id="previewDescTexto">Precio final estimado: -</div>
+        <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
+      </div>
+
+      <!-- 6. Subpanel de Cambiar tienda -->
+      <div id="panelCambiarTienda" class="card border-primary bg-primary-subtle p-2 rounded-3 mb-2 d-none">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <strong class="text-primary" style="font-size: 0.78rem;">🚚 ¿A qué tienda se traslada?</strong>
+          <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
+        </div>
+        <div class="input-group input-group-sm">
+          <input type="text" id="inputTiendaDestino" list="listaTiendasDatalist" class="form-control fw-semibold" placeholder="Escribe o elige tienda destino...">
+          <datalist id="listaTiendasDatalist"></datalist>
+          <button type="button" class="btn btn-primary fw-bold" onclick="confirmarCambioTienda()">Confirmar →</button>
         </div>
       </div>
 
-      <!-- Ficha Principal del Producto -->
-      <div id="fichaComite" class="ficha-card p-3 mb-2 d-none">
-
-        <!-- 1. Tienda + Estado + Contador -->
-        <div class="ficha-top-meta">
-          <div class="d-flex flex-wrap align-items-center gap-1">
-            <span class="pill-meta pill-store" id="cSucursal"></span>
-            <span class="pill-meta pill-issue" id="cEstadoNovedad"></span>
-          </div>
-          <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
+      <!-- 7. Botones de Decisión -->
+      <div class="row g-2 mb-1">
+        <div class="col-6">
+          <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
         </div>
-
-        <!-- 2. Título del producto + Línea única de datos -->
-        <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
-
-        <div class="linea-datos-prod mb-2">
-          <span><strong>Código:</strong> <span id="cCodigo" class="text-dark fw-bold"></span></span>
-          <span class="dato-sep">|</span>
-          <span><strong id="cCantidad" class="text-primary">1 und.</strong></span>
-          <span class="dato-sep">|</span>
-          <span><strong id="cDias" class="text-danger">0 d</strong></span>
-          <span class="dato-sep">|</span>
-          <span><strong>Unit:</strong> <strong id="cCostoUnit" class="text-dark">$0</strong></span>
+        <div class="col-6">
+          <button type="button" class="btn-decision btn-obs w-100" onclick="votarComite('Obsequio')">🎁 Obsequio</button>
         </div>
-
-        <!-- 3. Foto en pasarela -->
-        <div class="pasarela-box mb-2">
-          <span class="pasarela-contador" id="cContadorFoto">1 / 2</span>
-          <div class="position-relative">
-            <button type="button" class="pasarela-btn prev" onclick="cambiarSlideFoto(-1, true)">‹</button>
-            <img id="cFotoPasarela" src="" class="pasarela-img" onclick="ampliarFoto(this.src)">
-            <button type="button" class="pasarela-btn next" onclick="cambiarSlideFoto(1, true)">›</button>
-          </div>
+        <div class="col-6">
+          <button type="button" class="btn-decision btn-tras w-100" onclick="abrirPanelCambiarTienda()">🚚 Cambiar tienda</button>
         </div>
-
-        <!-- 4. Novedad y Seriales con diseño limpio y legible -->
-        <div class="novedad-box-pro">
-          <span class="novedad-label">📋 Novedad reportada en tienda</span>
-          <div class="novedad-texto" id="cObservacion">-</div>
-          <div class="seriales-row-pro">
-            <span class="text-muted fw-bold">Seriales:</span>
-            <span id="cSeriales" class="d-flex flex-wrap align-items-center gap-1">-</span>
-          </div>
+        <div class="col-6">
+          <button type="button" class="btn-decision btn-reem w-100" onclick="votarComite('Reempacar p/ venta')">📦 Reempacar venta</button>
         </div>
-
-        <!-- 5. Subpanel de Descuento -->
-        <div id="panelDescuento" class="card border-danger bg-danger-subtle p-2 rounded-3 mb-2 d-none">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <strong class="text-danger" style="font-size: 0.78rem;">Configurar Descuento</strong>
-            <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
-          </div>
-          <div class="d-flex gap-1 mb-2">
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(10)">10%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(20)">20%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(30)">30%</button>
-            <button type="button" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-0" onclick="setPorcentajeRapido(50)">50%</button>
-          </div>
-          <div class="row g-2 align-items-center mb-1">
-            <div class="col-5">
-              <select id="tipoDesc" class="form-select form-select-sm fw-bold" onchange="calcularPreviewDesc()">
-                <option value="PORC">Porcentaje (%)</option>
-                <option value="VALOR">Valor fijo ($)</option>
-              </select>
-            </div>
-            <div class="col-7">
-              <input type="number" id="valorDesc" class="form-control form-control-sm fw-bold" placeholder="Ej. 25" oninput="calcularPreviewDesc()">
-            </div>
-          </div>
-          <div class="fw-bold text-dark mb-1" style="font-size: 0.76rem;" id="previewDescTexto">Precio final estimado: -</div>
-          <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
-        </div>
-
-        <!-- 6. Subpanel de Cambiar tienda -->
-        <div id="panelCambiarTienda" class="card border-primary bg-primary-subtle p-2 rounded-3 mb-2 d-none">
-          <div class="d-flex justify-content-between align-items-center mb-1">
-            <strong class="text-primary" style="font-size: 0.78rem;">🚚 ¿A qué tienda se traslada?</strong>
-            <button type="button" class="btn-close btn-sm" onclick="cerrarSubpaneles()"></button>
-          </div>
-          <div class="input-group input-group-sm">
-            <input type="text" id="inputTiendaDestino" list="listaTiendasDatalist" class="form-control fw-semibold" placeholder="Escribe o elige tienda destino...">
-            <datalist id="listaTiendasDatalist"></datalist>
-            <button type="button" class="btn btn-primary fw-bold" onclick="confirmarCambioTienda()">Confirmar →</button>
-          </div>
-        </div>
-
-        <!-- 7. Botones de Decisión -->
-        <div class="row g-2 mb-1">
-          <div class="col-6">
-            <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
-          </div>
-          <div class="col-6">
-            <button type="button" class="btn-decision btn-obs w-100" onclick="votarComite('Obsequio')">🎁 Obsequio</button>
-          </div>
-          <div class="col-6">
-            <button type="button" class="btn-decision btn-tras w-100" onclick="abrirPanelCambiarTienda()">🚚 Cambiar tienda</button>
-          </div>
-          <div class="col-6">
-            <button type="button" class="btn-decision btn-reem w-100" onclick="votarComite('Reempacar p/ venta')">📦 Reempacar venta</button>
-          </div>
-          <div class="col-12" id="bloqueOpcionBaja">
-            <button type="button" class="btn-decision btn-baja w-100" onclick="votarComite('Dar de baja')">🗑️ Dar de baja</button>
-          </div>
-        </div>
-
-        <div id="msgComite" class="text-success fw-bold small text-center"></div>
-
-      </div>
-
-      <!-- SECCIÓN INFERIOR 1: Tarjeta del producto activo -->
-      <div id="bloqueTarjetaActiva" class="mb-2 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-1 px-1">
-          <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
-        </div>
-        <div id="tarjetaLoteActivo"></div>
-      </div>
-
-      <!-- SECCIÓN INFERIOR 2: Caja de Totales -->
-      <div id="bloqueResumenFinanciero" class="resumen-financiero-card mb-3 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-dark" style="font-size: 0.78rem;">💰 Resumen Financiero en Tiempo Real</span>
-          <span class="badge bg-light text-dark border" style="font-size: 0.66rem;" id="lblFiltroFinanciero">Todas las tiendas</span>
-        </div>
-        <div class="row g-2">
-          <div class="col-4">
-            <div class="fin-box fin-bajas">
-              <span class="fin-lbl">Bajas ($)</span>
-              <span class="fin-val" id="sumBajas">$0</span>
-              <span class="fin-sub" id="cntBajas">0 lotes</span>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="fin-box fin-recup">
-              <span class="fin-lbl">Recup. / Cambios</span>
-              <span class="fin-val" id="sumRecuperacion">$0</span>
-              <span class="fin-sub" id="cntRecuperacion">0 lotes</span>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="fin-box fin-total">
-              <span class="fin-lbl">Total Lote ($)</span>
-              <span class="fin-val" id="sumTotalGeneral">$0</span>
-              <span class="fin-sub" id="cntTotalGeneral">0 lotes</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-2 pt-2 border-top text-center">
-          <button type="button" class="btn btn-link btn-sm text-decoration-none fw-semibold p-0" style="font-size: 0.74rem;" onclick="toggleListaCompleta()">
-            <span id="txtToggleLista">▾ Ver todos los lotes para salto rápido</span>
-          </button>
-          <div id="contenedorListaCompleta" class="mt-2 text-start d-none"></div>
+        <div class="col-12" id="bloqueOpcionBaja">
+          <button type="button" class="btn-decision btn-baja w-100" onclick="votarComite('Dar de baja')">🗑️ Dar de baja</button>
         </div>
       </div>
+
+      <div id="msgComite" class="text-success fw-bold small text-center"></div>
 
     </div>
 
-    <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
-    <div class="tab-pane fade" id="tabCargaFotos">
-      <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
-        <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades Recuperables desde Excel</h6>
-        <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Los productos marcados como <strong>Dañado</strong> se excluyen automáticamente y van directo a baja.</p>
-        <div class="row g-2 align-items-end">
-          <div class="col-12 col-md-5">
-            <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
-            <input type="file" id="inputExcel" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label small fw-bold mb-1">Tienda por defecto</label>
-            <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. LTE BOSA HOLANDA">
-          </div>
-          <div class="col-12 col-md-4">
-            <button class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="importarNovedadesExcel()">Importar y Agrupar</button>
+    <!-- SECCIÓN INFERIOR 1: Tarjeta del producto activo -->
+    <div id="bloqueTarjetaActiva" class="mb-2 d-none">
+      <div class="d-flex justify-content-between align-items-center mb-1 px-1">
+        <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
+      </div>
+      <div id="tarjetaLoteActivo"></div>
+    </div>
+
+    <!-- SECCIÓN INFERIOR 2: Caja de Totales -->
+    <div id="bloqueResumenFinanciero" class="resumen-financiero-card mb-3 d-none">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-bold text-dark" style="font-size: 0.78rem;">💰 Resumen Financiero en Tiempo Real</span>
+        <span class="badge bg-light text-dark border" style="font-size: 0.66rem;" id="lblFiltroFinanciero">Todas las tiendas</span>
+      </div>
+      <div class="row g-2">
+        <div class="col-4">
+          <div class="fin-box fin-bajas">
+            <span class="fin-lbl">Bajas ($)</span>
+            <span class="fin-val" id="sumBajas">$0</span>
+            <span class="fin-sub" id="cntBajas">0 lotes</span>
           </div>
         </div>
-        <div id="msgImport" class="small fw-bold text-primary mt-2"></div>
+        <div class="col-4">
+          <div class="fin-box fin-recup">
+            <span class="fin-lbl">Recup. / Cambios</span>
+            <span class="fin-val" id="sumRecuperacion">$0</span>
+            <span class="fin-sub" id="cntRecuperacion">0 lotes</span>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="fin-box fin-total">
+            <span class="fin-lbl">Total Lote ($)</span>
+            <span class="fin-val" id="sumTotalGeneral">$0</span>
+            <span class="fin-sub" id="cntTotalGeneral">0 lotes</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Panel de Fotos -->
-      <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
-          <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un lote abajo</h6>
-          <button class="btn btn-outline-primary btn-sm rounded-3 flex-shrink-0" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
-        </div>
-        <div class="row g-2 text-center">
-          <div class="col-6">
-            <div class="border rounded-3 p-2 bg-light">
-              <span class="badge bg-dark mb-1">1. Producto</span>
-              <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-              <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
-                Tomar Foto 1
-                <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(1, this)">
-              </label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="border rounded-3 p-2 bg-light">
-              <span class="badge bg-danger mb-1">2. Caja / Estado</span>
-              <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-              <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
-                Tomar Foto 2
-                <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(2, this)">
-              </label>
-            </div>
-          </div>
-        </div>
-        <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
-      </div>
-
-      <!-- Listado Colaborativo -->
-      <div class="card border-0 shadow-sm rounded-4 p-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-          <div>
-            <h6 class="fw-bold mb-0 small">Paso 2: Pendientes por fotografiar (<span id="cntPendientesFoto">0</span>)</h6>
-            <small class="text-success fw-semibold" style="font-size: 0.68rem;" id="estadoSyncFotos">● Sincronización en vivo cada 6s</small>
-          </div>
-          <div class="d-flex gap-1">
-            <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 fw-bold" title="Actualizar ahora" onclick="sincronizarSilencioso(true)">🔄</button>
-          </div>
-        </div>
-
-        <div class="row g-2 mb-2">
-          <div class="col-6">
-            <select id="filtroBloquePersona" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderTablaFotos()">
-              <option value="TODOS">👥 Ver todos los pendientes</option>
-              <option value="MITAD1">👤 Persona 1 (Primera mitad)</option>
-              <option value="MITAD2">👤 Persona 2 (Segunda mitad)</option>
-            </select>
-          </div>
-          <div class="col-6">
-            <input type="text" id="buscarFoto" class="form-control form-control-sm rounded-3" placeholder="Buscar código o serial..." oninput="renderTablaFotos()">
-          </div>
-        </div>
-
-        <div id="listaTarjetasFotos" class="d-flex flex-column gap-2"></div>
-
-        <div id="bloqueFotosCompletadas" class="mt-3 pt-2 border-top text-center d-none">
-          <button type="button" class="btn btn-link btn-sm text-decoration-none text-success fw-semibold p-0" style="font-size: 0.75rem;" onclick="toggleFotosCompletadas()">
-            <span id="txtToggleCompletadas">▾ Ver lotes ya fotografiados (0)</span>
-          </button>
-          <div id="listaFotosCompletadas" class="mt-2 text-start d-flex flex-column gap-2 d-none"></div>
-        </div>
+      <div class="mt-2 pt-2 border-top text-center">
+        <button type="button" class="btn btn-link btn-sm text-decoration-none fw-semibold p-0" style="font-size: 0.74rem;" onclick="toggleListaCompleta()">
+          <span id="txtToggleLista">▾ Ver todos los lotes para salto rápido</span>
+        </button>
+        <div id="contenedorListaCompleta" class="mt-2 text-start d-none"></div>
       </div>
     </div>
 
   </div>
+
+  <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
+  <div id="tabCargaFotos" class="d-none">
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+      <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades Recuperables desde Excel</h6>
+      <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Los productos marcados como <strong>Dañado</strong> se excluyen automáticamente y van directo a baja.</p>
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+          <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
+          <input type="file" id="inputExcel" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold mb-1">Tienda por defecto</label>
+          <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. LTE BOSA HOLANDA">
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="importarNovedadesExcel()">Importar y Agrupar</button>
+        </div>
+      </div>
+      <div id="msgImport" class="small fw-bold text-primary mt-2"></div>
+    </div>
+
+    <!-- Panel de Fotos -->
+    <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
+      <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+        <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un lote abajo</h6>
+        <button type="button" class="btn btn-outline-primary btn-sm rounded-3 flex-shrink-0" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
+      </div>
+      <div class="row g-2 text-center">
+        <div class="col-6">
+          <div class="border rounded-3 p-2 bg-light">
+            <span class="badge bg-dark mb-1">1. Producto</span>
+            <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+            <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
+              Tomar Foto 1
+              <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(1, this)">
+            </label>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="border rounded-3 p-2 bg-light">
+            <span class="badge bg-danger mb-1">2. Caja / Estado</span>
+            <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+            <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
+              Tomar Foto 2
+              <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(2, this)">
+            </label>
+          </div>
+        </div>
+      </div>
+      <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
+    </div>
+
+    <!-- Listado Colaborativo -->
+    <div class="card border-0 shadow-sm rounded-4 p-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+        <div>
+          <h6 class="fw-bold mb-0 small">Paso 2: Pendientes por fotografiar (<span id="cntPendientesFoto">0</span>)</h6>
+          <small class="text-success fw-semibold" style="font-size: 0.68rem;" id="estadoSyncFotos">● Sincronización en vivo cada 6s</small>
+        </div>
+        <div class="d-flex gap-1">
+          <button type="button" class="btn btn-outline-secondary btn-sm rounded-3 fw-bold" title="Actualizar ahora" onclick="sincronizarSilencioso(true)">🔄</button>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-2">
+        <div class="col-6">
+          <select id="filtroBloquePersona" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderTablaFotos()">
+            <option value="TODOS">👥 Ver todos los pendientes</option>
+            <option value="MITAD1">👤 Persona 1 (Primera mitad)</option>
+            <option value="MITAD2">👤 Persona 2 (Segunda mitad)</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <input type="text" id="buscarFoto" class="form-control form-control-sm rounded-3" placeholder="Buscar código o serial..." oninput="renderTablaFotos()">
+        </div>
+      </div>
+
+      <div id="listaTarjetasFotos" class="d-flex flex-column gap-2"></div>
+
+      <div id="bloqueFotosCompletadas" class="mt-3 pt-2 border-top text-center d-none">
+        <button type="button" class="btn btn-link btn-sm text-decoration-none text-success fw-semibold p-0" style="font-size: 0.75rem;" onclick="toggleFotosCompletadas()">
+          <span id="txtToggleCompletadas">▾ Ver lotes ya fotografiados (0)</span>
+        </button>
+        <div id="listaFotosCompletadas" class="mt-2 text-start d-flex flex-column gap-2 d-none"></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- BARRA FLOTANTE (Solo visible dentro de 1. Comité cuando ya hay sesión activa) -->
@@ -764,10 +759,12 @@
   let subiendoFotoActualmente = false;
 
   window.onload = () => {
-    if (usuarioActivo) {
+    if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
       mostrarAppPrincipal();
     } else {
+      usuarioActivo = '';
       document.getElementById('pantallaIdentificacion').classList.remove('d-none');
+      document.getElementById('appPrincipal').classList.add('d-none');
       document.getElementById('barraFlotanteComite').classList.add('d-none');
     }
     cargarDatos();
@@ -785,6 +782,27 @@
     mostrarAppPrincipal();
   }
 
+  function cambiarVistaPestana(vista) {
+    const tabComite = document.getElementById('tabComite');
+    const tabFotos = document.getElementById('tabCargaFotos');
+    const btnComite = document.getElementById('btnTabComite');
+    const btnFotos = document.getElementById('btnTabCarga');
+
+    if (vista === 'COMITE') {
+      tabComite.classList.remove('d-none');
+      tabFotos.classList.add('d-none');
+      btnComite.classList.add('active');
+      btnFotos.classList.remove('active');
+      toggleBarraFlotante(true);
+    } else {
+      tabComite.classList.add('d-none');
+      tabFotos.classList.remove('d-none');
+      btnComite.classList.remove('active');
+      btnFotos.classList.add('active');
+      toggleBarraFlotante(false);
+    }
+  }
+
   function mostrarAppPrincipal() {
     document.getElementById('pantallaIdentificacion').classList.add('d-none');
     const app = document.getElementById('appPrincipal');
@@ -796,13 +814,11 @@
     }
 
     if (usuarioActivo === 'JOHAN_OSCAR') {
-      document.getElementById('btnTabComite').parentElement.classList.add('d-none');
-      document.getElementById('btnTabCarga').click();
-      toggleBarraFlotante(false);
+      document.getElementById('btnTabComite').classList.add('d-none');
+      cambiarVistaPestana('FOTOS');
     } else {
-      document.getElementById('btnTabComite').parentElement.classList.remove('d-none');
-      document.getElementById('btnTabComite').click();
-      toggleBarraFlotante(true);
+      document.getElementById('btnTabComite').classList.remove('d-none');
+      cambiarVistaPestana('COMITE');
     }
   }
 
@@ -1252,4 +1268,262 @@
     const file = document.getElementById('inputExcel').files[0];
     if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
     const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim() || 'TIENDA PRINCIPAL';
-    const msg =
+    const msg = document.getElementById('msgImport');
+    msg.innerText = 'Procesando novedades recuperables del Excel...';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
+
+      const grupos = {};
+      let omitidosDanados = 0;
+
+      rows.forEach(r => {
+        const clean = {};
+        Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
+
+        const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
+        const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
+        const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
+        const sucursal = String(clean['Sucursal'] || tiendaDefault).trim();
+        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
+        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
+        const diferencia = Number(clean['Diferencia'] || 0);
+        const estado = String(clean['Novedades(estado)'] || '').trim();
+        const obs = String(clean['Observacion'] || '').trim();
+
+        if (!codigo || codigo === '0' || !desc || desc === '0') return;
+
+        const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
+          omitidosDanados += 1;
+          return;
+        }
+
+        const tieneEstadoNovedad = estado !== '' && estadoNorm !== 'buen estado';
+        const esNovedad = obs !== '' || tieneEstadoNovedad || diferencia !== 0 || dias >= 130;
+        if (!esNovedad) return;
+
+        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Empaque / Estética' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >130d'));
+        const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
+
+        if (!grupos[clave]) {
+          grupos[clave] = {
+            sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [],
+            dias, costoUnit: costo, estado: estadoFinal, observacion: obs
+          };
+        }
+        grupos[clave].cantidad += 1;
+        if (serial) grupos[clave].serialesArr.push(serial);
+      });
+
+      const lotes = Object.values(grupos).map(g => ({
+        sucursal: g.sucursal, codigo: g.codigo, descripcion: g.descripcion,
+        cantidad: g.cantidad, seriales: g.serialesArr.join(', '),
+        dias: g.dias, costoUnit: g.costoUnit, costoTotal: g.costoUnit * g.cantidad,
+        estado: g.estado, observacion: g.observacion
+      }));
+
+      if (lotes.length === 0) {
+        msg.innerText = omitidosDanados > 0
+          ? `No hay lotes recuperables para Comité (se separaron ${omitidosDanados} unidades dañadas directas para baja).`
+          : 'No se encontraron novedades válidas en el archivo.';
+        return;
+      }
+
+      msg.innerText = `Subiendo ${lotes.length} lotes recuperables...`;
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ accion: 'importar_novedades', lotes })
+      });
+      const res = await resp.json();
+      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes al Comité` +
+        (omitidosDanados > 0 ? ` (y se excluyeron ${omitidosDanados} dañados directos para baja).` : '.');
+      cargarDatos();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function construirTarjetaFoto(it) {
+    return `
+      <div class="lote-item ${itemFotoActivo && itemFotoActivo.fila === it.fila ? 'seleccionado' : ''}" onclick="seleccionarParaFoto(${it.fila}); window.scrollTo({top: 0, behavior: 'smooth'});">
+        <div class="d-flex justify-content-between align-items-center gap-2">
+          <div>
+            <span class="pill-meta pill-store">${it.sucursal}</span>
+            <span class="pill-meta pill-issue">${it.estado}</span>
+            <div class="fw-bold small mt-1">${it.descripcion}</div>
+            <div class="text-muted d-flex flex-wrap align-items-center gap-1 mt-1" style="font-size: 0.72rem;">
+              <span>Código: <strong>${it.codigo}</strong></span>
+              <span>· <strong>${it.cantidad} und.</strong></span>
+              <span>· Serial: ${renderHtmlSeriales(it, 1)}</span>
+            </div>
+            <div class="text-muted" style="font-size: 0.71rem;">${it.observacion || ''}</div>
+          </div>
+          <div class="text-end small flex-shrink-0">
+            <div>Foto 1: ${it.foto1 ? '✅' : '❌'}</div>
+            <div>Foto 2: ${it.foto2 ? '✅' : '❌'}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTablaFotos() {
+    const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
+    const bloque = document.getElementById('filtroBloquePersona').value;
+
+    const filtrados = listaComite.filter(x =>
+      !q ||
+      x.codigo.toLowerCase().includes(q) ||
+      x.descripcion.toLowerCase().includes(q) ||
+      x.sucursal.toLowerCase().includes(q) ||
+      String(x.seriales || '').toLowerCase().includes(q)
+    );
+
+    let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
+    const completados = filtrados.filter(x => x.foto1 && x.foto2);
+
+    if (bloque === 'MITAD1') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(0, corte);
+    } else if (bloque === 'MITAD2') {
+      const corte = Math.ceil(pendientes.length / 2);
+      pendientes = pendientes.slice(corte);
+    }
+
+    document.getElementById('cntPendientesFoto').innerText = pendientes.length;
+
+    if (pendientes.length > 0) {
+      document.getElementById('listaTarjetasFotos').innerHTML = pendientes.map(construirTarjetaFoto).join('');
+    } else {
+      document.getElementById('listaTarjetasFotos').innerHTML = `
+        <div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">
+          🎉 ¡Todos los lotes de este bloque ya tienen sus 2 fotos completas!
+        </div>
+      `;
+    }
+
+    const bloqueComp = document.getElementById('bloqueFotosCompletadas');
+    if (completados.length > 0) {
+      bloqueComp.classList.remove('d-none');
+      const listaCompEl = document.getElementById('listaFotosCompletadas');
+      const estaAbierto = !listaCompEl.classList.contains('d-none');
+      document.getElementById('txtToggleCompletadas').innerText =
+        `${estaAbierto ? '▴ Ocultar' : '▾ Ver'} lotes ya fotografiados (${completados.length})`;
+      listaCompEl.innerHTML = completados.map(construirTarjetaFoto).join('');
+    } else {
+      bloqueComp.classList.add('d-none');
+    }
+  }
+
+  function toggleFotosCompletadas() {
+    const listaCompEl = document.getElementById('listaFotosCompletadas');
+    listaCompEl.classList.toggle('d-none');
+    renderTablaFotos();
+  }
+
+  function seleccionarParaFoto(fila) {
+    const it = listaComite.find(x => x.fila === fila);
+    if (!it) return;
+    itemFotoActivo = it;
+    document.getElementById('panelFotosAud').classList.remove('d-none');
+    document.getElementById('fTitulo').innerText = `${it.codigo} - ${it.descripcion} (${it.sucursal})`;
+    document.getElementById('aFoto1').src = it.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
+    document.getElementById('aFoto2').src = it.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
+    document.getElementById('msgFotoAud').innerText = '';
+    renderTablaFotos();
+  }
+
+  function siguienteSinFoto() {
+    const bloque = document.getElementById('filtroBloquePersona').value;
+    let pendientes = listaComite.filter(x => !x.foto1 || !x.foto2);
+    if (bloque === 'MITAD1') {
+      pendientes = pendientes.slice(0, Math.ceil(pendientes.length / 2));
+    } else if (bloque === 'MITAD2') {
+      pendientes = pendientes.slice(Math.ceil(pendientes.length / 2));
+    }
+    const pendiente = pendientes[0] || listaComite.find(x => !x.foto1 || !x.foto2);
+    if (pendiente) seleccionarParaFoto(pendiente.fila);
+    else alert('¡Todos los lotes ya tienen sus 2 fotos!');
+  }
+
+  function subirFotoComprimida(numFoto, inputEl) {
+    const file = inputEl.files[0];
+    if (!file || !itemFotoActivo) return;
+    subiendoFotoActualmente = true;
+    const msg = document.getElementById('msgFotoAud');
+    msg.innerText = `Comprimiendo y subiendo Foto ${numFoto}...`;
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = async function() {
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_W = 900;
+          const scale = Math.min(1, MAX_W / img.width);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          const comprimida = canvas.toDataURL('image/jpeg', 0.72);
+
+          const resp = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              accion: 'foto',
+              fila: itemFotoActivo.fila,
+              codigo: itemFotoActivo.codigo,
+              numFoto,
+              base64Data: comprimida,
+              mimeType: 'image/jpeg'
+            })
+          });
+          const res = await resp.json();
+          if (res.ok) {
+            if (numFoto === 1) {
+              itemFotoActivo.foto1 = res.fotoUrl;
+              document.getElementById('aFoto1').src = res.fotoUrl;
+            } else {
+              itemFotoActivo.foto2 = res.fotoUrl;
+              document.getElementById('aFoto2').src = res.fotoUrl;
+            }
+            renderTablaFotos();
+            if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
+
+            if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
+              msg.innerText = '✓ ¡2 fotos listas! Lote archivado. Cargando siguiente pendiente...';
+              setTimeout(() => siguienteSinFoto(), 700);
+            } else {
+              msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
+            }
+          }
+        } finally {
+          subiendoFotoActualmente = false;
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function ampliarFoto(src) {
+    document.getElementById('imgModalGrande').src = src;
+    new bootstrap.Modal(document.getElementById('modalFoto')).show();
+  }
+
+  function descargarCSV() {
+    let csv = 'Sucursal;Codigo;Descripcion;Cantidad;Seriales;Dias;Costo_Unit;Costo_Total;Estado;Observacion;Oswal;Angelica;Orlando;Andres;Consenso;Foto1_Producto;Foto2_Caja\n';
+    listaFiltrada.forEach(r => {
+      csv += `"${r.sucursal}";"${r.codigo}";"${r.descripcion}";${r.cantidad};"${r.seriales}";${r.dias};${r.costoUnit};${r.costoTotal};"${r.estado}";"${r.observacion}";"${r.votos.OSMEL}";"${r.votos.ANGELICA}";"${r.votos.ORLANDO}";"${r.votos.ANDRES}";"${r.consenso}";"${r.foto1}";"${r.foto2}"\n`;
+    });
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Comite_Obsolescencia_LIKE.csv';
+    a.click();
+  }
+</script>
+</body>
+</html>
