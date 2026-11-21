@@ -15,19 +15,21 @@
       --ui-pink: #ec4899;
       --ui-grad-main: linear-gradient(135deg, #5b6ef5 0%, #8b5cf6 52%, #d946ef 100%);
       --ui-grad-pink: linear-gradient(135deg, #f43f5e 0%, #ec4899 55%, #a855f7 100%);
-      --ui-bg: #f6f7fb;
+      --ui-bg: #eef2f9;
       --ui-card: #ffffff;
       --ui-text: #1e293b;
-      --ui-muted: #94a3b8;
-      --ui-shadow: 0 12px 32px rgba(91, 110, 245, 0.09);
-      --ui-shadow-sm: 0 6px 18px rgba(15, 23, 42, 0.05);
+      --ui-muted: #64748b;
+      --ui-shadow: 0 14px 34px rgba(91, 110, 245, 0.11);
+      --ui-shadow-sm: 0 8px 22px rgba(15, 23, 42, 0.06);
     }
 
     body {
-      background-color: var(--ui-bg);
+      background: radial-gradient(circle at top left, #f3e8ff 0%, #eef2f9 45%, #e0e7ff 100%);
+      background-attachment: fixed;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--ui-text);
-      padding-bottom: 88px;
+      padding-bottom: 84px;
+      min-height: 100vh;
     }
 
     /* ===== PANTALLA 1: BIENVENIDA ESTILO APP MODERNA ===== */
@@ -72,7 +74,7 @@
       border-color: var(--ui-violet);
       background: #f5f3ff;
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.12);
+      box-shadow: 0 8px 20px rgba(139, 92, 246, 0.14);
     }
     .btn-perfil.btn-johanoscar {
       background: var(--ui-grad-main);
@@ -81,18 +83,14 @@
       border-radius: 18px;
       box-shadow: 0 10px 24px rgba(139, 92, 246, 0.32);
     }
-    .btn-perfil.btn-johanoscar:hover {
-      filter: brightness(1.05);
-      transform: translateY(-2px);
-    }
 
-    /* ===== CABECERA CURVA CON DEGRADADO Y TILES ===== */
+    /* ===== CABECERA CURVA Y BOTÓN CAMBIAR PERFIL ===== */
     .app-header {
       background: var(--ui-grad-main);
       color: #ffffff;
       border-radius: 26px;
-      padding: 18px 18px 22px 18px;
-      box-shadow: 0 12px 28px rgba(124, 58, 237, 0.22);
+      padding: 16px 18px 20px 18px;
+      box-shadow: 0 14px 30px rgba(124, 58, 237, 0.24);
       position: relative;
       overflow: hidden;
     }
@@ -107,13 +105,38 @@
       pointer-events: none;
     }
 
-    /* Botones Cuadrados estilo "Routines" de la referencia */
+    .btn-cambiar-perfil-pro {
+      background: rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 6px 13px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+      transition: all 0.18s ease;
+      cursor: pointer;
+    }
+    .btn-cambiar-perfil-pro:hover, .btn-cambiar-perfil-pro:active {
+      background: #ffffff;
+      color: #6d28d9;
+      transform: translateY(-1px);
+    }
+
+    /* Rejilla de pestañas adaptable (2 columnas para Comité, 3 para Operación) */
     .nav-segmented {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       width: 100%;
-      margin-top: 12px;
+      margin-top: 14px;
+    }
+    .nav-segmented.modo-comite {
+      grid-template-columns: repeat(2, 1fr);
     }
     .nav-segmented .nav-link {
       background: rgba(255, 255, 255, 0.18);
@@ -121,7 +144,7 @@
       color: #ffffff;
       border-radius: 16px;
       font-weight: 700;
-      font-size: 0.72rem;
+      font-size: 0.76rem;
       padding: 9px 6px;
       transition: all 0.2s ease;
       display: flex;
@@ -129,15 +152,12 @@
       align-items: center;
       justify-content: center;
       gap: 3px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.24);
       cursor: pointer;
     }
     .nav-segmented .nav-link span.ico-tile {
       font-size: 1.15rem;
       line-height: 1;
-    }
-    .nav-segmented .nav-link:hover {
-      background: rgba(255, 255, 255, 0.28);
     }
     .nav-segmented .nav-link.active {
       background: #ffffff;
@@ -146,44 +166,12 @@
       transform: translateY(-2px);
     }
 
-    /* Tarjetas Soft UI */
+    /* Tarjetas Soft UI con sombra uniforme en todas las pestañas */
     .card, .ficha-card, .resumen-financiero-card {
       background: #ffffff !important;
-      border: none !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
       border-radius: 22px !important;
       box-shadow: var(--ui-shadow-sm) !important;
-    }
-
-    /* Cuadrícula 2x2 estilo Pantalla Central de la referencia */
-    .grid-2x2-app {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      background: #ffffff;
-      border-radius: 22px;
-      box-shadow: var(--ui-shadow);
-      overflow: hidden;
-    }
-    .grid-2x2-cell {
-      padding: 14px 10px;
-      text-align: center;
-      border-bottom: 1px solid #f1f5f9;
-      border-right: 1px solid #f1f5f9;
-    }
-    .grid-2x2-cell:nth-child(2n) { border-right: none; }
-    .grid-2x2-cell:nth-child(n+3) { border-bottom: none; }
-    .grid-2x2-num {
-      font-size: 1.12rem;
-      font-weight: 800;
-      color: #1e293b;
-      display: block;
-      line-height: 1.2;
-    }
-    .grid-2x2-lbl {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--ui-muted);
-      display: block;
-      margin-top: 2px;
     }
 
     /* Botones segmentados Persona 1 / Persona 2 */
@@ -215,12 +203,7 @@
       margin-bottom: 8px;
       border-bottom: 1px solid #f1f5f9;
     }
-    .pill-meta {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
+    .pill-meta { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
     .pill-code  { background: #1e293b; color: #ffffff; }
     .pill-store { background: #ede9fe; color: #6d28d9; }
     .pill-issue { background: #fce7f3; color: #be185d; }
@@ -298,14 +281,7 @@
       padding: 10px 14px;
       margin-bottom: 10px;
     }
-    .novedad-label {
-      font-size: 0.66rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: #7c3aed;
-      display: block;
-      margin-bottom: 2px;
-    }
+    .novedad-label { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; color: #7c3aed; display: block; margin-bottom: 2px; }
     .novedad-texto { font-size: 0.82rem; font-weight: 600; color: #1e293b; }
     .seriales-row-pro {
       margin-top: 6px;
@@ -335,7 +311,7 @@
       font-weight: 700;
       font-size: 0.82rem;
       border: none;
-      transition: transform 0.12s ease, box-shadow 0.15s ease;
+      transition: transform 0.12s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -361,41 +337,45 @@
       transition: all 0.15s ease;
       width: 100%;
     }
-    .btn-estado-toma small {
-      display: block;
-      font-weight: 400;
-      font-size: 0.65rem;
-      opacity: 0.85;
-      line-height: 1.15;
-    }
+    .btn-estado-toma small { display: block; font-weight: 400; font-size: 0.65rem; opacity: 0.85; line-height: 1.15; }
     .btn-estado-toma.activo-bueno { background: #ecfdf5; border-color: #10b981; color: #065f46; }
     .btn-estado-toma.activo-novedad { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
     .btn-estado-toma.activo-baja { background: #fef2f2; border-color: #ef4444; color: #7f1d1d; }
     .btn-estado-toma.activo-pendiente { background: #f5f3ff; border-color: #8b5cf6; color: #4c1d95; }
 
-    /* Barra flotante inferior */
+    /* ===== BARRA INFERIOR FLOTANTE FIJA Y COMPACTA EN CELULAR ===== */
     .floating-nav-wrap {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      z-index: 1030;
-      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-      pointer-events: none;
+      z-index: 1050;
+      padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+      background: rgba(238, 242, 249, 0.82);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255, 255, 255, 0.8);
+      transform: translateZ(0);
     }
     .nav-bottom-bar {
       max-width: 780px;
       margin: 0 auto;
       background: var(--ui-grad-main);
       color: #ffffff;
-      border-radius: 20px;
-      padding: 9px 14px;
+      border-radius: 16px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      box-shadow: 0 10px 26px rgba(91, 110, 245, 0.35);
-      pointer-events: auto;
+      gap: 6px;
+      box-shadow: 0 8px 22px rgba(91, 110, 245, 0.3);
+    }
+    .btn-nav-compacto {
+      border-radius: 11px !important;
+      padding: 5px 11px !important;
+      font-size: 0.74rem !important;
+      font-weight: 700 !important;
+      white-space: nowrap !important;
+      line-height: 1.2 !important;
     }
 
     /* Lista y Tarjetas */
@@ -404,23 +384,12 @@
       border-radius: 16px;
       padding: 12px 14px;
       border: 1.5px solid #f1f5f9;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
       transition: all 0.15s ease;
       cursor: pointer;
     }
-    .lote-item.seleccionado {
-      border-color: var(--ui-violet);
-      background: #faf5ff;
-    }
-    .btn-seriales-pill {
-      background: #6d28d9;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 2px 8px;
-      font-size: 0.68rem;
-      font-weight: 700;
-    }
+    .lote-item.seleccionado { border-color: var(--ui-violet); background: #faf5ff; }
+    .btn-seriales-pill { background: #6d28d9; color: #ffffff; border: none; border-radius: 8px; padding: 2px 8px; font-size: 0.68rem; font-weight: 700; }
 
     .fin-box { border-radius: 16px; padding: 10px 6px; text-align: center; height: 100%; }
     .fin-bajas { background: #fef2f2; color: #b91c1c; }
@@ -430,12 +399,32 @@
     .fin-val { font-size: 0.96rem; font-weight: 800; display: block; margin-top: 2px; }
     .fin-sub { font-size: 0.62rem; opacity: 0.85; display: block; }
 
-    /* KPIs Dashboard */
+    /* KPIs Dashboard y Botones de Filtro por Tienda */
     .kpi-card-dash { border-radius: 20px; padding: 14px 10px; color: #ffffff; height: 100%; box-shadow: var(--ui-shadow-sm); }
     .kpi-navy  { background: var(--ui-grad-main); }
     .kpi-green { background: linear-gradient(135deg, #10b981, #059669); }
     .kpi-red   { background: var(--ui-grad-pink); }
     .kpi-gold  { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+    .btn-dash-tienda-tab {
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #334155;
+      border-radius: 16px;
+      padding: 10px 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.18s ease;
+      width: 100%;
+    }
+    .btn-dash-tienda-tab.activo {
+      background: var(--ui-grad-main);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 8px 18px rgba(91, 110, 245, 0.25);
+      transform: translateY(-1px);
+    }
 
     /* Pistoleo Input */
     .scanner-input-pro {
@@ -524,20 +513,17 @@
 
   <!-- Encabezado Curvo con Tiles -->
   <div class="app-header mb-3">
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-start gap-2">
       <div>
-        <h5 class="fw-bold mb-0" style="letter-spacing: -0.3px;">HTC · Auditoría 32 Sedes</h5>
-        <div class="d-flex align-items-center gap-2 mt-1">
-          <span class="badge bg-white text-dark fw-bold rounded-pill px-2" id="badgeRolUsuario" style="font-size: 0.68rem;">👤 Sin identificar</span>
-          <button type="button" class="btn btn-link btn-sm text-white text-decoration-none p-0 fw-semibold" style="font-size: 0.7rem; opacity: 0.9;" onclick="cerrarSesionUsuario()">Cambiar perfil ↻</button>
-        </div>
+        <h5 class="fw-bold mb-1" style="letter-spacing: -0.3px;">HTC · Auditoría 32 Sedes</h5>
+        <span class="badge bg-white text-dark fw-bold rounded-pill px-3 py-1" id="badgeRolUsuario" style="font-size: 0.7rem;">👤 Sin identificar</span>
       </div>
-      <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px; font-size: 1.3rem;">
-        📦
-      </div>
+      <button type="button" class="btn-cambiar-perfil-pro flex-shrink-0" onclick="cerrarSesionUsuario()">
+        <span>🔄</span> Cambiar perfil
+      </button>
     </div>
 
-    <div class="nav nav-segmented">
+    <div id="navSegmentedMenu" class="nav nav-segmented">
       <button class="nav-link active" id="btnTabComite" type="button" onclick="cambiarVistaPestana('COMITE')">
         <span class="ico-tile">📋</span>
         <span>1. Comité</span>
@@ -562,7 +548,7 @@
   <!-- ==================== PESTAÑA 1: COMITÉ GERENCIAL ==================== -->
   <div id="tabComite">
 
-    <div class="card border-0 shadow-sm rounded-4 p-2 mb-2">
+    <div class="card p-2 mb-2">
       <div class="row g-2 align-items-center">
         <div class="col-7 col-md-5">
           <select id="filtroSucursal" class="form-select form-select-sm fw-semibold rounded-3" onchange="idxComite=0; renderComite()">
@@ -734,7 +720,7 @@
 
   <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
   <div id="tabCargaFotos" class="d-none">
-    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+    <div class="card p-3 mb-3">
       <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades (&ge; 120 días)</h6>
       <p class="small text-muted mb-2">Sube tu reporte de LIKE (<code>.xls / .xlsx</code>). Solo entran al comité productos con <strong>120 días o más</strong> en inventario.</p>
       <div class="row g-2 align-items-end">
@@ -754,7 +740,7 @@
     </div>
 
     <!-- Panel de Fotos -->
-    <div id="panelFotosAud" class="card border-0 shadow-sm rounded-4 p-3 mb-3 d-none">
+    <div id="panelFotosAud" class="card p-3 mb-3 d-none">
       <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
         <h6 class="fw-bold text-primary mb-0 small" id="fTitulo">Selecciona un lote abajo</h6>
         <button type="button" class="btn btn-outline-primary btn-sm rounded-3 flex-shrink-0" onclick="siguienteSinFoto()">Siguiente sin foto →</button>
@@ -785,7 +771,7 @@
     </div>
 
     <!-- Listado Colaborativo -->
-    <div class="card border-0 shadow-sm rounded-4 p-3">
+    <div class="card p-3">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
         <div>
           <h6 class="fw-bold mb-0 small">Paso 2: Pendientes por fotografiar (<span id="cntPendientesFoto">0</span>)</h6>
@@ -840,7 +826,7 @@
   <div id="tabPistoleo" class="d-none">
 
     <!-- Paso A: Cargar inventario teórico LIKE de la tienda -->
-    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+    <div class="card p-3 mb-3">
       <div class="d-flex justify-content-between align-items-center mb-1">
         <h6 class="fw-bold text-primary mb-0">🎯 Auditoría Física: Pistoleo vs. Teórico LIKE</h6>
         <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">Reiniciar sesión</button>
@@ -864,7 +850,7 @@
 
     <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara) -->
     <div id="zonaTrabajoPistoleo" class="d-none">
-      <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+      <div class="card p-3 mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
           <span class="small fw-bold text-primary" id="progresoPistoleoTxt">0 / 0 unidades pistoleadas</span>
@@ -894,7 +880,7 @@
       </div>
 
       <!-- Paso C: Evaluación Física (Estado + Observación Oficial + 2 Fotos) para productos >= 120 días -->
-      <div id="panelFotoInmediataPistoleo" class="card border-warning shadow-sm rounded-4 p-3 mb-3 d-none" style="border-width: 2px;">
+      <div id="panelFotoInmediataPistoleo" class="card border-warning p-3 mb-3 d-none" style="border-width: 2px;">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
             <span class="badge bg-danger">⚠️ OBSOLESCENCIA &ge; 120 DÍAS — TOMA FÍSICA OBLIGATORIA</span>
@@ -903,7 +889,7 @@
           <button type="button" class="btn-close btn-sm" onclick="cerrarPanelEvaluacionPistoleo()"></button>
         </div>
 
-       <!-- 1. Selección de Estado Oficial -->
+        <!-- 1. Selección de Estado Oficial -->
         <div class="mb-2">
           <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">1. Selecciona el Estado en la Toma Física:</label>
           <div class="row g-2">
@@ -934,7 +920,7 @@
           </div>
         </div>
 
-        <!-- 2A. Observación Estandarizada (Para Bueno, Novedad o Baja) -->
+        <!-- 2A. Observación Estandarizada -->
         <div id="bloqueObsEstandar" class="mb-2">
           <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">2. Observación Estandarizada:</label>
           <select id="selectObsEstandar" class="form-select form-select-sm fw-semibold mb-1" onchange="actualizarObservacionItemPistoleo()"></select>
@@ -947,6 +933,7 @@
           <input type="text" id="txtEstadoPersonalizado" class="form-control form-control-sm fw-bold mb-1" placeholder="Ej. En garantía / Faltante de accesorio / Revisión..." oninput="actualizarObservacionItemPistoleo()">
           <input type="text" id="txtObsPersonalizada" class="form-control form-control-sm" placeholder="Escribe la observación detallada..." oninput="actualizarObservacionItemPistoleo()">
         </div>
+
         <!-- 3. Captura de 2 Fotos -->
         <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">3. Evidencia Fotográfica (2 Fotos):</label>
         <div class="row g-2 text-center">
@@ -1039,14 +1026,14 @@
 
   <!-- ==================== PESTAÑA 4: DASHBOARD GERENCIAL (32 TIENDAS) ==================== -->
   <div id="tabDashboard" class="d-none">
-    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+    <div class="card p-3 mb-3">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-          <h6 class="fw-bold text-dark mb-0">📊 Dashboard General de Auditoría (32 Tiendas)</h6>
-          <small class="text-muted">Consolidado en tiempo real de Obsolescencia &ge;120d y Faltantes</small>
+          <h6 class="fw-bold text-dark mb-0">📊 Panel General de Auditoría (32 Tiendas)</h6>
+          <small class="text-muted" id="subtituloDashModo">Vista consolidada global de las 32 sedes</small>
         </div>
         <div class="d-flex gap-2">
-          <select id="filtroDashTienda" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderDashboard()">
+          <select id="filtroDashTienda" class="form-select form-select-sm fw-bold rounded-3" onchange="renderDashboard()">
             <option value="TODAS">Todas las tiendas</option>
           </select>
           <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-3" onclick="cargarDatos()">🔄</button>
@@ -1085,8 +1072,8 @@
         </div>
       </div>
 
-      <!-- Gráficas -->
-      <div class="row g-3">
+      <!-- MODO A: GRÁFICAS GLOBALES (Cuando está seleccionada "Todas las tiendas") -->
+      <div id="dashVistaGlobalGraficas" class="row g-3">
         <div class="col-12 col-md-5">
           <div class="border rounded-4 p-3 bg-white h-100">
             <h6 class="fw-bold small text-center mb-2">Decisiones del Comité</h6>
@@ -1100,20 +1087,52 @@
           </div>
         </div>
       </div>
+
+      <!-- MODO B: 4 BOTONES INTERACTIVOS DE DETALLE (Cuando eliges 1 tienda específica) -->
+      <div id="dashVistaDetalleTienda" class="d-none">
+        <div class="row g-2 mb-3">
+          <div class="col-6 col-md-3">
+            <button type="button" id="btnDashSub_OBS" class="btn-dash-tienda-tab activo" onclick="seleccionarSubtabDashTienda('OBS')">
+              📦 Obsolescencia &ge;120d
+              <span class="d-block small opacity-75" id="cntDashSub_OBS">0 lotes</span>
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button type="button" id="btnDashSub_FALT" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('FALT')">
+              🚨 Faltantes Cobro
+              <span class="d-block small opacity-75" id="cntDashSub_FALT">0 und.</span>
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button type="button" id="btnDashSub_SOB" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('SOB')">
+              ➕ Sobrantes
+              <span class="d-block small opacity-75" id="cntDashSub_SOB">0 und.</span>
+            </button>
+          </div>
+          <div class="col-6 col-md-3">
+            <button type="button" id="btnDashSub_VOTOS" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('VOTOS')">
+              ✅ Votos Comité 4/4
+              <span class="d-block small opacity-75" id="cntDashSub_VOTOS">0 aprobados</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="contenedorDetalleCodigosTienda" class="bg-light rounded-4 p-2" style="max-height: 360px; overflow-y: auto;"></div>
+      </div>
     </div>
   </div>
 
 </div>
 
-<!-- BARRA FLOTANTE (Solo visible dentro de 1. Comité) -->
+<!-- BARRA INFERIOR FLOTANTE FIJA Y COMPACTA -->
 <div id="barraFlotanteComite" class="floating-nav-wrap d-none">
   <div class="nav-bottom-bar">
-    <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
-    <div class="text-center">
-      <div class="fw-bold" style="font-size: 0.8rem;" id="contadorComite">Producto 1 de 1</div>
-      <small style="font-size: 0.64rem; opacity: 0.8;">Avance automático al votar</small>
+    <button type="button" id="btnNavBottomPrev" class="btn btn-outline-light btn-nav-compacto" onclick="moverComite(-1)">← Ant.</button>
+    <div class="text-center px-1" style="min-width: 0;">
+      <div class="fw-bold text-truncate" style="font-size: 0.76rem;" id="contadorComite">1 de 1</div>
+      <div class="text-truncate" style="font-size: 0.62rem; opacity: 0.85;" id="subtextoBottomBar">Avance auto al votar</div>
     </div>
-    <button type="button" class="btn btn-warning btn-sm fw-bold rounded-3 px-3 py-1" onclick="moverComite(1)">Siguiente →</button>
+    <button type="button" id="btnNavBottomNext" class="btn btn-warning text-dark btn-nav-compacto" onclick="moverComite(1)">Sig. →</button>
   </div>
 </div>
 
@@ -1190,6 +1209,7 @@
   let vistaActual = 'COMITE';
   let serialesModalActuales = [];
   let subiendoFotoActualmente = false;
+  let dashSubtabTiendaActual = 'OBS';
 
   let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || 'null');
   let itemPistoleoFotoActual = null;
@@ -1198,7 +1218,6 @@
   let chartDecisionesInst = null;
   let chartTiendasInst = null;
 
-  // Limpia números con formato colombiano/LIKE ("37815,00" -> 37815)
   function limpiarNumeroLike(val) {
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
     const str = String(val || '').trim().replace(/\./g, '').replace(',', '.');
@@ -1277,11 +1296,19 @@
       label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
     }
 
+    const navMenu = document.getElementById('navSegmentedMenu');
+
     if (usuarioActivo === 'JOHAN_OSCAR') {
+      navMenu.classList.remove('modo-comite');
       document.getElementById('btnTabComite').classList.add('d-none');
+      document.getElementById('btnTabCarga').classList.remove('d-none');
+      document.getElementById('btnTabPistoleo').classList.remove('d-none');
       cambiarVistaPestana('PISTOLEO');
     } else {
+      navMenu.classList.add('modo-comite');
       document.getElementById('btnTabComite').classList.remove('d-none');
+      document.getElementById('btnTabCarga').classList.add('d-none');
+      document.getElementById('btnTabPistoleo').classList.add('d-none');
       cambiarVistaPestana('COMITE');
     }
   }
@@ -1409,7 +1436,7 @@
     if (dl) dl.innerHTML = sucs.map(s => `<option value="${s}">`).join('');
   }
 
-  // ================= PESTAÑA 3: MODO PISTOLEO RÁPIDO, FALTANTES Y SOBRANTES =================
+  // ================= PESTAÑA 3: MODO PISTOLEO RÁPIDO, FALTANTES, SOBRANTES Y CRUCES =================
   function enfocarPistola() {
     const inp = document.getElementById('inputPistolaBarcode');
     if (inp && vistaActual === 'PISTOLEO') inp.focus();
@@ -1467,6 +1494,7 @@
             estado: estadoExcel || 'Bueno / funcional',
             observacion: obsExcel || 'Caja deteriorada y con polvo.',
             obsAdicional: '',
+            esEstadoOtro: false,
             foto1: '',
             foto2: ''
           };
@@ -1487,7 +1515,8 @@
       sesionPistoleo = {
         sucursal: tiendaNombre || 'TIENDA',
         items,
-        sobrantes: []
+        sobrantes: [],
+        cruces: []
       };
       guardarSesionPistoleoLocal();
       restaurarUIPistoleo();
@@ -1541,7 +1570,6 @@
     const alerta = document.getElementById('alertaUltimoPistoleo');
     const lecturaLower = lectura.toLowerCase();
 
-    // 1. Verificar si el serial exacto ya fue escaneado
     const itemPorSerialEscaneado = sesionPistoleo.items.find(x =>
       x.serialesEscaneados.some(s => s.toLowerCase() === lecturaLower)
     );
@@ -1556,7 +1584,6 @@
       return;
     }
 
-    // 2. Buscar en el teórico LIKE por código o serial
     const item = sesionPistoleo.items.find(x =>
       x.codigo.toLowerCase() === lecturaLower ||
       x.serialesTeoricos.some(s => s.toLowerCase() === lecturaLower)
@@ -1656,7 +1683,6 @@
     enfocarPistola();
   }
 
-  // Gestión de Estados y Observaciones Estandarizadas
   function abrirPanelFotoInmediata(item) {
     itemPistoleoFotoActual = item;
     document.getElementById('panelFotoInmediataPistoleo').classList.remove('d-none');
@@ -1731,6 +1757,7 @@
     guardarSesionPistoleoLocal();
     actualizarKPIsPistoleo();
   }
+
   function cerrarPanelEvaluacionPistoleo() {
     document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
     enfocarPistola();
@@ -1808,7 +1835,7 @@
     mostrarSublistaPistoleo(sublistaPistoleoVista);
   }
 
-function mostrarSublistaPistoleo(tipo) {
+  function mostrarSublistaPistoleo(tipo) {
     sublistaPistoleoVista = tipo;
     const cont = document.getElementById('contenedorSublistaPistoleo');
     const btnF = document.getElementById('btnSubFaltantes');
@@ -1901,7 +1928,7 @@ function mostrarSublistaPistoleo(tipo) {
     }
   }
 
-function abrirCruceSobrante(idxSob) {
+  function abrirCruceSobrante(idxSob) {
     if (!sesionPistoleo) return;
     const sob = sesionPistoleo.sobrantes[idxSob];
     if (!sob) return;
@@ -2062,6 +2089,7 @@ function abrirCruceSobrante(idxSob) {
     a.download = `Acta_Auditoria_${sesionPistoleo.sucursal}.csv`;
     a.click();
   }
+
   async function cerrarYEnviarAuditoriaTienda() {
     if (!sesionPistoleo) return;
     const btn = document.getElementById('btnCerrarTiendaSync');
@@ -2129,11 +2157,21 @@ function abrirCruceSobrante(idxSob) {
     }
   }
 
-  // ================= PESTAÑA 4: DASHBOARD GERENCIAL =================
+  // ================= PESTAÑA 4: DASHBOARD GERENCIAL (GLOBAL Y POR TIENDA) =================
+  function seleccionarSubtabDashTienda(subtab) {
+    dashSubtabTiendaActual = subtab;
+    ['OBS', 'FALT', 'SOB', 'VOTOS'].forEach(k => {
+      const btn = document.getElementById('btnDashSub_' + k);
+      if (btn) btn.classList.toggle('activo', k === subtab);
+    });
+    renderDashboard();
+  }
+
   function renderDashboard() {
     const suc = document.getElementById('filtroDashTienda').value;
     const comiteFilt = suc === 'TODAS' ? listaComite : listaComite.filter(x => x.sucursal === suc);
     const faltFilt = suc === 'TODAS' ? listaFaltantesGlobal : listaFaltantesGlobal.filter(x => x.sucursal === suc);
+    const sobFilt = suc === 'TODAS' ? listaSobrantesGlobal : listaSobrantesGlobal.filter(x => x.sucursal === suc);
 
     let valTotalObs = 0, valRecup = 0, lotesCerrados = 0;
     const conteoDecisiones = { Descuento: 0, Obsequio: 0, Traslado: 0, Reempaque: 0, Baja: 0, Pendiente: 0 };
@@ -2166,6 +2204,7 @@ function abrirCruceSobrante(idxSob) {
 
     const valFalt = faltFilt.reduce((a, b) => a + Number(b.valorCobro || 0), 0);
     const undFalt = faltFilt.reduce((a, b) => a + Number(b.faltante || 0), 0);
+    const undSob = sobFilt.reduce((a, b) => a + Number(b.sobrante || 0), 0);
     const porcRecup = valTotalObs > 0 ? Math.round((valRecup / valTotalObs) * 100) : 0;
     const porcAvance = comiteFilt.length > 0 ? Math.round((lotesCerrados / comiteFilt.length) * 100) : 0;
 
@@ -2178,55 +2217,135 @@ function abrirCruceSobrante(idxSob) {
     document.getElementById('dashAvanceComite').innerText = `${porcAvance}%`;
     document.getElementById('dashSubAvance').innerText = `${lotesCerrados} de ${comiteFilt.length} cerrados`;
 
-    const ctx1 = document.getElementById('chartDecisiones');
-    if (chartDecisionesInst) chartDecisionesInst.destroy();
-    chartDecisionesInst = new Chart(ctx1, {
-      type: 'doughnut',
-      data: {
-        labels: ['Descuento', 'Obsequio', 'Cambio Tienda', 'Reempaque', 'Dar de Baja', 'Pendiente'],
-        datasets: [{
-          data: [
-            conteoDecisiones.Descuento, conteoDecisiones.Obsequio,
-            conteoDecisiones.Traslado, conteoDecisiones.Reempaque,
-            conteoDecisiones.Baja, conteoDecisiones.Pendiente
-          ],
-          backgroundColor: ['#0284c7', '#d97706', '#1e3a8a', '#059669', '#dc2626', '#cbd5e1']
-        }]
-      },
-      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
-    });
+    const vistaGlobal = document.getElementById('dashVistaGlobalGraficas');
+    const vistaTienda = document.getElementById('dashVistaDetalleTienda');
+    const subtitulo = document.getElementById('subtituloDashModo');
 
-    const mapaTiendas = {};
-    listaComite.forEach(it => {
-      if (!mapaTiendas[it.sucursal]) mapaTiendas[it.sucursal] = { obs: 0, falt: 0 };
-      mapaTiendas[it.sucursal].obs += Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
-    });
-    listaFaltantesGlobal.forEach(f => {
-      if (!mapaTiendas[f.sucursal]) mapaTiendas[f.sucursal] = { obs: 0, falt: 0 };
-      mapaTiendas[f.sucursal].falt += Number(f.valorCobro || 0);
-    });
+    if (suc === 'TODAS') {
+      subtitulo.innerText = 'Vista consolidada global de las 32 sedes';
+      vistaGlobal.classList.remove('d-none');
+      vistaTienda.classList.add('d-none');
 
-    const topTiendas = Object.entries(mapaTiendas)
-      .sort((a, b) => (b[1].obs + b[1].falt) - (a[1].obs + a[1].falt))
-      .slice(0, 8);
+      const ctx1 = document.getElementById('chartDecisiones');
+      if (chartDecisionesInst) chartDecisionesInst.destroy();
+      chartDecisionesInst = new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+          labels: ['Descuento', 'Obsequio', 'Cambio Tienda', 'Reempaque', 'Dar de Baja', 'Pendiente'],
+          datasets: [{
+            data: [
+              conteoDecisiones.Descuento, conteoDecisiones.Obsequio,
+              conteoDecisiones.Traslado, conteoDecisiones.Reempaque,
+              conteoDecisiones.Baja, conteoDecisiones.Pendiente
+            ],
+            backgroundColor: ['#5b6ef5', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899', '#cbd5e1']
+          }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+      });
 
-    const ctx2 = document.getElementById('chartTiendas');
-    if (chartTiendasInst) chartTiendasInst.destroy();
-    chartTiendasInst = new Chart(ctx2, {
-      type: 'bar',
-      data: {
-        labels: topTiendas.map(t => t[0]),
-        datasets: [
-          { label: 'Obsolescencia >=120d ($)', data: topTiendas.map(t => t[1].obs), backgroundColor: '#1e3a8a' },
-          { label: 'Faltantes Cobro ($)', data: topTiendas.map(t => t[1].falt), backgroundColor: '#dc2626' }
-        ]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+      const mapaTiendas = {};
+      listaComite.forEach(it => {
+        if (!mapaTiendas[it.sucursal]) mapaTiendas[it.sucursal] = { obs: 0, falt: 0 };
+        mapaTiendas[it.sucursal].obs += Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+      });
+      listaFaltantesGlobal.forEach(f => {
+        if (!mapaTiendas[f.sucursal]) mapaTiendas[f.sucursal] = { obs: 0, falt: 0 };
+        mapaTiendas[f.sucursal].falt += Number(f.valorCobro || 0);
+      });
+
+      const topTiendas = Object.entries(mapaTiendas)
+        .sort((a, b) => (b[1].obs + b[1].falt) - (a[1].obs + a[1].falt))
+        .slice(0, 10);
+
+      const ctx2 = document.getElementById('chartTiendas');
+      if (chartTiendasInst) chartTiendasInst.destroy();
+      chartTiendasInst = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: topTiendas.map(t => t[0]),
+          datasets: [
+            { label: 'Obsolescencia >=120d ($)', data: topTiendas.map(t => t[1].obs), backgroundColor: '#5b6ef5' },
+            { label: 'Faltantes Cobro ($)', data: topTiendas.map(t => t[1].falt), backgroundColor: '#ec4899' }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+        }
+      });
+    } else {
+      subtitulo.innerText = `Detalle operativo de sede: ${suc}`;
+      vistaGlobal.classList.add('d-none');
+      vistaTienda.classList.remove('d-none');
+
+      document.getElementById('cntDashSub_OBS').innerText = `${comiteFilt.length} lotes`;
+      document.getElementById('cntDashSub_FALT').innerText = `${undFalt} und.`;
+      document.getElementById('cntDashSub_SOB').innerText = `${undSob} und.`;
+      document.getElementById('cntDashSub_VOTOS').innerText = `${lotesCerrados} cerrados`;
+
+      const cont = document.getElementById('contenedorDetalleCodigosTienda');
+      if (dashSubtabTiendaActual === 'OBS') {
+        cont.innerHTML = comiteFilt.length === 0
+          ? '<div class="text-muted small text-center py-3">Sin productos &ge;120 días en esta tienda.</div>'
+          : comiteFilt.map(it => `
+              <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+                <div>
+                  <span class="badge bg-dark">${it.codigo}</span>
+                  <span class="badge bg-light text-primary border">${it.estado}</span>
+                  <strong class="ms-1">${it.descripcion}</strong>
+                  <div class="text-muted" style="font-size:0.7rem;">Cant: ${it.cantidad} · ${it.dias} días · ${it.observacion || ''}</div>
+                </div>
+                <div class="text-end fw-bold text-primary flex-shrink-0">$${Number(it.costoTotal || 0).toLocaleString('es-CO')}</div>
+              </div>
+            `).join('');
+      } else if (dashSubtabTiendaActual === 'FALT') {
+        cont.innerHTML = faltFilt.length === 0
+          ? '<div class="text-success small fw-bold text-center py-3">🎉 Cero faltantes registrados en esta tienda.</div>'
+          : faltFilt.map(f => `
+              <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+                <div>
+                  <span class="badge bg-danger">${f.codigo}</span>
+                  <strong class="ms-1">${f.descripcion}</strong>
+                  <div class="text-muted" style="font-size:0.7rem;">Faltan: ${f.faltante} und. ${f.seriales ? '· Serial: ' + f.seriales : ''}</div>
+                </div>
+                <div class="text-end fw-bold text-danger flex-shrink-0">$${Number(f.valorCobro || 0).toLocaleString('es-CO')}</div>
+              </div>
+            `).join('');
+      } else if (dashSubtabTiendaActual === 'SOB') {
+        cont.innerHTML = sobFilt.length === 0
+          ? '<div class="text-muted small text-center py-3">Sin sobrantes registrados en esta tienda.</div>'
+          : sobFilt.map(s => `
+              <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+                <div>
+                  <span class="badge bg-primary">${s.codigo}</span>
+                  <strong class="ms-1">${s.descripcion}</strong>
+                  ${s.serial ? `<div class="text-muted font-monospace" style="font-size:0.7rem;">Serial: ${s.serial}</div>` : ''}
+                </div>
+                <span class="badge bg-info text-dark">+${s.sobrante} und.</span>
+              </div>
+            `).join('');
+      } else {
+        cont.innerHTML = comiteFilt.length === 0
+          ? '<div class="text-muted small text-center py-3">Sin lotes en votación para esta tienda.</div>'
+          : comiteFilt.map(it => {
+              const est = obtenerEstadoVotosUI(it);
+              return `
+                <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+                  <div>
+                    <span class="badge bg-dark">${it.codigo}</span>
+                    <strong class="ms-1">${it.descripcion}</strong>
+                    <div class="text-muted" style="font-size:0.68rem;">
+                      Oswal: <b>${it.votos.OSMEL || '-'}</b> · Angélica: <b>${it.votos.ANGELICA || '-'}</b> · Orlando: <b>${it.votos.ORLANDO || '-'}</b> · Andrés: <b>${it.votos.ANDRES || '-'}</b>
+                    </div>
+                  </div>
+                  <span class="pill-meta ${est.clase} flex-shrink-0">${est.texto}</span>
+                </div>
+              `;
+            }).join('');
       }
-    });
+    }
   }
 
   // ================= FUNCIONES COMPARTIDAS PESTAÑAS 1 Y 2 =================
@@ -2416,7 +2535,7 @@ function abrirCruceSobrante(idxSob) {
     cerrarSubpaneles();
 
     document.getElementById('fichaComite').classList.remove('d-none');
-    document.getElementById('contadorComite').innerText = `Producto ${i + 1} de ${listaFiltrada.length}`;
+    document.getElementById('contadorComite').innerText = `${i + 1} de ${listaFiltrada.length}`;
     document.getElementById('cSucursal').innerText = it.sucursal;
     document.getElementById('cEstadoNovedad').innerText = it.estado;
     document.getElementById('cDescripcion').innerText = it.descripcion;
