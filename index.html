@@ -1854,7 +1854,7 @@ function mostrarSublistaPistoleo(tipo) {
     }
   }
 
-  function abrirCruceSobrante(idxSob) {
+function abrirCruceSobrante(idxSob) {
     if (!sesionPistoleo) return;
     const sob = sesionPistoleo.sobrantes[idxSob];
     if (!sob) return;
@@ -1878,17 +1878,34 @@ function mostrarSublistaPistoleo(tipo) {
           <strong class="text-dark small">🔄 Cruzar sobrante: <code>${sob.codigo}</code> (${sob.descripcion})</strong>
           <button type="button" class="btn-close btn-sm" onclick="mostrarSublistaPistoleo('SOBRANTES')"></button>
         </div>
-        <input type="text" class="form-control form-control-sm mb-2" placeholder="Filtrar faltante por código o nombre..." oninput="filtrarOpcionesCruce(this.value)">
-        <div id="listaOpcionesCruce" class="d-flex flex-column gap-1">
-          ${ordenados.map(f => `
-            <button type="button" class="btn btn-light border text-start btn-sm d-flex justify-content-between align-items-center opcion-cruce-item" data-texto="${(f.codigo + ' ' + f.descripcion).toLowerCase()}" onclick="ejecutarCruceInventario(${idxSob}, '${f.codigo.replace(/'/g, "\\'")}')">
-              <span><strong>${f.codigo}</strong> · ${f.descripcion} <small class="text-danger">(Faltan: ${f.cantTeorica - f.cantFisica})</small></span>
-              <span class="badge bg-success flex-shrink-0">Aplicar Cruce →</span>
-            </button>
-          `).join('')}
+        <input type="text" id="inputFiltroCruce" class="form-control form-control-sm mb-2 fw-semibold"
+          placeholder="Pistolea o escribe el SERIAL, código o nombre del producto que sí está..."
+          oninput="filtrarOpcionesCruce(this.value)"
+          onkeydown="if(event.key==='Enter'){ const visibles = [...document.querySelectorAll('.opcion-cruce-item:not(.d-none)')]; if(visibles.length===1) visibles[0].click(); }">
+        <div id="listaOpcionesCruce" class="d-flex flex-column gap-1" style="max-height: 210px; overflow-y: auto;">
+          ${ordenados.map(f => {
+            const serialesPend = f.serialesTeoricos.filter(s => !f.serialesEscaneados.includes(s));
+            const serialesTxt = serialesPend.join(', ');
+            const dataSearch = `${f.codigo} ${f.descripcion} ${serialesTxt}`.toLowerCase();
+            return `
+              <button type="button" class="btn btn-light border text-start btn-sm d-flex justify-content-between align-items-center opcion-cruce-item"
+                data-texto="${dataSearch}"
+                onclick="ejecutarCruceInventario(${idxSob}, '${f.codigo.replace(/'/g, "\\'")}')">
+                <div>
+                  <strong>${f.codigo}</strong> · ${f.descripcion} <small class="text-danger">(Faltan: ${f.cantTeorica - f.cantFisica})</small>
+                  ${serialesTxt ? `<div class="text-muted font-monospace" style="font-size:0.68rem;">Serial: ${serialesTxt}</div>` : ''}
+                </div>
+                <span class="badge bg-success flex-shrink-0 ms-2">Aplicar Cruce →</span>
+              </button>
+            `;
+          }).join('')}
         </div>
       </div>
     `;
+    setTimeout(() => {
+      const inp = document.getElementById('inputFiltroCruce');
+      if (inp) inp.focus();
+    }, 50);
   }
 
   function filtrarOpcionesCruce(txt) {
