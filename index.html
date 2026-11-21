@@ -1492,16 +1492,33 @@
     if (!lectura || !sesionPistoleo) return;
 
     const alerta = document.getElementById('alertaUltimoPistoleo');
+    const lecturaLower = lectura.toLowerCase();
 
-    let item = sesionPistoleo.items.find(x =>
-      x.codigo.toLowerCase() === lectura.toLowerCase() ||
-      x.serialesTeoricos.some(s => s.toLowerCase() === lectura.toLowerCase())
+    // 1. Verificar si el serial exacto ya fue escaneado
+    const itemPorSerialEscaneado = sesionPistoleo.items.find(x =>
+      x.serialesEscaneados.some(s => s.toLowerCase() === lecturaLower)
+    );
+
+    if (itemPorSerialEscaneado) {
+      reproducirBeep('ALERTA');
+      alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
+      alerta.innerHTML = `
+        <span>⚠️ <strong>SERIAL YA REGISTRADO:</strong> <code>${lectura}</code> (${itemPorSerialEscaneado.descripcion}). Verificar si es doble disparo.</span>
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '${itemPorSerialEscaneado.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
+      `;
+      return;
+    }
+
+    // 2. Buscar en el teórico LIKE por código o serial
+    const item = sesionPistoleo.items.find(x =>
+      x.codigo.toLowerCase() === lecturaLower ||
+      x.serialesTeoricos.some(s => s.toLowerCase() === lecturaLower)
     );
 
     if (item) {
       if (item.cantFisica < item.cantTeorica) {
         item.cantFisica += 1;
-        if (lectura.toLowerCase() !== item.codigo.toLowerCase() && !item.serialesEscaneados.includes(lectura)) {
+        if (lecturaLower !== item.codigo.toLowerCase() && !item.serialesEscaneados.includes(lectura)) {
           item.serialesEscaneados.push(lectura);
         }
 
@@ -1515,21 +1532,49 @@
           alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
           alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und. · ${item.dias}d)`;
         }
+        guardarSesionPistoleoLocal();
+        actualizarKPIsPistoleo();
       } else {
         reproducirBeep('ALERTA');
-        registrarSobrante(item.codigo, item.descripcion, lectura !== item.codigo ? lectura : '', item.costoUnit);
-        alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
-        alerta.innerHTML = `➕ <strong>SOBRANTE:</strong> ${item.codigo} supera el teórico de LIKE (${item.cantTeorica} und.).`;
+        alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
+        alerta.innerHTML = `
+          <span>⚠️ <strong>CÓDIGO YA REGISTRADO (${item.cantFisica}/${item.cantTeorica}):</strong> <code>${item.codigo}</code> - ${item.descripcion}. Verificar.</span>
+          <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '${item.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
+        `;
       }
     } else {
+      const sobYaExiste = sesionPistoleo.sobrantes.find(s => s.codigo.toLowerCase() === lecturaLower || s.serial.toLowerCase() === lecturaLower);
       reproducirBeep('ALERTA');
-      registrarSobrante(lectura, 'Producto no registrado en teórico LIKE', lectura, 0);
-      alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
-      alerta.innerHTML = `➕ <strong>SOBRANTE NUEVO:</strong> Código/Serial <code>${lectura}</code> no figura en LIKE.`;
+      if (sobYaExiste) {
+        alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
+        alerta.innerHTML = `
+          <span>⚠️ <strong>SOBRANTE YA REGISTRADO:</strong> <code>${lectura}</code> (${sobYaExiste.sobrante} und.). Verificar.</span>
+          <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '')">+1 Más</button>
+        `;
+      } else {
+        registrarSobrante(lectura, 'Producto no registrado en teórico LIKE', lectura, 0);
+        alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
+        alerta.innerHTML = `➕ <strong>SOBRANTE NUEVO:</strong> Código/Serial <code>${lectura}</code> no figura en LIKE. Usa <strong>🔄 Cruzar</strong> si equivale a otro código.`;
+        guardarSesionPistoleoLocal();
+        actualizarKPIsPistoleo();
+      }
     }
+  }
 
+  function forzarSobranteManual(lectura, codigoRef) {
+    if (!sesionPistoleo) return;
+    const item = codigoRef ? sesionPistoleo.items.find(x => x.codigo === codigoRef) : null;
+    if (item) {
+      registrarSobrante(item.codigo, item.descripcion, lectura !== item.codigo ? lectura : '', item.costoUnit);
+    } else {
+      registrarSobrante(lectura, 'Producto no registrado en teórico LIKE', lectura, 0);
+    }
+    const alerta = document.getElementById('alertaUltimoPistoleo');
+    alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
+    alerta.innerHTML = `➕ <strong>SOBRANTE CONFIRMADO:</strong> Se sumó 1 unidad adicional de <code>${lectura}</code>.`;
     guardarSesionPistoleoLocal();
     actualizarKPIsPistoleo();
+    enfocarPistola();
   }
 
   function registrarSobrante(codigo, descripcion, serial, costoUnit) {
@@ -1547,6 +1592,21 @@
         valorSobrante: Number(costoUnit || 0)
       });
     }
+  }
+
+  function eliminarSobranteIdx(idx) {
+    if (!sesionPistoleo) return;
+    const item = sesionPistoleo.sobrantes[idx];
+    if (!item) return;
+    if (item.sobrante > 1) {
+      item.sobrante -= 1;
+      item.valorSobrante = item.sobrante * item.costoUnit;
+    } else {
+      sesionPistoleo.sobrantes.splice(idx, 1);
+    }
+    guardarSesionPistoleoLocal();
+    actualizarKPIsPistoleo();
+    enfocarPistola();
   }
 
   // Gestión de Estados y Observaciones Estandarizadas
@@ -1701,7 +1761,7 @@
     mostrarSublistaPistoleo(sublistaPistoleoVista);
   }
 
-  function mostrarSublistaPistoleo(tipo) {
+function mostrarSublistaPistoleo(tipo) {
     sublistaPistoleoVista = tipo;
     const cont = document.getElementById('contenedorSublistaPistoleo');
     const btnF = document.getElementById('btnSubFaltantes');
@@ -1740,22 +1800,38 @@
         `;
       }).join('');
     } else if (tipo === 'SOBRANTES') {
-      if (sesionPistoleo.sobrantes.length === 0) {
+      const crucesHechos = sesionPistoleo.cruces || [];
+      if (sesionPistoleo.sobrantes.length === 0 && crucesHechos.length === 0) {
         cont.innerHTML = '<div class="text-muted small text-center py-3">No se han registrado sobrantes en esta tienda.</div>';
         return;
       }
-      cont.innerHTML = sesionPistoleo.sobrantes.map(s => `
-        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small">
+      const htmlSobrantes = sesionPistoleo.sobrantes.map((s, idx) => `
+        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
           <div>
             <span class="badge bg-primary">${s.codigo}</span>
             <strong class="ms-1">${s.descripcion}</strong>
             ${s.serial ? `<div class="text-muted font-monospace" style="font-size: 0.7rem;">Serial: ${s.serial}</div>` : ''}
           </div>
-          <div class="text-end flex-shrink-0">
-            <span class="badge bg-info text-dark">+${s.sobrante} und.</span>
+          <div class="d-flex align-items-center gap-1 flex-shrink-0">
+            <span class="badge bg-info text-dark">+${s.sobrante}</span>
+            <button type="button" class="btn btn-warning text-dark btn-sm py-0 px-2 fw-bold" style="font-size:0.68rem;" onclick="abrirCruceSobrante(${idx})">🔄 Cruzar</button>
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size:0.68rem;" onclick="eliminarSobranteIdx(${idx})">✕</button>
           </div>
         </div>
       `).join('');
+
+      const htmlCruces = crucesHechos.length > 0 ? `
+        <div class="mt-2 pt-2 border-top">
+          <small class="fw-bold text-success d-block mb-1" style="font-size:0.7rem;">✅ Cruces conciliados en esta sesión (${crucesHechos.length}):</small>
+          ${crucesHechos.map(c => `
+            <div class="py-1 px-2 bg-success-subtle border border-success rounded-2 mb-1" style="font-size:0.7rem;">
+              🔄 Sobrante <strong>${c.codigoSobrante}</strong> cruzado con <strong>${c.codigoFaltante}</strong> (${c.descripcionFaltante})
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
+
+      cont.innerHTML = htmlSobrantes + htmlCruces;
     } else {
       const obsItems = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
       if (obsItems.length === 0) {
@@ -1776,6 +1852,87 @@
         </div>
       `).join('');
     }
+  }
+
+  function abrirCruceSobrante(idxSob) {
+    if (!sesionPistoleo) return;
+    const sob = sesionPistoleo.sobrantes[idxSob];
+    if (!sob) return;
+
+    const faltantes = sesionPistoleo.items.filter(it => it.cantTeorica > it.cantFisica);
+    if (faltantes.length === 0) {
+      return alert('No hay productos faltantes pendientes en esta tienda para cruzar con este sobrante.');
+    }
+
+    const palabrasSob = sob.descripcion.toLowerCase().split(' ').filter(p => p.length > 2);
+    const ordenados = [...faltantes].sort((a, b) => {
+      const scoreA = palabrasSob.filter(p => a.descripcion.toLowerCase().includes(p)).length;
+      const scoreB = palabrasSob.filter(p => b.descripcion.toLowerCase().includes(p)).length;
+      return scoreB - scoreA;
+    });
+
+    const cont = document.getElementById('contenedorSublistaPistoleo');
+    cont.innerHTML = `
+      <div class="p-2 bg-warning-subtle border border-warning rounded-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <strong class="text-dark small">🔄 Cruzar sobrante: <code>${sob.codigo}</code> (${sob.descripcion})</strong>
+          <button type="button" class="btn-close btn-sm" onclick="mostrarSublistaPistoleo('SOBRANTES')"></button>
+        </div>
+        <input type="text" class="form-control form-control-sm mb-2" placeholder="Filtrar faltante por código o nombre..." oninput="filtrarOpcionesCruce(this.value)">
+        <div id="listaOpcionesCruce" class="d-flex flex-column gap-1">
+          ${ordenados.map(f => `
+            <button type="button" class="btn btn-light border text-start btn-sm d-flex justify-content-between align-items-center opcion-cruce-item" data-texto="${(f.codigo + ' ' + f.descripcion).toLowerCase()}" onclick="ejecutarCruceInventario(${idxSob}, '${f.codigo.replace(/'/g, "\\'")}')">
+              <span><strong>${f.codigo}</strong> · ${f.descripcion} <small class="text-danger">(Faltan: ${f.cantTeorica - f.cantFisica})</small></span>
+              <span class="badge bg-success flex-shrink-0">Aplicar Cruce →</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function filtrarOpcionesCruce(txt) {
+    const q = txt.trim().toLowerCase();
+    document.querySelectorAll('.opcion-cruce-item').forEach(btn => {
+      btn.classList.toggle('d-none', q && !btn.dataset.texto.includes(q));
+    });
+  }
+
+  function ejecutarCruceInventario(idxSob, codigoFaltante) {
+    if (!sesionPistoleo) return;
+    const sob = sesionPistoleo.sobrantes[idxSob];
+    const itemFalt = sesionPistoleo.items.find(x => x.codigo === codigoFaltante);
+    if (!sob || !itemFalt || itemFalt.cantFisica >= itemFalt.cantTeorica) return;
+
+    itemFalt.cantFisica += 1;
+    const notaCruce = `Cruce conciliado vs sobrante ${sob.codigo}${sob.serial && sob.serial !== sob.codigo ? ' (Serial: ' + sob.serial + ')' : ''}`;
+    itemFalt.observacion = itemFalt.observacion ? `${itemFalt.observacion} | ${notaCruce}` : notaCruce;
+
+    if (!sesionPistoleo.cruces) sesionPistoleo.cruces = [];
+    sesionPistoleo.cruces.push({
+      sucursal: sesionPistoleo.sucursal,
+      codigoSobrante: sob.codigo,
+      serialSobrante: sob.serial,
+      codigoFaltante: itemFalt.codigo,
+      descripcionFaltante: itemFalt.descripcion,
+      costoUnit: itemFalt.costoUnit
+    });
+
+    if (sob.sobrante > 1) {
+      sob.sobrante -= 1;
+      sob.valorSobrante = sob.sobrante * sob.costoUnit;
+    } else {
+      sesionPistoleo.sobrantes.splice(idxSob, 1);
+    }
+
+    const alerta = document.getElementById('alertaUltimoPistoleo');
+    alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
+    alerta.innerHTML = `🔄 <strong>CRUCE CONCILIADO:</strong> Sobrante <code>${sob.codigo}</code> cruzado con <code>${itemFalt.codigo}</code> (${itemFalt.descripcion}). Faltante eliminado del cobro.`;
+
+    guardarSesionPistoleoLocal();
+    actualizarKPIsPistoleo();
+    mostrarSublistaPistoleo('SOBRANTES');
+    enfocarPistola();
   }
 
   function reabrirEvaluacionCodigo(cod) {
@@ -1832,13 +1989,15 @@
     sesionPistoleo.sobrantes.forEach(s => {
       csv += `"SOBRANTE";"${sesionPistoleo.sucursal}";"${s.codigo}";"${s.descripcion}";"${s.serial}";0;${s.sobrante};${s.sobrante};${s.costoUnit};${s.valorSobrante};"Sobrante";"Encontrado fisicamente sin saldo en LIKE"\n`;
     });
+    (sesionPistoleo.cruces || []).forEach(c => {
+      csv += `"CRUCE CONCILIADO";"${c.sucursal}";"${c.codigoFaltante}";"${c.descripcionFaltante}";"${c.serialSobrante}";1;1;0;${c.costoUnit};0;"Cruce OK";"Cruzado fisicamente contra sobrante ${c.codigoSobrante}"\n`;
+    });
     const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `Acta_Auditoria_${sesionPistoleo.sucursal}.csv`;
     a.click();
   }
-
   async function cerrarYEnviarAuditoriaTienda() {
     if (!sesionPistoleo) return;
     const btn = document.getElementById('btnCerrarTiendaSync');
