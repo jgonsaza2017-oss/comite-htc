@@ -32,39 +32,26 @@
       min-height: 100vh;
     }
 
-    /* ===== PANTALLA 1: BIENVENIDA ESTILO APP MODERNA ===== */
-    .welcome-hero {
+    /* ===== PANTALLA 1: BIENVENIDA RESPONSIVA (PORTÁTIL 2 COL / MÓVIL 1 COL) ===== */
+    .welcome-hero-desktop {
       background: var(--ui-grad-main);
-      border-radius: 28px 28px 0 0;
-      padding: 36px 26px 68px 26px;
-      color: #ffffff;
       position: relative;
       overflow: hidden;
     }
-    .welcome-hero::after {
+    .welcome-hero-desktop::after {
       content: "HTC";
       position: absolute;
-      right: -12px;
-      top: 10px;
-      font-size: 5.5rem;
+      right: -14px;
+      bottom: -10px;
+      font-size: 6.2rem;
       font-weight: 900;
       opacity: 0.08;
       pointer-events: none;
-    }
-    .welcome-floating-sheet {
-      background: #ffffff;
-      border-radius: 28px;
-      margin-top: -42px;
-      padding: 24px 20px;
-      box-shadow: var(--ui-shadow);
-      position: relative;
-      z-index: 2;
     }
     .btn-perfil {
       background: #f8fafc;
       border: 1.5px solid #eef2ff;
       border-radius: 18px;
-      padding: 13px 12px;
       transition: all 0.2s ease;
       text-align: left;
       height: 100%;
@@ -83,28 +70,36 @@
       border-radius: 18px;
       box-shadow: 0 10px 24px rgba(139, 92, 246, 0.32);
     }
+    .btn-perfil.btn-johanoscar:hover {
+      filter: brightness(1.05);
+      transform: translateY(-2px);
+    }
 
-  /* ===== CABECERA FIJA ARRIBA (STICKY) Y COMPACTA ===== */
+    /* ===== CABECERA COMPACTA Y DELGADA PARA CELULAR Y PORTÁTIL ===== */
     .app-header {
       position: sticky;
-      top: 8px;
+      top: 4px;
       z-index: 1040;
       background: var(--ui-grad-main);
       color: #ffffff;
-      border-radius: 24px;
-      padding: 14px 18px 16px 18px;
-      box-shadow: 0 14px 32px rgba(91, 110, 245, 0.28);
+      border-radius: 20px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 24px rgba(91, 110, 245, 0.25);
       overflow: hidden;
     }
     .app-header::before {
       content: "HTC";
       position: absolute;
-      right: 118px;
-      top: -10px;
-      font-size: 3.8rem;
+      right: 110px;
+      top: -12px;
+      font-size: 3.2rem;
       font-weight: 900;
-      opacity: 0.08;
+      opacity: 0.07;
       pointer-events: none;
+    }
+    .app-header h5 {
+      font-size: 0.96rem;
+      margin-bottom: 3px !important;
     }
 
     .btn-cambiar-perfil-pro {
@@ -113,29 +108,28 @@
       border: 1px solid rgba(255, 255, 255, 0.45);
       color: #ffffff;
       border-radius: 999px;
-      padding: 6px 13px;
-      font-size: 0.74rem;
+      padding: 4px 11px;
+      font-size: 0.72rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+      gap: 4px;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
       transition: all 0.18s ease;
       cursor: pointer;
     }
     .btn-cambiar-perfil-pro:hover, .btn-cambiar-perfil-pro:active {
       background: #ffffff;
       color: #6d28d9;
-      transform: translateY(-1px);
     }
 
-    /* Rejilla de pestañas adaptable (2 columnas para Comité, 3 para Operación) */
+    /* Pestañas en fila horizontal compacta (un solo renglón) */
     .nav-segmented {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      gap: 6px;
       width: 100%;
-      margin-top: 14px;
+      margin-top: 8px;
     }
     .nav-segmented.modo-comite {
       grid-template-columns: repeat(2, 1fr);
@@ -144,28 +138,48 @@
       background: rgba(255, 255, 255, 0.18);
       backdrop-filter: blur(6px);
       color: #ffffff;
-      border-radius: 16px;
+      border-radius: 12px;
       font-weight: 700;
-      font-size: 0.76rem;
-      padding: 9px 6px;
+      font-size: 0.78rem;
+      padding: 6px 8px;
       transition: all 0.2s ease;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 3px;
+      gap: 6px;
       border: 1px solid rgba(255, 255, 255, 0.24);
       cursor: pointer;
     }
     .nav-segmented .nav-link span.ico-tile {
-      font-size: 1.15rem;
+      font-size: 0.95rem;
       line-height: 1;
     }
     .nav-segmented .nav-link.active {
       background: #ffffff;
       color: #6d28d9;
-      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.16);
-      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+    }
+
+    @media (max-width: 576px) {
+      .app-header {
+        border-radius: 16px;
+        padding: 8px 11px;
+      }
+      .app-header h5 {
+        font-size: 0.86rem;
+      }
+      #badgeRolUsuario {
+        font-size: 0.64rem !important;
+        padding: 2px 8px !important;
+      }
+      .nav-segmented {
+        margin-top: 6px;
+      }
+      .nav-segmented .nav-link {
+        padding: 5px 6px;
+        font-size: 0.73rem;
+      }
     }
 
     /* Tarjetas Soft UI con sombra uniforme en todas las pestañas */
@@ -174,6 +188,9 @@
       border: 1px solid rgba(255, 255, 255, 0.9) !important;
       border-radius: 22px !important;
       box-shadow: var(--ui-shadow-sm) !important;
+    }
+    .resumen-financiero-card {
+      padding: 14px 16px !important;
     }
 
     /* Botones segmentados Persona 1 / Persona 2 */
@@ -239,7 +256,7 @@
     }
     .pasarela-img {
       width: 100%;
-      height: 195px;
+      height: 210px;
       object-fit: contain;
       border-radius: 14px;
       background: #ffffff;
@@ -319,9 +336,6 @@
       justify-content: center;
       gap: 6px;
     }
-    .resumen-financiero-card {
-      padding: 14px 16px !important;
-    }
     .btn-decision:active { transform: scale(0.97); }
     .btn-desc { background: var(--ui-grad-pink); color: #ffffff; box-shadow: 0 6px 14px rgba(236, 72, 153, 0.25); }
     .btn-obs  { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; }
@@ -362,12 +376,12 @@
       transform: translateZ(0);
     }
     .nav-bottom-bar {
-      max-width: 780px;
+      max-width: 960px;
       margin: 0 auto;
       background: var(--ui-grad-main);
       color: #ffffff;
       border-radius: 16px;
-      padding: 6px 10px;
+      padding: 6px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -376,8 +390,8 @@
     }
     .btn-nav-compacto {
       border-radius: 11px !important;
-      padding: 5px 11px !important;
-      font-size: 0.74rem !important;
+      padding: 5px 12px !important;
+      font-size: 0.76rem !important;
       font-weight: 700 !important;
       white-space: nowrap !important;
       line-height: 1.2 !important;
@@ -452,75 +466,86 @@
 </head>
 <body>
 
-<!-- ==================== PANTALLA DE INGRESO (ESTILO APP MODERNA) ==================== -->
-<div id="pantallaIdentificacion" class="container py-3" style="max-width: 480px;">
-  <div class="welcome-hero">
-    <span class="badge bg-white text-dark fw-bold mb-2 px-3 py-1 rounded-pill" style="font-size: 0.72rem;">📦 HTC · 32 Tiendas</span>
-    <h2 class="fw-bold mb-1" style="letter-spacing: -0.5px;">Control &<br>Comité 4/4</h2>
-    <p class="mb-0 small" style="opacity: 0.88;">Auditoría física, pistoleo y obsolescencia &ge;120d</p>
-  </div>
-
-  <div class="welcome-floating-sheet">
-    <p class="text-center text-muted small fw-semibold mb-3">Selecciona tu perfil para ingresar</p>
-
-    <div class="text-start mb-2">
-      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Comité Gerencial</small>
-    </div>
-    <div class="row g-2 mb-4">
-      <div class="col-6">
-        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('OSMEL')">
-          <span style="font-size: 1.3rem;">👔</span>
-          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Oswal</span>
-          <small class="text-muted" style="font-size: 0.68rem;">Gerente General</small>
-        </button>
+<!-- ==================== PANTALLA DE INGRESO (RESPONSIVA MÓVIL + PORTÁTIL) ==================== -->
+<div id="pantallaIdentificacion" class="container py-3 py-md-5" style="max-width: 920px;">
+  <div class="row g-0 shadow-lg rounded-5 overflow-hidden bg-white align-items-stretch">
+    
+    <!-- Columna Izquierda: Banner HTC -->
+    <div class="col-12 col-md-5 welcome-hero-desktop d-flex flex-column justify-content-between p-4 p-md-5 text-white">
+      <div>
+        <span class="badge bg-white text-dark fw-bold mb-3 px-3 py-1 rounded-pill" style="font-size: 0.78rem;">📦 HTC · 32 Tiendas</span>
+        <h1 class="fw-bold mb-2" style="letter-spacing: -0.6px; font-size: 2rem;">Control &<br>Comité 4/4</h1>
+        <p class="mb-0" style="opacity: 0.9; font-size: 0.95rem;">Auditoría física, pistoleo y gestión de obsolescencia &ge;120d en tiempo real.</p>
       </div>
-      <div class="col-6">
-        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANGELICA')">
-          <span style="font-size: 1.3rem;">👩‍💼</span>
-          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Angélica</span>
-          <small class="text-muted" style="font-size: 0.68rem;">Gerente Admin.</small>
-        </button>
-      </div>
-      <div class="col-6">
-        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ORLANDO')">
-          <span style="font-size: 1.3rem;">📈</span>
-          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Orlando</span>
-          <small class="text-muted" style="font-size: 0.68rem;">Director Comercial</small>
-        </button>
-      </div>
-      <div class="col-6">
-        <button type="button" class="btn-perfil w-100 d-flex flex-column" onclick="identificarUsuario('ANDRES')">
-          <span style="font-size: 1.3rem;">⚙️</span>
-          <span class="fw-bold text-dark mt-2" style="font-size: 0.88rem;">Andrés</span>
-          <small class="text-muted" style="font-size: 0.68rem;">Jefe de Bodega</small>
-        </button>
+      <div class="d-none d-md-block mt-4 pt-3 border-top border-white border-opacity-25 small" style="opacity: 0.85;">
+        Sistema unificado de validación en punto de venta y decisión gerencial.
       </div>
     </div>
 
-    <div class="text-start mb-2">
-      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.5px;">Auditoría en Tienda</small>
-    </div>
-    <button type="button" class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between py-3 px-3" onclick="identificarUsuario('JOHAN_OSCAR')">
-      <div class="d-flex align-items-center gap-3 text-start">
-        <span style="font-size: 1.7rem;">🎯</span>
-        <div>
-          <span class="fw-bold d-block" style="font-size: 0.95rem;">Johan y Oscar</span>
-          <small style="font-size: 0.72rem; opacity: 0.9;">Pistoleo, Fotos (&ge;120d) y Cruces</small>
+    <!-- Columna Derecha: Selección de Perfiles -->
+    <div class="col-12 col-md-7 p-4 p-md-5 bg-white">
+      <p class="text-muted fw-semibold mb-3" style="font-size: 0.92rem;">Selecciona tu perfil para ingresar</p>
+
+      <div class="text-start mb-2">
+        <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.6px;">Comité Gerencial</small>
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-6">
+          <button type="button" class="btn-perfil w-100 d-flex flex-column p-3" onclick="identificarUsuario('OSMEL')">
+            <span style="font-size: 1.5rem;">👔</span>
+            <span class="fw-bold text-dark mt-2" style="font-size: 0.96rem;">Oswal</span>
+            <small class="text-muted" style="font-size: 0.75rem;">Gerente General</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn-perfil w-100 d-flex flex-column p-3" onclick="identificarUsuario('ANGELICA')">
+            <span style="font-size: 1.5rem;">👩‍💼</span>
+            <span class="fw-bold text-dark mt-2" style="font-size: 0.96rem;">Angélica</span>
+            <small class="text-muted" style="font-size: 0.75rem;">Gerente Admin.</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn-perfil w-100 d-flex flex-column p-3" onclick="identificarUsuario('ORLANDO')">
+            <span style="font-size: 1.5rem;">📈</span>
+            <span class="fw-bold text-dark mt-2" style="font-size: 0.96rem;">Orlando</span>
+            <small class="text-muted" style="font-size: 0.75rem;">Director Comercial</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" class="btn-perfil w-100 d-flex flex-column p-3" onclick="identificarUsuario('ANDRES')">
+            <span style="font-size: 1.5rem;">⚙️</span>
+            <span class="fw-bold text-dark mt-2" style="font-size: 0.96rem;">Andrés</span>
+            <small class="text-muted" style="font-size: 0.75rem;">Jefe de Bodega</small>
+          </button>
         </div>
       </div>
-      <span class="fw-bold fs-5">→</span>
-    </button>
+
+      <div class="text-start mb-2">
+        <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem; letter-spacing: 0.6px;">Auditoría en Tienda</small>
+      </div>
+      <button type="button" class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between py-3 px-4" onclick="identificarUsuario('JOHAN_OSCAR')">
+        <div class="d-flex align-items-center gap-3 text-start">
+          <span style="font-size: 1.8rem;">🎯</span>
+          <div>
+            <span class="fw-bold d-block" style="font-size: 1.02rem;">Johan y Oscar</span>
+            <small style="font-size: 0.78rem; opacity: 0.92;">Pistoleo, Fotos (&ge;120d) y Cruces</small>
+          </div>
+        </div>
+        <span class="fw-bold fs-4">→</span>
+      </button>
+    </div>
+
   </div>
 </div>
 
 <!-- ==================== CONTENEDOR PRINCIPAL DE LA APP ==================== -->
-<div id="appPrincipal" class="container py-2 d-none" style="max-width: 820px;">
+<div id="appPrincipal" class="container py-2 d-none" style="max-width: 960px;">
 
-  <!-- Encabezado Curvo con Tiles -->
+  <!-- Encabezado Compacto con Tiles Horizontales -->
   <div class="app-header mb-3">
-    <div class="d-flex justify-content-between align-items-start gap-2">
-      <div>
-        <h5 class="fw-bold mb-1" style="letter-spacing: -0.3px;">HTC · Auditoría 32 Sedes</h5>
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <h5 class="fw-bold mb-0" style="letter-spacing: -0.3px;">HTC · Auditoría 32 Sedes</h5>
         <span class="badge bg-white text-dark fw-bold rounded-pill px-3 py-1" id="badgeRolUsuario" style="font-size: 0.7rem;">👤 Sin identificar</span>
       </div>
       <button type="button" class="btn-cambiar-perfil-pro flex-shrink-0" onclick="cerrarSesionUsuario()">
@@ -580,7 +605,7 @@
         <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
       </div>
 
-      <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
+      <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.98rem;" id="cDescripcion"></h6>
 
       <div class="linea-datos-prod mb-2">
         <span><strong>Código:</strong> <span id="cCodigo" class="text-dark fw-bold"></span></span>
@@ -1184,7 +1209,6 @@
     JOHAN_OSCAR: 'Johan y Oscar (Operación)'
   };
 
-  // Matriz Oficial de Estados y Observaciones para Toma Física
   const CATALOGO_ESTADOS_TOMA = {
     'Bueno / funcional': [
       'Caja deteriorada y con polvo.',
