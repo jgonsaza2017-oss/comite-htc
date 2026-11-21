@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comité Obsolescencia 4/4 | HTC</title>
+  <title>Comité Obsolescencia 4/4 & Auditoría | HTC</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --corp-dark: #0b192c;
@@ -34,18 +36,19 @@
       border-radius: 11px;
       padding: 3px;
       display: inline-flex;
+      flex-wrap: wrap;
       gap: 3px;
     }
     .nav-segmented .nav-link {
       color: rgba(255, 255, 255, 0.88);
       border-radius: 8px;
       font-weight: 600;
-      font-size: 0.8rem;
-      padding: 6px 12px;
+      font-size: 0.76rem;
+      padding: 6px 10px;
       transition: all 0.18s ease;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       border: none;
       cursor: pointer;
     }
@@ -294,7 +297,7 @@
       pointer-events: none;
     }
     .nav-bottom-bar {
-      max-width: 696px;
+      max-width: 780px;
       margin: 0 auto;
       background: var(--corp-dark);
       color: #ffffff;
@@ -361,7 +364,35 @@
     .fin-val { font-size: 0.96rem; font-weight: 800; display: block; margin-top: 2px; }
     .fin-sub { font-size: 0.62rem; opacity: 0.85; display: block; line-height: 1.15; margin-top: 2px; }
 
-    .img-preview-aud { height: 170px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
+    /* KPIs Dashboard */
+    .kpi-card-dash {
+      border-radius: 14px;
+      padding: 12px 10px;
+      color: #ffffff;
+      height: 100%;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    }
+    .kpi-navy  { background: linear-gradient(135deg, #0f172a, #1e3a8a); }
+    .kpi-green { background: linear-gradient(135deg, #065f46, #059669); }
+    .kpi-red   { background: linear-gradient(135deg, #991b1b, #dc2626); }
+    .kpi-gold  { background: linear-gradient(135deg, #92400e, #d97706); }
+
+    /* Pistoleo Input */
+    .scanner-input-pro {
+      border: 2.5px solid var(--corp-accent);
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #f0f9ff;
+    }
+    .scanner-input-pro:focus {
+      background: #ffffff;
+      border-color: var(--corp-primary);
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
+    }
+
+    .img-preview-aud { height: 165px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
   </style>
 </head>
 <body>
@@ -411,14 +442,14 @@
     </div>
 
     <div class="text-start mb-2">
-      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Operación en Tienda:</small>
+      <small class="fw-bold text-uppercase text-muted" style="font-size: 0.72rem;">Operación en Tienda (32 Sedes):</small>
     </div>
     <button type="button" class="btn-perfil btn-johanoscar w-100 d-flex align-items-center justify-content-between" onclick="identificarUsuario('JOHAN_OSCAR')">
       <div class="d-flex align-items-center gap-3 text-start">
-        <span style="font-size: 1.8rem;">📸</span>
+        <span style="font-size: 1.8rem;">🎯</span>
         <div>
           <span class="fw-bold d-block" style="font-size: 0.94rem;">Johan y Oscar</span>
-          <small style="font-size: 0.72rem; opacity: 0.85;">Toma de Fotos y Carga Excel</small>
+          <small style="font-size: 0.72rem; opacity: 0.85;">Pistoleo, Fotos (&ge;120d) y Faltantes</small>
         </div>
       </div>
       <span class="fw-bold" style="font-size: 1.1rem;">→</span>
@@ -427,7 +458,7 @@
 </div>
 
 <!-- ==================== CONTENEDOR PRINCIPAL DE LA APP ==================== -->
-<div id="appPrincipal" class="container py-2 d-none" style="max-width: 720px;">
+<div id="appPrincipal" class="container py-2 d-none" style="max-width: 820px;">
 
   <!-- Encabezado Principal -->
   <div class="app-header mb-2">
@@ -443,6 +474,12 @@
         </button>
         <button class="nav-link" id="btnTabCarga" type="button" onclick="cambiarVistaPestana('FOTOS')">
           <span>📸</span> 2. Carga y Fotos
+        </button>
+        <button class="nav-link" id="btnTabPistoleo" type="button" onclick="cambiarVistaPestana('PISTOLEO')">
+          <span>🎯</span> 3. Pistoleo y Faltantes
+        </button>
+        <button class="nav-link" id="btnTabDashboard" type="button" onclick="cambiarVistaPestana('DASHBOARD')">
+          <span>📊</span> 4. Dashboard
         </button>
       </div>
     </div>
@@ -472,7 +509,6 @@
     <!-- Ficha Principal del Producto -->
     <div id="fichaComite" class="ficha-card p-3 mb-2 d-none">
 
-      <!-- 1. Tienda + Estado + Contador -->
       <div class="ficha-top-meta">
         <div class="d-flex flex-wrap align-items-center gap-1">
           <span class="pill-meta pill-store" id="cSucursal"></span>
@@ -481,7 +517,6 @@
         <span class="pill-meta status-progreso" id="cBadgeEstadoVotos">VOTOS: 0/4</span>
       </div>
 
-      <!-- 2. Título del producto + Línea única de datos -->
       <h6 class="fw-bold mb-1" style="line-height: 1.25; font-size: 0.96rem;" id="cDescripcion"></h6>
 
       <div class="linea-datos-prod mb-2">
@@ -494,7 +529,7 @@
         <span><strong>Unit:</strong> <strong id="cCostoUnit" class="text-dark">$0</strong></span>
       </div>
 
-      <!-- 3. Foto en pasarela -->
+      <!-- Foto en pasarela -->
       <div class="pasarela-box mb-2">
         <span class="pasarela-contador" id="cContadorFoto">1 / 2</span>
         <div class="position-relative">
@@ -504,7 +539,7 @@
         </div>
       </div>
 
-      <!-- 4. Novedad y Seriales con diseño limpio y legible -->
+      <!-- Novedad y Seriales -->
       <div class="novedad-box-pro">
         <span class="novedad-label">📋 Novedad reportada en tienda</span>
         <div class="novedad-texto" id="cObservacion">-</div>
@@ -514,7 +549,7 @@
         </div>
       </div>
 
-      <!-- 5. Subpanel de Descuento -->
+      <!-- Subpanel de Descuento -->
       <div id="panelDescuento" class="card border-danger bg-danger-subtle p-2 rounded-3 mb-2 d-none">
         <div class="d-flex justify-content-between align-items-center mb-1">
           <strong class="text-danger" style="font-size: 0.78rem;">Configurar Descuento</strong>
@@ -541,7 +576,7 @@
         <button type="button" class="btn btn-danger btn-sm w-100 fw-bold rounded-3" onclick="confirmarDescuento()">Confirmar Descuento y Avanzar →</button>
       </div>
 
-      <!-- 6. Subpanel de Cambiar tienda -->
+      <!-- Subpanel de Cambiar tienda -->
       <div id="panelCambiarTienda" class="card border-primary bg-primary-subtle p-2 rounded-3 mb-2 d-none">
         <div class="d-flex justify-content-between align-items-center mb-1">
           <strong class="text-primary" style="font-size: 0.78rem;">🚚 ¿A qué tienda se traslada?</strong>
@@ -554,7 +589,7 @@
         </div>
       </div>
 
-      <!-- 7. Botones de Decisión -->
+      <!-- Botones de Decisión -->
       <div class="row g-2 mb-1">
         <div class="col-6">
           <button type="button" class="btn-decision btn-desc w-100" onclick="abrirPanelDescuento()">🏷️ Descuento</button>
@@ -577,7 +612,7 @@
 
     </div>
 
-    <!-- SECCIÓN INFERIOR 1: Tarjeta del producto activo -->
+    <!-- Tarjeta del producto activo -->
     <div id="bloqueTarjetaActiva" class="mb-2 d-none">
       <div class="d-flex justify-content-between align-items-center mb-1 px-1">
         <small class="fw-bold text-uppercase text-muted" style="font-size: 0.68rem;">Lote en pantalla (<span id="totalComite">0</span> en filtro)</small>
@@ -585,7 +620,7 @@
       <div id="tarjetaLoteActivo"></div>
     </div>
 
-    <!-- SECCIÓN INFERIOR 2: Caja de Totales -->
+    <!-- Caja de Totales -->
     <div id="bloqueResumenFinanciero" class="resumen-financiero-card mb-3 d-none">
       <div class="d-flex justify-content-between align-items-center mb-2">
         <span class="fw-bold text-dark" style="font-size: 0.78rem;">💰 Resumen Financiero en Tiempo Real</span>
@@ -677,7 +712,7 @@
       <div id="msgFotoAud" class="small fw-bold text-success text-center mt-2"></div>
     </div>
 
-    <!-- Listado Colaborativo con Filtro por Tienda + Botones Persona 1 / Persona 2 -->
+    <!-- Listado Colaborativo -->
     <div class="card border-0 shadow-sm rounded-4 p-3">
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
         <div>
@@ -689,7 +724,6 @@
         </div>
       </div>
 
-      <!-- 3 Botones directos: Todos / Persona 1 / Persona 2 -->
       <div class="row g-2 mb-2">
         <div class="col-4">
           <button type="button" id="btnBloque_TODOS" class="btn-bloque-persona activo w-100" onclick="seleccionarBloquePersona('TODOS')">
@@ -708,7 +742,6 @@
         </div>
       </div>
 
-      <!-- Filtro por Tienda + Buscador rápido -->
       <div class="row g-2 mb-2">
         <div class="col-6">
           <select id="filtroTiendaFotos" class="form-select form-select-sm fw-semibold rounded-3" onchange="alCambiarTiendaFotos()">
@@ -731,9 +764,223 @@
     </div>
   </div>
 
+  <!-- ==================== PESTAÑA 3: MODO PISTOLEO RÁPIDO, FALTANTES Y SOBRANTES ==================== -->
+  <div id="tabPistoleo" class="d-none">
+
+    <!-- Paso A: Cargar inventario teórico LIKE de la tienda -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <h6 class="fw-bold text-primary mb-0">🎯 Auditoría Física: Pistoleo vs. Teórico LIKE</h6>
+        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">Reiniciar sesión</button>
+      </div>
+      <p class="small text-muted mb-2">1. Carga el Excel de existencias LIKE de la tienda. 2. Pistolea cada producto (con lector Bluetooth/USB o cámara). Si tiene <strong>&ge; 120 días</strong> te pedirá foto al instante.</p>
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-md-5">
+          <label class="form-label small fw-bold mb-1">Reporte LIKE (.xlsx)</label>
+          <input type="file" id="inputExcelLike" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold mb-1">Nombre de Tienda</label>
+          <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. RESTREPO 3">
+        </div>
+        <div class="col-12 col-md-4">
+          <button type="button" class="btn btn-primary btn-sm w-100 fw-bold rounded-3" onclick="cargarTeoricoLike()">Iniciar Conteo Tienda</button>
+        </div>
+      </div>
+      <div id="msgCargaLike" class="small fw-bold text-success mt-2"></div>
+    </div>
+
+    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara) -->
+    <div id="zonaTrabajoPistoleo" class="d-none">
+      <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
+          <span class="small fw-bold text-primary" id="progresoPistoleoTxt">0 / 0 unidades pistoleadas</span>
+        </div>
+
+        <div class="row g-2 align-items-center mb-2">
+          <div class="col-8 col-md-9">
+            <input type="text" id="inputPistolaBarcode" class="form-control scanner-input-pro" placeholder="Pistolear código o serial..." onkeydown="if(event.key==='Enter'){ procesarDisparoPistola(this.value); this.value=''; }">
+          </div>
+          <div class="col-4 col-md-3">
+            <button type="button" id="btnToggleCamara" class="btn btn-info text-white fw-bold w-100 py-2 rounded-3" onclick="toggleEscanerCamara()">
+              📷 Cámara
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor de lector de cámara -->
+        <div id="contenedorCamaraQR" class="mb-2 d-none">
+          <div id="readerQR" style="width: 100%; border-radius: 12px; overflow: hidden;"></div>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" onclick="detenerEscanerCamara()">Cerrar cámara</button>
+        </div>
+
+        <!-- Alerta dinámica del último producto pistoleado -->
+        <div id="alertaUltimoPistoleo" class="alert alert-secondary small fw-bold mb-0 py-2 rounded-3">
+          Listo para recibir disparos del lector o cámara...
+        </div>
+      </div>
+
+      <!-- Paso C: Captura rápida de 2 fotos cuando el producto pistoleado tiene >= 120 días -->
+      <div id="panelFotoInmediataPistoleo" class="card border-warning shadow-sm rounded-4 p-3 mb-3 d-none" style="border-width: 2px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div>
+            <span class="badge bg-danger">⚠️ OBSOLESCENCIA &ge; 120 DÍAS - REQUIERE FOTO</span>
+            <h6 class="fw-bold text-dark mt-1 mb-0 small" id="pFotoTitulo">-</h6>
+          </div>
+          <button type="button" class="btn-close btn-sm" onclick="document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none'); enfocarPistola();"></button>
+        </div>
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="border rounded-3 p-2 bg-light">
+              <span class="badge bg-dark mb-1">1. Foto Producto</span>
+              <img id="pImg1" src="https://via.placeholder.com/250x180?text=Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2">
+              <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
+                Tomar Foto 1
+                <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(1, this)">
+              </label>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="border rounded-3 p-2 bg-light">
+              <span class="badge bg-danger mb-1">2. Foto Caja / Estado</span>
+              <img id="pImg2" src="https://via.placeholder.com/250x180?text=Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2">
+              <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
+                Tomar Foto 2
+                <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(2, this)">
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="msgFotoPistoleo" class="small fw-bold text-success text-center mt-2"></div>
+      </div>
+
+      <!-- Paso D: Resumen en Vivo de Faltantes para Cobro y Sobrantes -->
+      <div class="resumen-financiero-card mb-3">
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <div class="fin-box fin-recup">
+              <span class="fin-lbl">Cuadrados (OK)</span>
+              <span class="fin-val" id="kpiPistOk">0</span>
+              <span class="fin-sub">unidades</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="fin-box fin-bajas">
+              <span class="fin-lbl">Faltantes Cobro</span>
+              <span class="fin-val" id="kpiPistFaltValor">$0</span>
+              <span class="fin-sub" id="kpiPistFaltCant">0 und.</span>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="fin-box fin-total">
+              <span class="fin-lbl">Sobrantes</span>
+              <span class="fin-val" id="kpiPistSobCant">0</span>
+              <span class="fin-sub" id="kpiPistSobValor">$0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector entre Faltantes para Cobro y Sobrantes -->
+        <div class="d-flex gap-2 mb-2">
+          <button type="button" id="btnSubFaltantes" class="btn btn-danger btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('FALTANTES')">
+            🚨 Faltantes para Cobro (<span id="badgeSubFalt">0</span>)
+          </button>
+          <button type="button" id="btnSubSobrantes" class="btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('SOBRANTES')">
+            ➕ Sobrantes (<span id="badgeSubSob">0</span>)
+          </button>
+        </div>
+
+        <div id="contenedorSublistaPistoleo" style="max-height: 280px; overflow-y: auto;" class="border rounded-3 p-2 bg-light mb-3"></div>
+
+        <!-- Acciones de Cierre de Tienda -->
+        <div class="row g-2">
+          <div class="col-6">
+            <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="exportarActaPistoleoCSV()">
+              📥 Descargar Acta (.CSV)
+            </button>
+          </div>
+          <div class="col-6">
+            <button type="button" id="btnCerrarTiendaSync" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="cerrarYEnviarAuditoriaTienda()">
+              ☁️ Guardar Cierre en Sheets
+            </button>
+          </div>
+        </div>
+        <div id="msgCierrePistoleo" class="small fw-bold text-primary text-center mt-2"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== PESTAÑA 4: DASHBOARD GERENCIAL (32 TIENDAS) ==================== -->
+  <div id="tabDashboard" class="d-none">
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h6 class="fw-bold text-dark mb-0">📊 Dashboard General de Auditoría (32 Tiendas)</h6>
+          <small class="text-muted">Consolidado en tiempo real de Obsolescencia &ge;120d y Faltantes</small>
+        </div>
+        <div class="d-flex gap-2">
+          <select id="filtroDashTienda" class="form-select form-select-sm fw-semibold rounded-3" onchange="renderDashboard()">
+            <option value="TODAS">Todas las tiendas</option>
+          </select>
+          <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-3" onclick="cargarDatos()">🔄</button>
+        </div>
+      </div>
+
+      <!-- 4 KPIs Principales -->
+      <div class="row g-2 mb-3">
+        <div class="col-6 col-md-3">
+          <div class="kpi-card-dash kpi-navy">
+            <span class="fin-lbl">Obsolescencia &ge;120d</span>
+            <span class="fin-val" id="dashValTotal">$0</span>
+            <span class="fin-sub" id="dashSubLotes">0 lotes evaluados</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card-dash kpi-green">
+            <span class="fin-lbl">% Recuperación</span>
+            <span class="fin-val" id="dashPorcRecup">0%</span>
+            <span class="fin-sub" id="dashValRecup">$0 salvado</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card-dash kpi-red">
+            <span class="fin-lbl">Faltantes Cobro</span>
+            <span class="fin-val" id="dashValFaltantes">$0</span>
+            <span class="fin-sub" id="dashCntFaltantes">0 und. faltantes</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="kpi-card-dash kpi-gold">
+            <span class="fin-lbl">Avance Comité 4/4</span>
+            <span class="fin-val" id="dashAvanceComite">0%</span>
+            <span class="fin-sub" id="dashSubAvance">0 de 0 cerrados</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficas -->
+      <div class="row g-3">
+        <div class="col-12 col-md-5">
+          <div class="border rounded-4 p-3 bg-white h-100">
+            <h6 class="fw-bold small text-center mb-2">Decisiones del Comité</h6>
+            <canvas id="chartDecisiones" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-12 col-md-7">
+          <div class="border rounded-4 p-3 bg-white h-100">
+            <h6 class="fw-bold small text-center mb-2">Top Tiendas: Obsolescencia vs. Faltantes ($)</h6>
+            <canvas id="chartTiendas" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<!-- BARRA FLOTANTE (Solo visible dentro de 1. Comité cuando ya hay sesión activa) -->
+<!-- BARRA FLOTANTE (Solo visible dentro de 1. Comité) -->
 <div id="barraFlotanteComite" class="floating-nav-wrap d-none">
   <div class="nav-bottom-bar">
     <button type="button" class="btn btn-outline-light btn-sm rounded-3 px-3 py-1" onclick="moverComite(-1)">← Anterior</button>
@@ -791,14 +1038,23 @@
   let usuarioActivo = localStorage.getItem('htc_usuario') || '';
   let bloquePersonaActivo = 'TODOS';
   let listaComite = [];
+  let listaFaltantesGlobal = [];
+  let listaSobrantesGlobal = [];
   let listaFiltrada = [];
   let idxComite = 0;
   let slideFotoIdx = 0;
   let itemActivo = null;
   let itemFotoActivo = null;
-  let enPestanaComite = true;
+  let vistaActual = 'COMITE';
   let serialesModalActuales = [];
   let subiendoFotoActualmente = false;
+
+  let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || 'null');
+  let itemPistoleoFotoActual = null;
+  let sublistaPistoleoVista = 'FALTANTES';
+  let html5QrScanner = null;
+  let chartDecisionesInst = null;
+  let chartTiendasInst = null;
 
   window.onload = () => {
     if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
@@ -809,10 +1065,15 @@
       document.getElementById('appPrincipal').classList.add('d-none');
       document.getElementById('barraFlotanteComite').classList.add('d-none');
     }
+
+    if (sesionPistoleo && sesionPistoleo.items && sesionPistoleo.items.length > 0) {
+      restaurarUIPistoleo();
+    }
+
     cargarDatos();
     
     setInterval(() => {
-      if (usuarioActivo === 'JOHAN_OSCAR' && !enPestanaComite && !subiendoFotoActualmente && !document.hidden) {
+      if (usuarioActivo === 'JOHAN_OSCAR' && vistaActual === 'FOTOS' && !subiendoFotoActualmente && !document.hidden) {
         sincronizarSilencioso(false);
       }
     }, 6000);
@@ -824,6 +1085,719 @@
     mostrarAppPrincipal();
   }
 
+  function cambiarVistaPestana(vista) {
+    vistaActual = vista;
+    const paneles = {
+      COMITE: document.getElementById('tabComite'),
+      FOTOS: document.getElementById('tabCargaFotos'),
+      PISTOLEO: document.getElementById('tabPistoleo'),
+      DASHBOARD: document.getElementById('tabDashboard')
+    };
+    const botones = {
+      COMITE: document.getElementById('btnTabComite'),
+      FOTOS: document.getElementById('btnTabCarga'),
+      PISTOLEO: document.getElementById('btnTabPistoleo'),
+      DASHBOARD: document.getElementById('btnTabDashboard')
+    };
+
+    Object.keys(paneles).forEach(k => {
+      if (k === vista) {
+        paneles[k].classList.remove('d-none');
+        botones[k].classList.add('active');
+      } else {
+        paneles[k].classList.add('d-none');
+        botones[k].classList.remove('active');
+      }
+    });
+
+    if (vista !== 'PISTOLEO') detenerEscanerCamara();
+    if (vista === 'PISTOLEO') setTimeout(() => enfocarPistola(), 150);
+    if (vista === 'DASHBOARD') renderDashboard();
+
+    toggleBarraFlotante(vista === 'COMITE');
+  }
+
+  function mostrarAppPrincipal() {
+    document.getElementById('pantallaIdentificacion').classList.add('d-none');
+    const app = document.getElementById('appPrincipal');
+    app.classList.remove('d-none');
+    
+    const label = document.getElementById('badgeRolUsuario');
+    if (NOMBRES_EVAL[usuarioActivo]) {
+      label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
+    }
+
+    if (usuarioActivo === 'JOHAN_OSCAR') {
+      document.getElementById('btnTabComite').classList.add('d-none');
+      cambiarVistaPestana('PISTOLEO');
+    } else {
+      document.getElementById('btnTabComite').classList.remove('d-none');
+      cambiarVistaPestana('COMITE');
+    }
+  }
+
+  function cerrarSesionUsuario() {
+    detenerEscanerCamara();
+    localStorage.removeItem('htc_usuario');
+    usuarioActivo = '';
+    document.getElementById('appPrincipal').classList.add('d-none');
+    document.getElementById('barraFlotanteComite').classList.add('d-none');
+    document.getElementById('pantallaIdentificacion').classList.remove('d-none');
+  }
+
+  function toggleBarraFlotante(mostrar) {
+    const barra = document.getElementById('barraFlotanteComite');
+    const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
+    if (appVisible && mostrar && listaFiltrada.length > 0 && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
+      barra.classList.remove('d-none');
+    } else {
+      barra.classList.add('d-none');
+    }
+  }
+
+  // ================= CARGA DE DATOS DESDE SHEETS =================
+  async function cargarDatos() {
+    const loader = document.getElementById('loader');
+    if (!document.getElementById('appPrincipal').classList.contains('d-none')) {
+      loader.classList.remove('d-none');
+    }
+    try {
+      const resp = await fetch(API_URL);
+      const data = await resp.json();
+      listaComite = (data.comite || []).filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
+      listaFaltantesGlobal = data.faltantes || [];
+      listaSobrantesGlobal = data.sobrantes || [];
+
+      loader.classList.add('d-none');
+      poblarSucursales();
+      renderComite();
+      renderTablaFotos();
+      if (vistaActual === 'DASHBOARD') renderDashboard();
+
+      const pendientes = obtenerPendientesFiltradosFotos();
+      if (pendientes.length > 0 && !itemFotoActivo) {
+        seleccionarParaFoto(pendientes[0].fila);
+      } else if (listaComite.length > 0 && !itemFotoActivo) {
+        seleccionarParaFoto(listaComite[0].fila);
+      }
+    } catch (e) {
+      loader.className = 'alert alert-danger text-center rounded-4 py-2 small';
+      loader.innerText = 'Error al conectar con Google Sheets.';
+    }
+  }
+
+  async function sincronizarSilencioso(manual = false) {
+    const lbl = document.getElementById('estadoSyncFotos');
+    if (manual && lbl) lbl.innerText = '🔄 Actualizando lista...';
+    try {
+      const resp = await fetch(API_URL);
+      const data = await resp.json();
+      if (!data.comite) return;
+
+      listaComite = data.comite.filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
+      poblarSucursales();
+      renderTablaFotos();
+
+      if (itemFotoActivo) {
+        const actualizado = listaComite.find(x => x.fila === itemFotoActivo.fila);
+        if (actualizado) {
+          const yaEstabaCompleto = itemFotoActivo.foto1 && itemFotoActivo.foto2;
+          const ahoraCompleto = actualizado.foto1 && actualizado.foto2;
+          itemFotoActivo = actualizado;
+
+          if (!yaEstabaCompleto && ahoraCompleto) {
+            document.getElementById('msgFotoAud').innerText = 'ℹ️ Lote completado. Cargando siguiente...';
+            setTimeout(() => siguienteSinFoto(), 900);
+          } else {
+            document.getElementById('aFoto1').src = actualizado.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
+            document.getElementById('aFoto2').src = actualizado.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
+          }
+        }
+      }
+      if (lbl) {
+        const hora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        lbl.innerText = `● Sincronizado (${hora})`;
+      }
+    } catch (e) {
+      if (lbl) lbl.innerText = '⚠️ Sin conexión temporal';
+    }
+  }
+
+  function poblarSucursales() {
+    const sucs = [...new Set([
+      ...listaComite.map(x => x.sucursal),
+      ...listaFaltantesGlobal.map(x => x.sucursal)
+    ].filter(Boolean))];
+    
+    const sel = document.getElementById('filtroSucursal');
+    const actual = sel.value;
+    sel.innerHTML = '<option value="TODAS">Todas las tiendas (' + listaComite.length + ')</option>' +
+      sucs.map(s => `<option value="${s}">${s}</option>`).join('');
+    if (sucs.includes(actual)) sel.value = actual;
+
+    const selFotos = document.getElementById('filtroTiendaFotos');
+    if (selFotos) {
+      const actualFotos = selFotos.value;
+      const totalPend = listaComite.filter(x => !x.foto1 || !x.foto2).length;
+      selFotos.innerHTML = `<option value="TODAS">🏪 Todas las tiendas (${totalPend})</option>` +
+        sucs.map(s => {
+          const pendSuc = listaComite.filter(x => x.sucursal === s && (!x.foto1 || !x.foto2)).length;
+          return `<option value="${s}">${s} (${pendSuc} pend.)</option>`;
+        }).join('');
+      if (sucs.includes(actualFotos)) selFotos.value = actualFotos;
+    }
+
+    const selDash = document.getElementById('filtroDashTienda');
+    if (selDash) {
+      const actualDash = selDash.value;
+      selDash.innerHTML = `<option value="TODAS">Todas las tiendas (${sucs.length})</option>` +
+        sucs.map(s => `<option value="${s}">${s}</option>`).join('');
+      if (sucs.includes(actualDash)) selDash.value = actualDash;
+    }
+
+    const dl = document.getElementById('listaTiendasDatalist');
+    if (dl) dl.innerHTML = sucs.map(s => `<option value="${s}">`).join('');
+  }
+
+  // ================= PESTAÑA 3: MODO PISTOLEO RÁPIDO, FALTANTES Y SOBRANTES =================
+  function enfocarPistola() {
+    const inp = document.getElementById('inputPistolaBarcode');
+    if (inp && vistaActual === 'PISTOLEO') inp.focus();
+  }
+
+  function cargarTeoricoLike() {
+    const file = document.getElementById('inputExcelLike').files[0];
+    if (!file) return alert('Selecciona el archivo Excel de existencias de LIKE.');
+    const tiendaNombre = document.getElementById('txtTiendaPistoleo').value.trim().toUpperCase();
+    if (!tiendaNombre) return alert('Escribe el nombre de la tienda (Ej. RESTREPO 3).');
+
+    const msg = document.getElementById('msgCargaLike');
+    msg.innerText = 'Leyendo inventario teórico de LIKE...';
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const wb = XLSX.read(e.target.result, { type: 'array' });
+      const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
+
+      const mapa = {};
+      rows.forEach(r => {
+        const clean = {};
+        Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
+
+        const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
+        const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
+        const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
+        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
+        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
+        const estado = String(clean['Novedades(estado)'] || '').trim();
+        const obs = String(clean['Observacion'] || '').trim();
+        const cantFila = Number(clean['Existencia'] || clean['Cantidad'] || 1) || 1;
+
+        if (!codigo || codigo === '0' || !desc || desc === '0') return;
+
+        if (!mapa[codigo]) {
+          mapa[codigo] = {
+            codigo,
+            descripcion: desc,
+            cantTeorica: 0,
+            cantFisica: 0,
+            serialesTeoricos: [],
+            serialesEscaneados: [],
+            dias,
+            costoUnit: costo,
+            estado,
+            observacion: obs,
+            foto1: '',
+            foto2: ''
+          };
+        }
+        mapa[codigo].cantTeorica += cantFila;
+        if (dias > mapa[codigo].dias) mapa[codigo].dias = dias;
+        if (serial && !mapa[codigo].serialesTeoricos.includes(serial)) {
+          mapa[codigo].serialesTeoricos.push(serial);
+        }
+      });
+
+      const items = Object.values(mapa);
+      if (items.length === 0) {
+        msg.innerText = 'No se encontraron productos válidos en el Excel.';
+        return;
+      }
+
+      sesionPistoleo = {
+        sucursal: tiendaNombre,
+        items,
+        sobrantes: []
+      };
+      guardarSesionPistoleoLocal();
+      restaurarUIPistoleo();
+      msg.innerText = `✓ Inventario cargado: ${items.length} referencias listas para pistolear en ${tiendaNombre}.`;
+      enfocarPistola();
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function guardarSesionPistoleoLocal() {
+    if (sesionPistoleo) {
+      localStorage.setItem('htc_sesion_pistoleo', JSON.stringify(sesionPistoleo));
+    }
+  }
+
+  function reiniciarSesionPistoleo() {
+    if (!confirm('¿Seguro que deseas borrar el conteo actual en memoria para iniciar una tienda nueva?')) return;
+    localStorage.removeItem('htc_sesion_pistoleo');
+    sesionPistoleo = null;
+    document.getElementById('zonaTrabajoPistoleo').classList.add('d-none');
+    document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
+    document.getElementById('msgCargaLike').innerText = '';
+  }
+
+  function restaurarUIPistoleo() {
+    if (!sesionPistoleo) return;
+    document.getElementById('zonaTrabajoPistoleo').classList.remove('d-none');
+    document.getElementById('badgeTiendaPistoleo').innerText = '🏪 TIENDA: ' + sesionPistoleo.sucursal;
+    actualizarKPIsPistoleo();
+  }
+
+  function reproducirBeep(tipo) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (tipo === 'OK') { osc.frequency.value = 880; gain.gain.value = 0.12; }
+      else if (tipo === 'FOTO') { osc.frequency.value = 620; gain.gain.value = 0.18; }
+      else { osc.frequency.value = 260; gain.gain.value = 0.2; }
+      osc.start();
+      setTimeout(() => { osc.stop(); ctx.close(); }, tipo === 'OK' ? 90 : 240);
+    } catch (e) {}
+  }
+
+  function procesarDisparoPistola(valorRaw) {
+    const lectura = String(valorRaw || '').trim();
+    if (!lectura || !sesionPistoleo) return;
+
+    const alerta = document.getElementById('alertaUltimoPistoleo');
+
+    let item = sesionPistoleo.items.find(x =>
+      x.codigo.toLowerCase() === lectura.toLowerCase() ||
+      x.serialesTeoricos.some(s => s.toLowerCase() === lectura.toLowerCase())
+    );
+
+    if (item) {
+      if (item.cantFisica < item.cantTeorica) {
+        item.cantFisica += 1;
+        if (lectura.toLowerCase() !== item.codigo.toLowerCase() && !item.serialesEscaneados.includes(lectura)) {
+          item.serialesEscaneados.push(lectura);
+        }
+
+        const estNorm = (item.estado || '').toLowerCase();
+        const esDanado = estNorm.includes('dañ') || estNorm.includes('dan');
+
+        if (item.dias >= MIN_DIAS_COMITE && !esDanado) {
+          reproducirBeep('FOTO');
+          alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
+          alerta.innerHTML = `📸 <strong>${item.codigo}</strong> (${item.dias} días) — ¡Toma las 2 fotos de evidencia! (${item.cantFisica}/${item.cantTeorica} und.)`;
+          abrirPanelFotoInmediata(item);
+        } else {
+          reproducirBeep('OK');
+          alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
+          alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und. · ${item.dias}d)`;
+        }
+      } else {
+        reproducirBeep('ALERTA');
+        registrarSobrante(item.codigo, item.descripcion, lectura !== item.codigo ? lectura : '', item.costoUnit);
+        alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
+        alerta.innerHTML = `➕ <strong>SOBRANTE:</strong> ${item.codigo} supera el teórico de LIKE (${item.cantTeorica} und.).`;
+      }
+    } else {
+      reproducirBeep('ALERTA');
+      registrarSobrante(lectura, 'Producto no registrado en teórico LIKE', lectura, 0);
+      alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
+      alerta.innerHTML = `➕ <strong>SOBRANTE NUEVO:</strong> Código/Serial <code>${lectura}</code> no figura en LIKE.`;
+    }
+
+    guardarSesionPistoleoLocal();
+    actualizarKPIsPistoleo();
+  }
+
+  function registrarSobrante(codigo, descripcion, serial, costoUnit) {
+    const existente = sesionPistoleo.sobrantes.find(s => s.codigo === codigo && s.serial === serial);
+    if (existente) {
+      existente.sobrante += 1;
+      existente.valorSobrante = existente.sobrante * existente.costoUnit;
+    } else {
+      sesionPistoleo.sobrantes.push({
+        codigo,
+        descripcion,
+        serial,
+        sobrante: 1,
+        costoUnit: Number(costoUnit || 0),
+        valorSobrante: Number(costoUnit || 0)
+      });
+    }
+  }
+
+  function abrirPanelFotoInmediata(item) {
+    itemPistoleoFotoActual = item;
+    document.getElementById('panelFotoInmediataPistoleo').classList.remove('d-none');
+    document.getElementById('pFotoTitulo').innerText = `${item.codigo} - ${item.descripcion} (${item.dias} días)`;
+    document.getElementById('pImg1').src = item.foto1 || 'https://via.placeholder.com/250x180?text=Foto+1';
+    document.getElementById('pImg2').src = item.foto2 || 'https://via.placeholder.com/250x180?text=Foto+2';
+    document.getElementById('msgFotoPistoleo').innerText = item.foto1 && item.foto2 ? '✓ Este lote ya tiene sus 2 fotos.' : '';
+  }
+
+  function capturarFotoPistoleoLocal(numFoto, inputEl) {
+    const file = inputEl.files[0];
+    if (!file || !itemPistoleoFotoActual) return;
+    const msg = document.getElementById('msgFotoPistoleo');
+    msg.innerText = `Procesando Foto ${numFoto}...`;
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const MAX_W = 850;
+        const scale = Math.min(1, MAX_W / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.72);
+
+        if (numFoto === 1) {
+          itemPistoleoFotoActual.foto1 = base64;
+          document.getElementById('pImg1').src = base64;
+        } else {
+          itemPistoleoFotoActual.foto2 = base64;
+          document.getElementById('pImg2').src = base64;
+        }
+        guardarSesionPistoleoLocal();
+
+        if (itemPistoleoFotoActual.foto1 && itemPistoleoFotoActual.foto2) {
+          msg.innerText = '✓ ¡2 fotos capturadas! Puedes seguir pistoleando.';
+          setTimeout(() => {
+            document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
+            enfocarPistola();
+          }, 900);
+        } else {
+          msg.innerText = `✓ Foto ${numFoto} lista. Falta la otra foto.`;
+        }
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function actualizarKPIsPistoleo() {
+    if (!sesionPistoleo) return;
+    let totalTeorico = 0, totalFisico = 0, faltUnd = 0, faltValor = 0;
+
+    sesionPistoleo.items.forEach(it => {
+      totalTeorico += it.cantTeorica;
+      totalFisico += it.cantFisica;
+      const diff = Math.max(0, it.cantTeorica - it.cantFisica);
+      if (diff > 0) {
+        faltUnd += diff;
+        faltValor += diff * it.costoUnit;
+      }
+    });
+
+    const sobUnd = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.sobrante, 0);
+    const sobValor = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.valorSobrante, 0);
+
+    document.getElementById('progresoPistoleoTxt').innerText = `${totalFisico} / ${totalTeorico} unidades pistoleadas`;
+    document.getElementById('kpiPistOk').innerText = totalFisico;
+    document.getElementById('kpiPistFaltValor').innerText = '$' + faltValor.toLocaleString('es-CO');
+    document.getElementById('kpiPistFaltCant').innerText = `${faltUnd} und.`;
+    document.getElementById('kpiPistSobCant').innerText = sobUnd;
+    document.getElementById('kpiPistSobValor').innerText = '$' + sobValor.toLocaleString('es-CO');
+
+    const faltItems = sesionPistoleo.items.filter(it => it.cantTeorica > it.cantFisica);
+    document.getElementById('badgeSubFalt').innerText = faltItems.length;
+    document.getElementById('badgeSubSob').innerText = sesionPistoleo.sobrantes.length;
+
+    mostrarSublistaPistoleo(sublistaPistoleoVista);
+  }
+
+  function mostrarSublistaPistoleo(tipo) {
+    sublistaPistoleoVista = tipo;
+    const cont = document.getElementById('contenedorSublistaPistoleo');
+    const btnF = document.getElementById('btnSubFaltantes');
+    const btnS = document.getElementById('btnSubSobrantes');
+
+    if (tipo === 'FALTANTES') {
+      btnF.className = 'btn btn-danger btn-sm flex-fill fw-bold rounded-3';
+      btnS.className = 'btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3';
+      const faltantes = sesionPistoleo.items.filter(it => it.cantTeorica > it.cantFisica);
+      if (faltantes.length === 0) {
+        cont.innerHTML = '<div class="text-success small fw-bold text-center py-3">🎉 ¡Cero faltantes! Todo el inventario teórico está cuadrado.</div>';
+        return;
+      }
+      cont.innerHTML = faltantes.map(f => {
+        const diff = f.cantTeorica - f.cantFisica;
+        const cobro = diff * f.costoUnit;
+        const serialesPend = f.serialesTeoricos.filter(s => !f.serialesEscaneados.includes(s)).join(', ');
+        return `
+          <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small">
+            <div>
+              <span class="badge bg-dark">${f.codigo}</span>
+              <strong class="ms-1">${f.descripcion}</strong>
+              <div class="text-muted" style="font-size: 0.7rem;">
+                Teórico: ${f.cantTeorica} · Físico: ${f.cantFisica} · <span class="text-danger fw-bold">Faltan: ${diff}</span>
+                ${serialesPend ? `<br>Seriales: <span class="font-monospace">${serialesPend}</span>` : ''}
+              </div>
+            </div>
+            <div class="text-end flex-shrink-0">
+              <div class="fw-bold text-danger">$${cobro.toLocaleString('es-CO')}</div>
+              <small class="text-muted" style="font-size: 0.65rem;">Para cobro</small>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      btnS.className = 'btn btn-primary btn-sm flex-fill fw-bold rounded-3';
+      btnF.className = 'btn btn-outline-danger btn-sm flex-fill fw-bold rounded-3';
+      if (sesionPistoleo.sobrantes.length === 0) {
+        cont.innerHTML = '<div class="text-muted small text-center py-3">No se han registrado sobrantes en esta tienda.</div>';
+        return;
+      }
+      cont.innerHTML = sesionPistoleo.sobrantes.map(s => `
+        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small">
+          <div>
+            <span class="badge bg-primary">${s.codigo}</span>
+            <strong class="ms-1">${s.descripcion}</strong>
+            ${s.serial ? `<div class="text-muted font-monospace" style="font-size: 0.7rem;">Serial: ${s.serial}</div>` : ''}
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge bg-info text-dark">+${s.sobrante} und.</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  function toggleEscanerCamara() {
+    const box = document.getElementById('contenedorCamaraQR');
+    if (box.classList.contains('d-none')) {
+      box.classList.remove('d-none');
+      html5QrScanner = new Html5Qrcode('readerQR');
+      html5QrScanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 140 } },
+        (decodedText) => {
+          procesarDisparoPistola(decodedText);
+          detenerEscanerCamara();
+        },
+        () => {}
+      ).catch(() => {
+        alert('No se pudo acceder a la cámara. Verifica los permisos del navegador.');
+        box.classList.add('d-none');
+      });
+    } else {
+      detenerEscanerCamara();
+    }
+  }
+
+  function detenerEscanerCamara() {
+    const box = document.getElementById('contenedorCamaraQR');
+    if (box) box.classList.add('d-none');
+    if (html5QrScanner) {
+      html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+      html5QrScanner = null;
+    }
+  }
+
+  function exportarActaPistoleoCSV() {
+    if (!sesionPistoleo) return;
+    let csv = 'Tipo;Sucursal;Codigo;Descripcion;Seriales;Teorico;Fisico;Diferencia;Costo_Unit;Valor_Total\n';
+    sesionPistoleo.items.forEach(it => {
+      const diff = it.cantTeorica - it.cantFisica;
+      if (diff > 0) {
+        const ser = it.serialesTeoricos.filter(s => !it.serialesEscaneados.includes(s)).join(', ');
+        csv += `"FALTANTE COBRO";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${ser}";${it.cantTeorica};${it.cantFisica};${diff};${it.costoUnit};${diff * it.costoUnit}\n`;
+      }
+    });
+    sesionPistoleo.sobrantes.forEach(s => {
+      csv += `"SOBRANTE";"${sesionPistoleo.sucursal}";"${s.codigo}";"${s.descripcion}";"${s.serial}";0;${s.sobrante};${s.sobrante};${s.costoUnit};${s.valorSobrante}\n`;
+    });
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Acta_Auditoria_${sesionPistoleo.sucursal}.csv`;
+    a.click();
+  }
+
+  async function cerrarYEnviarAuditoriaTienda() {
+    if (!sesionPistoleo) return;
+    const btn = document.getElementById('btnCerrarTiendaSync');
+    const msg = document.getElementById('msgCierrePistoleo');
+    btn.disabled = true;
+    msg.innerText = 'Subiendo fotos a Drive y guardando faltantes/sobrantes en Sheets...';
+
+    const faltantes = sesionPistoleo.items
+      .filter(it => it.cantTeorica > it.cantFisica)
+      .map(it => {
+        const diff = it.cantTeorica - it.cantFisica;
+        const serialesPend = it.serialesTeoricos.filter(s => !it.serialesEscaneados.includes(s)).join(', ');
+        return {
+          codigo: it.codigo,
+          descripcion: it.descripcion,
+          seriales: serialesPend,
+          cantTeorica: it.cantTeorica,
+          cantFisica: it.cantFisica,
+          faltante: diff,
+          costoUnit: it.costoUnit,
+          valorCobro: diff * it.costoUnit
+        };
+      });
+
+    const lotesComite = sesionPistoleo.items
+      .filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE && !(it.estado || '').toLowerCase().includes('dañ'))
+      .map(it => ({
+        sucursal: sesionPistoleo.sucursal,
+        codigo: it.codigo,
+        descripcion: it.descripcion,
+        cantidad: it.cantFisica,
+        seriales: (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', '),
+        dias: it.dias,
+        costoUnit: it.costoUnit,
+        costoTotal: it.costoUnit * it.cantFisica,
+        estado: it.estado || 'Obsolescencia >=120d',
+        observacion: it.observacion || 'Detectado en pistoleo físico',
+        foto1: it.foto1 || '',
+        foto2: it.foto2 || ''
+      }));
+
+    try {
+      const resp = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'guardar_auditoria_pistoleo',
+          sucursal: sesionPistoleo.sucursal,
+          auditor: NOMBRES_EVAL[usuarioActivo] || 'Johan/Oscar',
+          faltantes,
+          sobrantes: sesionPistoleo.sobrantes,
+          lotesComite
+        })
+      });
+      const res = await resp.json();
+      if (res.ok) {
+        msg.innerText = `✅ ¡Cierre guardado! Faltantes: ${res.faltantesGuardados} · Sobrantes: ${res.sobrantesGuardados} · Nuevos Comité: ${res.insertadosComite}`;
+        cargarDatos();
+      } else {
+        msg.innerText = '⚠️ Error al guardar: ' + (res.error || 'Intenta nuevamente');
+      }
+    } catch (e) {
+      msg.innerText = '⚠️ Error de red al enviar el cierre.';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ================= PESTAÑA 4: DASHBOARD GERENCIAL =================
+  function renderDashboard() {
+    const suc = document.getElementById('filtroDashTienda').value;
+    const comiteFilt = suc === 'TODAS' ? listaComite : listaComite.filter(x => x.sucursal === suc);
+    const faltFilt = suc === 'TODAS' ? listaFaltantesGlobal : listaFaltantesGlobal.filter(x => x.sucursal === suc);
+
+    let valTotalObs = 0, valRecup = 0, lotesCerrados = 0;
+    const conteoDecisiones = { Descuento: 0, Obsequio: 0, Traslado: 0, Reempaque: 0, Baja: 0, Pendiente: 0 };
+
+    comiteFilt.forEach(it => {
+      const val = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+      valTotalObs += val;
+
+      const votosArr = [it.votos.OSMEL, it.votos.ANGELICA, it.votos.ORLANDO, it.votos.ANDRES]
+        .filter(v => v && v.trim() !== '')
+        .map(v => v.split('(')[0].trim());
+
+      if (votosArr.length === 4 && new Set(votosArr).size === 1) lotesCerrados += 1;
+
+      if (votosArr.length === 0) {
+        conteoDecisiones.Pendiente += 1;
+      } else {
+        const d = votosArr[0].toLowerCase();
+        if (d.includes('baja')) {
+          conteoDecisiones.Baja += 1;
+        } else {
+          valRecup += val;
+          if (d.includes('descuento')) conteoDecisiones.Descuento += 1;
+          else if (d.includes('obsequio')) conteoDecisiones.Obsequio += 1;
+          else if (d.includes('tienda')) conteoDecisiones.Traslado += 1;
+          else conteoDecisiones.Reempaque += 1;
+        }
+      }
+    });
+
+    const valFalt = faltFilt.reduce((a, b) => a + Number(b.valorCobro || 0), 0);
+    const undFalt = faltFilt.reduce((a, b) => a + Number(b.faltante || 0), 0);
+    const porcRecup = valTotalObs > 0 ? Math.round((valRecup / valTotalObs) * 100) : 0;
+    const porcAvance = comiteFilt.length > 0 ? Math.round((lotesCerrados / comiteFilt.length) * 100) : 0;
+
+    document.getElementById('dashValTotal').innerText = '$' + valTotalObs.toLocaleString('es-CO');
+    document.getElementById('dashSubLotes').innerText = `${comiteFilt.length} lotes (>=120d)`;
+    document.getElementById('dashPorcRecup').innerText = `${porcRecup}%`;
+    document.getElementById('dashValRecup').innerText = '$' + valRecup.toLocaleString('es-CO') + ' salvado';
+    document.getElementById('dashValFaltantes').innerText = '$' + valFalt.toLocaleString('es-CO');
+    document.getElementById('dashCntFaltantes').innerText = `${undFalt} und. faltantes`;
+    document.getElementById('dashAvanceComite').innerText = `${porcAvance}%`;
+    document.getElementById('dashSubAvance').innerText = `${lotesCerrados} de ${comiteFilt.length} cerrados`;
+
+    const ctx1 = document.getElementById('chartDecisiones');
+    if (chartDecisionesInst) chartDecisionesInst.destroy();
+    chartDecisionesInst = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: ['Descuento', 'Obsequio', 'Cambio Tienda', 'Reempaque', 'Dar de Baja', 'Pendiente'],
+        datasets: [{
+          data: [
+            conteoDecisiones.Descuento, conteoDecisiones.Obsequio,
+            conteoDecisiones.Traslado, conteoDecisiones.Reempaque,
+            conteoDecisiones.Baja, conteoDecisiones.Pendiente
+          ],
+          backgroundColor: ['#0284c7', '#d97706', '#1e3a8a', '#059669', '#dc2626', '#cbd5e1']
+        }]
+      },
+      options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+    });
+
+    const mapaTiendas = {};
+    listaComite.forEach(it => {
+      if (!mapaTiendas[it.sucursal]) mapaTiendas[it.sucursal] = { obs: 0, falt: 0 };
+      mapaTiendas[it.sucursal].obs += Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+    });
+    listaFaltantesGlobal.forEach(f => {
+      if (!mapaTiendas[f.sucursal]) mapaTiendas[f.sucursal] = { obs: 0, falt: 0 };
+      mapaTiendas[f.sucursal].falt += Number(f.valorCobro || 0);
+    });
+
+    const topTiendas = Object.entries(mapaTiendas)
+      .sort((a, b) => (b[1].obs + b[1].falt) - (a[1].obs + a[1].falt))
+      .slice(0, 8);
+
+    const ctx2 = document.getElementById('chartTiendas');
+    if (chartTiendasInst) chartTiendasInst.destroy();
+    chartTiendasInst = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: topTiendas.map(t => t[0]),
+        datasets: [
+          { label: 'Obsolescencia >=120d ($)', data: topTiendas.map(t => t[1].obs), backgroundColor: '#1e3a8a' },
+          { label: 'Faltantes Cobro ($)', data: topTiendas.map(t => t[1].falt), backgroundColor: '#dc2626' }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+      }
+    });
+  }
+
+  // ================= FUNCIONES COMPARTIDAS PESTAÑAS 1 Y 2 =================
   function seleccionarBloquePersona(bloque) {
     bloquePersonaActivo = bloque;
     ['TODOS', 'MITAD1', 'MITAD2'].forEach(b => {
@@ -843,120 +1817,14 @@
   function alCambiarTiendaFotos() {
     renderTablaFotos();
     const pendientes = obtenerPendientesFiltradosFotos();
-    if (pendientes.length > 0) {
-      seleccionarParaFoto(pendientes[0].fila);
-    }
-  }
-
-  function cambiarVistaPestana(vista) {
-    const tabComite = document.getElementById('tabComite');
-    const tabFotos = document.getElementById('tabCargaFotos');
-    const btnComite = document.getElementById('btnTabComite');
-    const btnFotos = document.getElementById('btnTabCarga');
-
-    if (vista === 'COMITE') {
-      tabComite.classList.remove('d-none');
-      tabFotos.classList.add('d-none');
-      btnComite.classList.add('active');
-      btnFotos.classList.remove('active');
-      toggleBarraFlotante(true);
-    } else {
-      tabComite.classList.add('d-none');
-      tabFotos.classList.remove('d-none');
-      btnComite.classList.remove('active');
-      btnFotos.classList.add('active');
-      toggleBarraFlotante(false);
-    }
-  }
-
-  function mostrarAppPrincipal() {
-    document.getElementById('pantallaIdentificacion').classList.add('d-none');
-    const app = document.getElementById('appPrincipal');
-    app.classList.remove('d-none');
-    
-    const label = document.getElementById('badgeRolUsuario');
-    if (NOMBRES_EVAL[usuarioActivo]) {
-      label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
-    }
-
-    if (usuarioActivo === 'JOHAN_OSCAR') {
-      document.getElementById('btnTabComite').classList.add('d-none');
-      cambiarVistaPestana('FOTOS');
-    } else {
-      document.getElementById('btnTabComite').classList.remove('d-none');
-      cambiarVistaPestana('COMITE');
-    }
-  }
-
-  function cerrarSesionUsuario() {
-    localStorage.removeItem('htc_usuario');
-    usuarioActivo = '';
-    document.getElementById('appPrincipal').classList.add('d-none');
-    document.getElementById('barraFlotanteComite').classList.add('d-none');
-    document.getElementById('pantallaIdentificacion').classList.remove('d-none');
-  }
-
-  function toggleBarraFlotante(mostrar) {
-    enPestanaComite = mostrar;
-    const barra = document.getElementById('barraFlotanteComite');
-    const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
-    if (appVisible && mostrar && listaFiltrada.length > 0 && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
-      barra.classList.remove('d-none');
-    } else {
-      barra.classList.add('d-none');
-    }
-    if (!mostrar && usuarioActivo === 'JOHAN_OSCAR') {
-      sincronizarSilencioso(false);
-    }
-  }
-
-  async function sincronizarSilencioso(manual = false) {
-    const lbl = document.getElementById('estadoSyncFotos');
-    if (manual && lbl) lbl.innerText = '🔄 Actualizando lista...';
-    try {
-      const resp = await fetch(API_URL);
-      const data = await resp.json();
-      if (!data.comite) return;
-
-      // Solo mantener registros de 120 días o más
-      listaComite = data.comite.filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
-      poblarSucursales();
-      renderTablaFotos();
-
-      if (itemFotoActivo) {
-        const actualizado = listaComite.find(x => x.fila === itemFotoActivo.fila);
-        if (actualizado) {
-          const yaEstabaCompleto = itemFotoActivo.foto1 && itemFotoActivo.foto2;
-          const ahoraCompleto = actualizado.foto1 && actualizado.foto2;
-          itemFotoActivo = actualizado;
-
-          if (!yaEstabaCompleto && ahoraCompleto) {
-            document.getElementById('msgFotoAud').innerText = 'ℹ️ Lote completado por otro usuario. Cargando siguiente...';
-            setTimeout(() => siguienteSinFoto(), 900);
-          } else {
-            document.getElementById('aFoto1').src = actualizado.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
-            document.getElementById('aFoto2').src = actualizado.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
-          }
-        }
-      }
-      if (lbl) {
-        const hora = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        lbl.innerText = `● Sincronizado (${hora})`;
-      }
-    } catch (e) {
-      if (lbl) lbl.innerText = '⚠️ Sin conexión temporal';
-    }
+    if (pendientes.length > 0) seleccionarParaFoto(pendientes[0].fila);
   }
 
   function renderHtmlSeriales(it, maxInline = 2) {
     const raw = String(it.seriales || '').trim();
-    if (!raw || raw === 'N/A' || raw === '-') {
-      return '<span class="text-muted">Sin serial</span>';
-    }
+    if (!raw || raw === 'N/A' || raw === '-') return '<span class="text-muted">Sin serial</span>';
     const lista = raw.split(',').map(s => s.trim()).filter(Boolean);
-    if (lista.length <= maxInline) {
-      return lista.map(s => `<span class="serial-chip">${s}</span>`).join('');
-    }
+    if (lista.length <= maxInline) return lista.map(s => `<span class="serial-chip">${s}</span>`).join('');
     return `
       <span class="serial-chip">${lista[0]}</span>
       <button type="button" class="btn-seriales-pill" onclick="event.stopPropagation(); abrirModalSeriales(${it.fila})">
@@ -970,10 +1838,8 @@
     if (!it) return;
     const lista = String(it.seriales || '').split(',').map(s => s.trim()).filter(Boolean);
     serialesModalActuales = lista;
-
     document.getElementById('modalSerialesTitulo').innerText = `Código: ${it.codigo} (${lista.length} seriales)`;
     document.getElementById('modalSerialesSubtitulo').innerText = `${it.descripcion} · ${it.sucursal}`;
-
     document.getElementById('modalSerialesLista').innerHTML = lista.length > 0
       ? lista.map((s, idx) => `
           <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom small">
@@ -982,24 +1848,19 @@
           </div>
         `).join('')
       : '<div class="text-muted small text-center py-3">Este lote no tiene seriales registrados.</div>';
-
     new bootstrap.Modal(document.getElementById('modalSeriales')).show();
   }
 
   function copiarSerialesModal() {
     if (serialesModalActuales.length === 0) return;
-    navigator.clipboard.writeText(serialesModalActuales.join('\n')).then(() => {
-      alert('✓ Lista de seriales copiada al portapapeles.');
-    });
+    navigator.clipboard.writeText(serialesModalActuales.join('\n')).then(() => alert('✓ Lista de seriales copiada.'));
   }
 
   function formatearDiasConEquivalencia(diasNum) {
     const d = Number(diasNum || 0);
     if (d < 30) return `${d} d`;
     const totalMeses = Math.floor(d / 30);
-    if (totalMeses < 12) {
-      return `${d} d (${totalMeses} ${totalMeses === 1 ? 'mes' : 'meses'})`;
-    }
+    if (totalMeses < 12) return `${d} d (${totalMeses} ${totalMeses === 1 ? 'mes' : 'meses'})`;
     const anos = Math.floor(totalMeses / 12);
     const mesesRest = totalMeses % 12;
     const txtAno = `${anos} ${anos === 1 ? 'año' : 'años'}`;
@@ -1010,33 +1871,25 @@
   function obtenerEstadoVotosUI(item) {
     const votosArr = [item.votos.OSMEL, item.votos.ANGELICA, item.votos.ORLANDO, item.votos.ANDRES].filter(v => v && v.trim() !== '');
     const total = votosArr.length;
-    if (total === 0) {
-      return { texto: 'PENDIENTE (0/4)', clase: 'status-progreso' };
-    }
+    if (total === 0) return { texto: 'PENDIENTE (0/4)', clase: 'status-progreso' };
     const baseDecisiones = votosArr.map(v => v.split('(')[0].trim());
     const unicos = new Set(baseDecisiones);
     if (total < 4) {
       const muestra = unicos.size === 1 ? ` - ${baseDecisiones[0]}` : '';
       return { texto: `PENDIENTE (${total}/4${muestra})`, clase: 'status-revisar' };
     }
-    if (unicos.size === 1) {
-      return { texto: `✓ APROBADO 4/4 (${baseDecisiones[0]})`, clase: 'status-aprobado' };
-    }
+    if (unicos.size === 1) return { texto: `✓ APROBADO 4/4 (${baseDecisiones[0]})`, clase: 'status-aprobado' };
     return { texto: '⚠️ REVISAR VOTOS (4/4)', clase: 'status-revisar' };
   }
 
   function actualizarResumenFinanciero() {
     const suc = document.getElementById('filtroSucursal').value;
     document.getElementById('lblFiltroFinanciero').innerText = suc === 'TODAS' ? 'Todas las tiendas' : suc;
-
-    let sumaBajas = 0, cntBajas = 0;
-    let sumaRecup = 0, cntRecup = 0;
-    let sumaTotal = 0;
+    let sumaBajas = 0, cntBajas = 0, sumaRecup = 0, cntRecup = 0, sumaTotal = 0;
 
     listaFiltrada.forEach(it => {
       const val = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
       sumaTotal += val;
-
       const votosArr = [it.votos.OSMEL, it.votos.ANGELICA, it.votos.ORLANDO, it.votos.ANDRES]
         .filter(v => v && v.trim() !== '')
         .map(v => v.split('(')[0].trim().toLowerCase());
@@ -1044,22 +1897,15 @@
       if (votosArr.length > 0) {
         const votosBaja = votosArr.filter(v => v.includes('baja')).length;
         const votosRecup = votosArr.length - votosBaja;
-        if (votosBaja > 0 && votosBaja >= votosRecup) {
-          sumaBajas += val;
-          cntBajas += 1;
-        } else {
-          sumaRecup += val;
-          cntRecup += 1;
-        }
+        if (votosBaja > 0 && votosBaja >= votosRecup) { sumaBajas += val; cntBajas += 1; }
+        else { sumaRecup += val; cntRecup += 1; }
       }
     });
 
     document.getElementById('sumBajas').innerText = '$' + sumaBajas.toLocaleString('es-CO');
     document.getElementById('cntBajas').innerText = `${cntBajas} ${cntBajas === 1 ? 'lote' : 'lotes'}`;
-
     document.getElementById('sumRecuperacion').innerText = '$' + sumaRecup.toLocaleString('es-CO');
     document.getElementById('cntRecuperacion').innerText = `${cntRecup} ${cntRecup === 1 ? 'lote' : 'lotes'}`;
-
     document.getElementById('sumTotalGeneral').innerText = '$' + sumaTotal.toLocaleString('es-CO');
     document.getElementById('cntTotalGeneral').innerText = `${listaFiltrada.length} ${listaFiltrada.length === 1 ? 'lote' : 'lotes'}`;
   }
@@ -1089,69 +1935,10 @@
     const cont = document.getElementById('contenedorListaCompleta');
     const txt = document.getElementById('txtToggleLista');
     const oculto = cont.classList.contains('d-none');
-    if (oculto) {
-      cont.classList.remove('d-none');
-      txt.innerText = '▴ Ocultar listado completo';
-    } else {
-      cont.classList.add('d-none');
-      txt.innerText = '▾ Ver todos los lotes para salto rápido';
-    }
+    cont.classList.toggle('d-none');
+    txt.innerText = oculto ? '▴ Ocultar listado completo' : '▾ Ver todos los lotes para salto rápido';
   }
 
-  async function cargarDatos() {
-    const loader = document.getElementById('loader');
-    if (!document.getElementById('appPrincipal').classList.contains('d-none')) {
-      loader.classList.remove('d-none');
-    }
-    try {
-      const resp = await fetch(API_URL);
-      const data = await resp.json();
-      // Filtrar estrictamente >= 120 días
-      listaComite = (data.comite || []).filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
-      loader.classList.add('d-none');
-      poblarSucursales();
-      renderComite();
-      renderTablaFotos();
-      const pendientes = obtenerPendientesFiltradosFotos();
-      if (pendientes.length > 0 && !itemFotoActivo) {
-        seleccionarParaFoto(pendientes[0].fila);
-      } else if (listaComite.length > 0 && !itemFotoActivo) {
-        seleccionarParaFoto(listaComite[0].fila);
-      }
-    } catch (e) {
-      loader.className = 'alert alert-danger text-center rounded-4 py-2 small';
-      loader.innerText = 'Error al conectar con Google Sheets.';
-    }
-  }
-
-  function poblarSucursales() {
-    const sucs = [...new Set(listaComite.map(x => x.sucursal).filter(Boolean))];
-    
-    const sel = document.getElementById('filtroSucursal');
-    const actual = sel.value;
-    sel.innerHTML = '<option value="TODAS">Todas las tiendas (' + listaComite.length + ')</option>' +
-      sucs.map(s => `<option value="${s}">${s}</option>`).join('');
-    if (sucs.includes(actual)) sel.value = actual;
-
-    const selFotos = document.getElementById('filtroTiendaFotos');
-    if (selFotos) {
-      const actualFotos = selFotos.value;
-      const totalPend = listaComite.filter(x => !x.foto1 || !x.foto2).length;
-      selFotos.innerHTML = `<option value="TODAS">🏪 Todas las tiendas (${totalPend})</option>` +
-        sucs.map(s => {
-          const pendSuc = listaComite.filter(x => x.sucursal === s && (!x.foto1 || !x.foto2)).length;
-          return `<option value="${s}">${s} (${pendSuc} pend.)</option>`;
-        }).join('');
-      if (sucs.includes(actualFotos)) selFotos.value = actualFotos;
-    }
-
-    const dl = document.getElementById('listaTiendasDatalist');
-    if (dl) {
-      dl.innerHTML = sucs.map(s => `<option value="${s}">`).join('');
-    }
-  }
-
-  // ================= PESTAÑA 1: COMITÉ GERENCIAL =================
   function renderComite() {
     const suc = document.getElementById('filtroSucursal').value;
     const q = document.getElementById('buscarComite').value.trim().toLowerCase();
@@ -1163,7 +1950,6 @@
     });
 
     document.getElementById('totalComite').innerText = listaFiltrada.length;
-
     document.getElementById('contenedorListaCompleta').innerHTML = listaFiltrada.map((it, i) => `
       <div class="d-flex justify-content-between align-items-center py-1 px-2 border-bottom small" style="cursor:pointer;" onclick="mostrarFichaComite(${i}); window.scrollTo({top: 0, behavior: 'smooth'});">
         <span><strong>${it.codigo}</strong> · ${it.descripcion}</span>
@@ -1172,12 +1958,11 @@
     `).join('');
 
     const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
-
     if (listaFiltrada.length > 0) {
       if (idxComite >= listaFiltrada.length) idxComite = 0;
       document.getElementById('bloqueTarjetaActiva').classList.remove('d-none');
       document.getElementById('bloqueResumenFinanciero').classList.remove('d-none');
-      if (appVisible && enPestanaComite && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
+      if (appVisible && vistaActual === 'COMITE' && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
         document.getElementById('barraFlotanteComite').classList.remove('d-none');
       } else {
         document.getElementById('barraFlotanteComite').classList.add('d-none');
@@ -1200,7 +1985,6 @@
 
     document.getElementById('fichaComite').classList.remove('d-none');
     document.getElementById('contadorComite').innerText = `Producto ${i + 1} de ${listaFiltrada.length}`;
-
     document.getElementById('cSucursal').innerText = it.sucursal;
     document.getElementById('cEstadoNovedad').innerText = it.estado;
     document.getElementById('cDescripcion').innerText = it.descripcion;
@@ -1218,7 +2002,6 @@
 
     actualizarPasarelaFoto();
     document.getElementById('msgComite').innerText = '';
-
     renderTarjetaUnicaActiva(it);
     actualizarResumenFinanciero();
   }
@@ -1249,10 +2032,6 @@
   }
 
   function abrirPanelDescuento() {
-    if (!usuarioActivo) {
-      alert('⚠️ Identifícate primero para participar.');
-      return;
-    }
     cerrarSubpaneles();
     document.getElementById('panelDescuento').classList.remove('d-none');
     document.getElementById('valorDesc').value = '';
@@ -1271,18 +2050,10 @@
     const tipo = document.getElementById('tipoDesc').value;
     const val = Number(document.getElementById('valorDesc').value || 0);
     const base = itemActivo.costoUnit || 0;
-    if (val <= 0) {
-      document.getElementById('previewDescTexto').innerText = 'Ingresa un valor mayor a 0';
-      return '';
-    }
-    let resumen = '';
-    if (tipo === 'PORC') {
-      const finalUnit = Math.max(0, Math.round(base * (1 - val / 100)));
-      resumen = `Descuento ${val}% ($${finalUnit.toLocaleString('es-CO')} c/u)`;
-    } else {
-      const finalUnit = Math.max(0, base - val);
-      resumen = `Descuento -$${val.toLocaleString('es-CO')} ($${finalUnit.toLocaleString('es-CO')} c/u)`;
-    }
+    if (val <= 0) { document.getElementById('previewDescTexto').innerText = 'Ingresa un valor mayor a 0'; return ''; }
+    let resumen = tipo === 'PORC'
+      ? `Descuento ${val}% ($${Math.max(0, Math.round(base * (1 - val / 100))).toLocaleString('es-CO')} c/u)`
+      : `Descuento -$${val.toLocaleString('es-CO')} ($${Math.max(0, base - val).toLocaleString('es-CO')} c/u)`;
     document.getElementById('previewDescTexto').innerText = 'Se registrará: ' + resumen;
     return resumen;
   }
@@ -1295,10 +2066,6 @@
   }
 
   function abrirPanelCambiarTienda() {
-    if (!usuarioActivo) {
-      alert('⚠️ Identifícate primero para participar.');
-      return;
-    }
     cerrarSubpaneles();
     document.getElementById('panelCambiarTienda').classList.remove('d-none');
     const inp = document.getElementById('inputTiendaDestino');
@@ -1314,11 +2081,7 @@
   }
 
   async function votarComite(decision, motivo = '') {
-    if (!itemActivo) return;
-    if (!usuarioActivo) {
-      alert('⚠️ Identifícate primero.');
-      return;
-    }
+    if (!itemActivo || !usuarioActivo) return;
     cerrarSubpaneles();
     const msg = document.getElementById('msgComite');
     msg.innerText = `Guardando voto de ${NOMBRES_EVAL[usuarioActivo]}...`;
@@ -1331,25 +2094,19 @@
     if (res.ok) {
       itemActivo.votos[usuarioActivo] = motivo ? `${decision} (${motivo})` : decision;
       itemActivo.consenso = res.consenso;
-
       mostrarFichaComite(idxComite);
-      msg.innerText = `✓ Voto de ${NOMBRES_EVAL[usuarioActivo]} guardado. Pasando al siguiente...`;
-
+      msg.innerText = `✓ Voto guardado. Pasando al siguiente...`;
       setTimeout(() => {
-        if (listaFiltrada.length > 1) {
-          moverComite(1);
-        } else {
-          renderComite();
-        }
+        if (listaFiltrada.length > 1) moverComite(1);
+        else renderComite();
       }, 650);
     }
   }
 
-  // ================= PESTAÑA 2: IMPORTAR EXCEL Y FOTOS =================
   function importarNovedadesExcel() {
     const file = document.getElementById('inputExcel').files[0];
     if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
-    const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim() || 'TIENDA PRINCIPAL';
+    const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim().toUpperCase() || 'TIENDA PRINCIPAL';
     const msg = document.getElementById('msgImport');
     msg.innerText = 'Procesando productos >= 120 días del Excel...';
 
@@ -1360,8 +2117,7 @@
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
 
       const grupos = {};
-      let omitidosDanados = 0;
-      let omitidosMenos120 = 0;
+      let omitidosDanados = 0, omitidosMenos120 = 0;
 
       rows.forEach(r => {
         const clean = {};
@@ -1378,14 +2134,8 @@
         const obs = String(clean['Observacion'] || '').trim();
 
         if (!codigo || codigo === '0' || !desc || desc === '0') return;
+        if (dias < MIN_DIAS_COMITE) { omitidosMenos120 += 1; return; }
 
-        // 1. Filtro estricto de días: solo 120 días en adelante
-        if (dias < MIN_DIAS_COMITE) {
-          omitidosMenos120 += 1;
-          return;
-        }
-
-        // 2. Excluir dañados directos
         const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
           omitidosDanados += 1;
@@ -1397,10 +2147,7 @@
         const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
 
         if (!grupos[clave]) {
-          grupos[clave] = {
-            sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [],
-            dias, costoUnit: costo, estado: estadoFinal, observacion: obs
-          };
+          grupos[clave] = { sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [], dias, costoUnit: costo, estado: estadoFinal, observacion: obs };
         }
         grupos[clave].cantidad += 1;
         if (serial) grupos[clave].serialesArr.push(serial);
@@ -1439,27 +2186,14 @@
   function obtenerPendientesFiltradosFotos() {
     const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
     const tienda = document.getElementById('filtroTiendaFotos').value;
-
     const filtrados = listaComite.filter(x => {
       const okTienda = (tienda === 'TODAS') || x.sucursal === tienda;
-      const okQ = !q ||
-        x.codigo.toLowerCase().includes(q) ||
-        x.descripcion.toLowerCase().includes(q) ||
-        x.sucursal.toLowerCase().includes(q) ||
-        String(x.seriales || '').toLowerCase().includes(q);
+      const okQ = !q || x.codigo.toLowerCase().includes(q) || x.descripcion.toLowerCase().includes(q) || x.sucursal.toLowerCase().includes(q) || String(x.seriales || '').toLowerCase().includes(q);
       return okTienda && okQ;
     });
-
     let pendientes = filtrados.filter(x => !x.foto1 || !x.foto2);
-
-    if (bloquePersonaActivo === 'MITAD1') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(0, corte);
-    } else if (bloquePersonaActivo === 'MITAD2') {
-      const corte = Math.ceil(pendientes.length / 2);
-      pendientes = pendientes.slice(corte);
-    }
-
+    if (bloquePersonaActivo === 'MITAD1') pendientes = pendientes.slice(0, Math.ceil(pendientes.length / 2));
+    else if (bloquePersonaActivo === 'MITAD2') pendientes = pendientes.slice(Math.ceil(pendientes.length / 2));
     return pendientes;
   }
 
@@ -1491,39 +2225,25 @@
   function renderTablaFotos() {
     const q = document.getElementById('buscarFoto').value.trim().toLowerCase();
     const tienda = document.getElementById('filtroTiendaFotos').value;
-
     const filtradosTiendaYBusqueda = listaComite.filter(x => {
       const okTienda = (tienda === 'TODAS') || x.sucursal === tienda;
-      const okQ = !q ||
-        x.codigo.toLowerCase().includes(q) ||
-        x.descripcion.toLowerCase().includes(q) ||
-        x.sucursal.toLowerCase().includes(q) ||
-        String(x.seriales || '').toLowerCase().includes(q);
+      const okQ = !q || x.codigo.toLowerCase().includes(q) || x.descripcion.toLowerCase().includes(q) || x.sucursal.toLowerCase().includes(q) || String(x.seriales || '').toLowerCase().includes(q);
       return okTienda && okQ;
     });
-
     const pendientes = obtenerPendientesFiltradosFotos();
     const completados = filtradosTiendaYBusqueda.filter(x => x.foto1 && x.foto2);
-
     document.getElementById('cntPendientesFoto').innerText = pendientes.length;
 
-    if (pendientes.length > 0) {
-      document.getElementById('listaTarjetasFotos').innerHTML = pendientes.map(construirTarjetaFoto).join('');
-    } else {
-      document.getElementById('listaTarjetasFotos').innerHTML = `
-        <div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">
-          🎉 ¡Todos los lotes (>= 120d) de este filtro ya tienen sus 2 fotos completas!
-        </div>
-      `;
-    }
+    document.getElementById('listaTarjetasFotos').innerHTML = pendientes.length > 0
+      ? pendientes.map(construirTarjetaFoto).join('')
+      : '<div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">🎉 ¡Todos los lotes (>= 120d) de este filtro ya tienen sus 2 fotos completas!</div>';
 
     const bloqueComp = document.getElementById('bloqueFotosCompletadas');
     if (completados.length > 0) {
       bloqueComp.classList.remove('d-none');
       const listaCompEl = document.getElementById('listaFotosCompletadas');
       const estaAbierto = !listaCompEl.classList.contains('d-none');
-      document.getElementById('txtToggleCompletadas').innerText =
-        `${estaAbierto ? '▴ Ocultar' : '▾ Ver'} lotes ya fotografiados (${completados.length})`;
+      document.getElementById('txtToggleCompletadas').innerText = `${estaAbierto ? '▴ Ocultar' : '▾ Ver'} lotes ya fotografiados (${completados.length})`;
       listaCompEl.innerHTML = completados.map(construirTarjetaFoto).join('');
     } else {
       bloqueComp.classList.add('d-none');
@@ -1531,8 +2251,7 @@
   }
 
   function toggleFotosCompletadas() {
-    const listaCompEl = document.getElementById('listaFotosCompletadas');
-    listaCompEl.classList.toggle('d-none');
+    document.getElementById('listaFotosCompletadas').classList.toggle('d-none');
     renderTablaFotos();
   }
 
@@ -1591,13 +2310,8 @@
           });
           const res = await resp.json();
           if (res.ok) {
-            if (numFoto === 1) {
-              itemFotoActivo.foto1 = res.fotoUrl;
-              document.getElementById('aFoto1').src = res.fotoUrl;
-            } else {
-              itemFotoActivo.foto2 = res.fotoUrl;
-              document.getElementById('aFoto2').src = res.fotoUrl;
-            }
+            if (numFoto === 1) { itemFotoActivo.foto1 = res.fotoUrl; document.getElementById('aFoto1').src = res.fotoUrl; }
+            else { itemFotoActivo.foto2 = res.fotoUrl; document.getElementById('aFoto2').src = res.fotoUrl; }
             poblarSucursales();
             renderTablaFotos();
             if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
