@@ -285,6 +285,31 @@
     .btn-reem { background: #059669; color: #ffffff; }
     .btn-baja { background: #334155; color: #ffffff; }
 
+    /* Botones de Estado Toma Física */
+    .btn-estado-toma {
+      border: 1.5px solid #cbd5e1;
+      background: #ffffff;
+      color: #1e293b;
+      border-radius: 10px;
+      padding: 7px 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      text-align: left;
+      transition: all 0.15s ease;
+      width: 100%;
+    }
+    .btn-estado-toma small {
+      display: block;
+      font-weight: 400;
+      font-size: 0.64rem;
+      opacity: 0.85;
+      line-height: 1.15;
+    }
+    .btn-estado-toma.activo-bueno { background: #dcfce7; border-color: #16a34a; color: #14532d; }
+    .btn-estado-toma.activo-novedad { background: #fef3c7; border-color: #d97706; color: #78350f; }
+    .btn-estado-toma.activo-baja { background: #fee2e2; border-color: #dc2626; color: #7f1d1d; }
+    .btn-estado-toma.activo-pendiente { background: #e0f2fe; border-color: #0284c7; color: #0c4a6e; }
+
     /* Barra flotante inferior */
     .floating-nav-wrap {
       position: fixed;
@@ -392,7 +417,7 @@
       box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.2);
     }
 
-    .img-preview-aud { height: 165px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
+    .img-preview-aud { height: 155px; object-fit: contain; border-radius: 10px; background: #fff; cursor: zoom-in; }
   </style>
 </head>
 <body>
@@ -663,16 +688,16 @@
   <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
   <div id="tabCargaFotos" class="d-none">
     <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
-      <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades Recuperables (&ge; 120 días)</h6>
-      <p class="small text-muted mb-2">Sube tu plantilla <code>Toma(pistoleo)</code>. Solo entran al comité productos con <strong>120 días o más</strong> en inventario (se excluyen menores a 120d y marcados como <strong>Dañado</strong>).</p>
+      <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades (&ge; 120 días)</h6>
+      <p class="small text-muted mb-2">Sube tu reporte de LIKE (<code>.xls / .xlsx</code>). Solo entran al comité productos con <strong>120 días o más</strong> en inventario.</p>
       <div class="row g-2 align-items-end">
         <div class="col-12 col-md-5">
-          <label class="form-label small fw-bold mb-1">Archivo Excel (.xlsx)</label>
+          <label class="form-label small fw-bold mb-1">Archivo Excel (.xls / .xlsx)</label>
           <input type="file" id="inputExcel" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
         </div>
         <div class="col-12 col-md-3">
-          <label class="form-label small fw-bold mb-1">Tienda por defecto</label>
-          <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. RESTREPO 3">
+          <label class="form-label small fw-bold mb-1">Tienda (opcional si viene en Excel)</label>
+          <input type="text" id="txtTiendaDefault" class="form-control form-control-sm" placeholder="Ej. LUCERO">
         </div>
         <div class="col-12 col-md-4">
           <button type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="importarNovedadesExcel()">Importar y Agrupar</button>
@@ -773,15 +798,15 @@
         <h6 class="fw-bold text-primary mb-0">🎯 Auditoría Física: Pistoleo vs. Teórico LIKE</h6>
         <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">Reiniciar sesión</button>
       </div>
-      <p class="small text-muted mb-2">1. Carga el Excel de existencias LIKE de la tienda. 2. Pistolea cada producto (con lector Bluetooth/USB o cámara). Si tiene <strong>&ge; 120 días</strong> te pedirá foto al instante.</p>
+      <p class="small text-muted mb-2">1. Carga el archivo tal cual sale de LIKE (<code>.xls / .xlsx</code>). 2. Pistolea cada producto. Si tiene <strong>&ge; 120 días</strong> te pedirá <strong>Estado, Observación y 2 Fotos</strong>.</p>
       <div class="row g-2 align-items-end">
         <div class="col-12 col-md-5">
-          <label class="form-label small fw-bold mb-1">Reporte LIKE (.xlsx)</label>
+          <label class="form-label small fw-bold mb-1">Reporte LIKE (.xls / .xlsx)</label>
           <input type="file" id="inputExcelLike" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
         </div>
         <div class="col-12 col-md-3">
-          <label class="form-label small fw-bold mb-1">Nombre de Tienda</label>
-          <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. RESTREPO 3">
+          <label class="form-label small fw-bold mb-1">Tienda (auto-detectable)</label>
+          <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. LUCERO">
         </div>
         <div class="col-12 col-md-4">
           <button type="button" class="btn btn-primary btn-sm w-100 fw-bold rounded-3" onclick="cargarTeoricoLike()">Iniciar Conteo Tienda</button>
@@ -821,15 +846,62 @@
         </div>
       </div>
 
-      <!-- Paso C: Captura rápida de 2 fotos cuando el producto pistoleado tiene >= 120 días -->
+      <!-- Paso C: Evaluación Física (Estado + Observación Oficial + 2 Fotos) para productos >= 120 días -->
       <div id="panelFotoInmediataPistoleo" class="card border-warning shadow-sm rounded-4 p-3 mb-3 d-none" style="border-width: 2px;">
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
-            <span class="badge bg-danger">⚠️ OBSOLESCENCIA &ge; 120 DÍAS - REQUIERE FOTO</span>
+            <span class="badge bg-danger">⚠️ OBSOLESCENCIA &ge; 120 DÍAS — TOMA FÍSICA OBLIGATORIA</span>
             <h6 class="fw-bold text-dark mt-1 mb-0 small" id="pFotoTitulo">-</h6>
           </div>
-          <button type="button" class="btn-close btn-sm" onclick="document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none'); enfocarPistola();"></button>
+          <button type="button" class="btn-close btn-sm" onclick="cerrarPanelEvaluacionPistoleo()"></button>
         </div>
+
+       <!-- 1. Selección de Estado Oficial -->
+        <div class="mb-2">
+          <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">1. Selecciona el Estado en la Toma Física:</label>
+          <div class="row g-2">
+            <div class="col-6">
+              <button type="button" id="btnEst_Bueno" class="btn-estado-toma" onclick="seleccionarEstadoToma('Bueno / funcional')">
+                ✅ Bueno / funcional
+                <small>Producto en condiciones normales.</small>
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" id="btnEst_Novedad" class="btn-estado-toma" onclick="seleccionarEstadoToma('Funcional con novedad')">
+                ⚠️ Funcional con novedad
+                <small>Funciona, con detalles físicos.</small>
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" id="btnEst_Baja" class="btn-estado-toma" onclick="seleccionarEstadoToma('Baja')">
+                🗑️ Baja
+                <small>No funcional, dañado o no comercializable.</small>
+              </button>
+            </div>
+            <div class="col-6">
+              <button type="button" id="btnEst_Otro" class="btn-estado-toma" onclick="seleccionarEstadoToma('Otro')">
+                ✏️ Otro (Personalizado)
+                <small>Escribir estado y observación manual.</small>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2A. Observación Estandarizada (Para Bueno, Novedad o Baja) -->
+        <div id="bloqueObsEstandar" class="mb-2">
+          <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">2. Observación Estandarizada:</label>
+          <select id="selectObsEstandar" class="form-select form-select-sm fw-semibold mb-1" onchange="actualizarObservacionItemPistoleo()"></select>
+          <input type="text" id="txtObsAdicional" class="form-control form-control-sm" placeholder="Detalle adicional opcional (ej. color, accesorio faltante)..." oninput="actualizarObservacionItemPistoleo()">
+        </div>
+
+        <!-- 2B. Estado y Observación Personalizada (Solo visible al tocar "Otro") -->
+        <div id="bloqueObsOtro" class="mb-2 d-none">
+          <label class="form-label fw-bold text-uppercase text-primary mb-1" style="font-size: 0.68rem;">2. Escribe el Estado y la Observación:</label>
+          <input type="text" id="txtEstadoPersonalizado" class="form-control form-control-sm fw-bold mb-1" placeholder="Ej. En garantía / Faltante de accesorio / Revisión..." oninput="actualizarObservacionItemPistoleo()">
+          <input type="text" id="txtObsPersonalizada" class="form-control form-control-sm" placeholder="Escribe la observación detallada..." oninput="actualizarObservacionItemPistoleo()">
+        </div>
+        <!-- 3. Captura de 2 Fotos -->
+        <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">3. Evidencia Fotográfica (2 Fotos):</label>
         <div class="row g-2 text-center">
           <div class="col-6">
             <div class="border rounded-3 p-2 bg-light">
@@ -852,7 +924,10 @@
             </div>
           </div>
         </div>
-        <div id="msgFotoPistoleo" class="small fw-bold text-success text-center mt-2"></div>
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <div id="msgFotoPistoleo" class="small fw-bold text-success"></div>
+          <button type="button" class="btn btn-dark btn-sm fw-bold rounded-3 px-3" onclick="cerrarPanelEvaluacionPistoleo()">Listo, seguir pistoleando →</button>
+        </div>
       </div>
 
       <!-- Paso D: Resumen en Vivo de Faltantes para Cobro y Sobrantes -->
@@ -881,17 +956,20 @@
           </div>
         </div>
 
-        <!-- Selector entre Faltantes para Cobro y Sobrantes -->
-        <div class="d-flex gap-2 mb-2">
+        <!-- Selector entre Faltantes para Cobro, Sobrantes y Evaluados >=120d -->
+        <div class="d-flex gap-1 mb-2">
           <button type="button" id="btnSubFaltantes" class="btn btn-danger btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('FALTANTES')">
-            🚨 Faltantes para Cobro (<span id="badgeSubFalt">0</span>)
+            🚨 Faltantes (<span id="badgeSubFalt">0</span>)
           </button>
           <button type="button" id="btnSubSobrantes" class="btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('SOBRANTES')">
             ➕ Sobrantes (<span id="badgeSubSob">0</span>)
           </button>
+          <button type="button" id="btnSubObs120" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('OBS120')">
+            📸 &ge;120d (<span id="badgeSubObs120">0</span>)
+          </button>
         </div>
 
-        <div id="contenedorSublistaPistoleo" style="max-height: 280px; overflow-y: auto;" class="border rounded-3 p-2 bg-light mb-3"></div>
+        <div id="contenedorSublistaPistoleo" style="max-height: 290px; overflow-y: auto;" class="border rounded-3 p-2 bg-light mb-3"></div>
 
         <!-- Acciones de Cierre de Tienda -->
         <div class="row g-2">
@@ -1035,6 +1113,23 @@
     JOHAN_OSCAR: 'Johan y Oscar (Operación)'
   };
 
+  // Matriz Oficial de Estados y Observaciones para Toma Física
+  const CATALOGO_ESTADOS_TOMA = {
+    'Bueno / funcional': [
+      'Caja deteriorada y con polvo.',
+      'Producto en condiciones normales.'
+    ],
+    'Funcional con novedad': [
+      'Empaque abierto o deteriorado.',
+      'Producto con rayones o desgaste físico.'
+    ],
+    'Baja': [
+      'Producto averiado, no funcional y no apto para comercialización.',
+      'Producto deteriorado, sin posibilidad de comercialización.'
+    ],
+    'Otro': []
+  };
+
   let usuarioActivo = localStorage.getItem('htc_usuario') || '';
   let bloquePersonaActivo = 'TODOS';
   let listaComite = [];
@@ -1055,6 +1150,14 @@
   let html5QrScanner = null;
   let chartDecisionesInst = null;
   let chartTiendasInst = null;
+
+  // Limpia números con formato colombiano/LIKE ("37815,00" -> 37815)
+  function limpiarNumeroLike(val) {
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    const str = String(val || '').trim().replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  }
 
   window.onload = () => {
     if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
@@ -1268,8 +1371,7 @@
   function cargarTeoricoLike() {
     const file = document.getElementById('inputExcelLike').files[0];
     if (!file) return alert('Selecciona el archivo Excel de existencias de LIKE.');
-    const tiendaNombre = document.getElementById('txtTiendaPistoleo').value.trim().toUpperCase();
-    if (!tiendaNombre) return alert('Escribe el nombre de la tienda (Ej. RESTREPO 3).');
+    let tiendaNombre = document.getElementById('txtTiendaPistoleo').value.trim().toUpperCase();
 
     const msg = document.getElementById('msgCargaLike');
     msg.innerText = 'Leyendo inventario teórico de LIKE...';
@@ -1281,6 +1383,8 @@
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
 
       const mapa = {};
+      let unidadesTotales = 0;
+
       rows.forEach(r => {
         const clean = {};
         Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
@@ -1288,14 +1392,21 @@
         const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
         const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
         const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
-        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
-        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
-        const estado = String(clean['Novedades(estado)'] || '').trim();
-        const obs = String(clean['Observacion'] || '').trim();
-        const cantFila = Number(clean['Existencia'] || clean['Cantidad'] || 1) || 1;
+        const sucFila = String(clean['Sucursal'] || '').trim().toUpperCase();
+        if (!tiendaNombre && sucFila) {
+          tiendaNombre = sucFila;
+          document.getElementById('txtTiendaPistoleo').value = tiendaNombre;
+        }
+
+        const dias = limpiarNumeroLike(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
+        const costo = limpiarNumeroLike(clean['costo de compra'] || clean['Costo de compra'] || 0);
+        const estadoExcel = String(clean['Novedades(estado)'] || '').trim();
+        const obsExcel = String(clean['Observacion'] || '').trim();
+        const cantFila = limpiarNumeroLike(clean['Existencias'] || clean['Existencia'] || clean['Cantidad'] || 1) || 1;
 
         if (!codigo || codigo === '0' || !desc || desc === '0') return;
 
+        unidadesTotales += cantFila;
         if (!mapa[codigo]) {
           mapa[codigo] = {
             codigo,
@@ -1306,8 +1417,9 @@
             serialesEscaneados: [],
             dias,
             costoUnit: costo,
-            estado,
-            observacion: obs,
+            estado: estadoExcel || 'Bueno / funcional',
+            observacion: obsExcel || 'Caja deteriorada y con polvo.',
+            obsAdicional: '',
             foto1: '',
             foto2: ''
           };
@@ -1326,13 +1438,13 @@
       }
 
       sesionPistoleo = {
-        sucursal: tiendaNombre,
+        sucursal: tiendaNombre || 'TIENDA',
         items,
         sobrantes: []
       };
       guardarSesionPistoleoLocal();
       restaurarUIPistoleo();
-      msg.innerText = `✓ Inventario cargado: ${items.length} referencias listas para pistolear en ${tiendaNombre}.`;
+      msg.innerText = `✓ Inventario cargado: ${items.length} referencias (${unidadesTotales} unidades) listas en ${sesionPistoleo.sucursal}.`;
       enfocarPistola();
     };
     reader.readAsArrayBuffer(file);
@@ -1393,13 +1505,10 @@
           item.serialesEscaneados.push(lectura);
         }
 
-        const estNorm = (item.estado || '').toLowerCase();
-        const esDanado = estNorm.includes('dañ') || estNorm.includes('dan');
-
-        if (item.dias >= MIN_DIAS_COMITE && !esDanado) {
+        if (item.dias >= MIN_DIAS_COMITE) {
           reproducirBeep('FOTO');
           alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
-          alerta.innerHTML = `📸 <strong>${item.codigo}</strong> (${item.dias} días) — ¡Toma las 2 fotos de evidencia! (${item.cantFisica}/${item.cantTeorica} und.)`;
+          alerta.innerHTML = `📸 <strong>${item.codigo}</strong> (${item.dias} días) — Registra Estado, Observación y 2 Fotos (${item.cantFisica}/${item.cantTeorica} und.)`;
           abrirPanelFotoInmediata(item);
         } else {
           reproducirBeep('OK');
@@ -1440,13 +1549,84 @@
     }
   }
 
+  // Gestión de Estados y Observaciones Estandarizadas
   function abrirPanelFotoInmediata(item) {
     itemPistoleoFotoActual = item;
     document.getElementById('panelFotoInmediataPistoleo').classList.remove('d-none');
-    document.getElementById('pFotoTitulo').innerText = `${item.codigo} - ${item.descripcion} (${item.dias} días)`;
+    document.getElementById('pFotoTitulo').innerText = `${item.codigo} - ${item.descripcion} (${item.dias} días · ${item.cantFisica}/${item.cantTeorica} und.)`;
     document.getElementById('pImg1').src = item.foto1 || 'https://via.placeholder.com/250x180?text=Foto+1';
     document.getElementById('pImg2').src = item.foto2 || 'https://via.placeholder.com/250x180?text=Foto+2';
+    document.getElementById('txtObsAdicional').value = item.obsAdicional || '';
+
+    const esEstandar = ['Bueno / funcional', 'Funcional con novedad', 'Baja'].includes(item.estado);
+    if (esEstandar) {
+      seleccionarEstadoToma(item.estado, item.observacion);
+    } else if (item.esEstadoOtro) {
+      document.getElementById('txtEstadoPersonalizado').value = item.estado || '';
+      document.getElementById('txtObsPersonalizada').value = item.observacion || '';
+      seleccionarEstadoToma('Otro');
+    } else {
+      seleccionarEstadoToma('Bueno / funcional', item.observacion);
+    }
     document.getElementById('msgFotoPistoleo').innerText = item.foto1 && item.foto2 ? '✓ Este lote ya tiene sus 2 fotos.' : '';
+  }
+
+  function seleccionarEstadoToma(estadoNombre, obsPrevia = '') {
+    if (!itemPistoleoFotoActual) return;
+
+    const mapClases = {
+      'Bueno / funcional': { id: 'btnEst_Bueno', cls: 'activo-bueno' },
+      'Funcional con novedad': { id: 'btnEst_Novedad', cls: 'activo-novedad' },
+      'Baja': { id: 'btnEst_Baja', cls: 'activo-baja' },
+      'Otro': { id: 'btnEst_Otro', cls: 'activo-pendiente' }
+    };
+
+    Object.entries(mapClases).forEach(([est, info]) => {
+      const btn = document.getElementById(info.id);
+      if (btn) btn.className = 'btn-estado-toma' + (est === estadoNombre ? ' ' + info.cls : '');
+    });
+
+    const bloqueEst = document.getElementById('bloqueObsEstandar');
+    const bloqueOtro = document.getElementById('bloqueObsOtro');
+
+    if (estadoNombre === 'Otro') {
+      itemPistoleoFotoActual.esEstadoOtro = true;
+      bloqueEst.classList.add('d-none');
+      bloqueOtro.classList.remove('d-none');
+      document.getElementById('txtEstadoPersonalizado').focus();
+    } else {
+      itemPistoleoFotoActual.esEstadoOtro = false;
+      itemPistoleoFotoActual.estado = estadoNombre;
+      bloqueOtro.classList.add('d-none');
+      bloqueEst.classList.remove('d-none');
+
+      const opciones = CATALOGO_ESTADOS_TOMA[estadoNombre] || [];
+      const sel = document.getElementById('selectObsEstandar');
+      sel.innerHTML = opciones.map(op => `<option value="${op}">${op}</option>`).join('');
+      if (obsPrevia && opciones.includes(obsPrevia)) sel.value = obsPrevia;
+    }
+    actualizarObservacionItemPistoleo();
+  }
+
+  function actualizarObservacionItemPistoleo() {
+    if (!itemPistoleoFotoActual) return;
+    if (itemPistoleoFotoActual.esEstadoOtro) {
+      const estCustom = document.getElementById('txtEstadoPersonalizado').value.trim();
+      const obsCustom = document.getElementById('txtObsPersonalizada').value.trim();
+      itemPistoleoFotoActual.estado = estCustom || 'Otro';
+      itemPistoleoFotoActual.observacion = obsCustom || 'Sin observación adicional';
+    } else {
+      const baseObs = document.getElementById('selectObsEstandar').value;
+      const extra = document.getElementById('txtObsAdicional').value.trim();
+      itemPistoleoFotoActual.obsAdicional = extra;
+      itemPistoleoFotoActual.observacion = extra ? `${baseObs} (${extra})` : baseObs;
+    }
+    guardarSesionPistoleoLocal();
+    actualizarKPIsPistoleo();
+  }
+  function cerrarPanelEvaluacionPistoleo() {
+    document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
+    enfocarPistola();
   }
 
   function capturarFotoPistoleoLocal(numFoto, inputEl) {
@@ -1475,13 +1655,10 @@
           document.getElementById('pImg2').src = base64;
         }
         guardarSesionPistoleoLocal();
+        actualizarKPIsPistoleo();
 
         if (itemPistoleoFotoActual.foto1 && itemPistoleoFotoActual.foto2) {
-          msg.innerText = '✓ ¡2 fotos capturadas! Puedes seguir pistoleando.';
-          setTimeout(() => {
-            document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
-            enfocarPistola();
-          }, 900);
+          msg.innerText = '✓ ¡2 fotos y estado listos!';
         } else {
           msg.innerText = `✓ Foto ${numFoto} lista. Falta la otra foto.`;
         }
@@ -1507,6 +1684,7 @@
 
     const sobUnd = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.sobrante, 0);
     const sobValor = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.valorSobrante, 0);
+    const obs120Items = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
 
     document.getElementById('progresoPistoleoTxt').innerText = `${totalFisico} / ${totalTeorico} unidades pistoleadas`;
     document.getElementById('kpiPistOk').innerText = totalFisico;
@@ -1518,6 +1696,7 @@
     const faltItems = sesionPistoleo.items.filter(it => it.cantTeorica > it.cantFisica);
     document.getElementById('badgeSubFalt').innerText = faltItems.length;
     document.getElementById('badgeSubSob').innerText = sesionPistoleo.sobrantes.length;
+    document.getElementById('badgeSubObs120').innerText = obs120Items.length;
 
     mostrarSublistaPistoleo(sublistaPistoleoVista);
   }
@@ -1527,10 +1706,13 @@
     const cont = document.getElementById('contenedorSublistaPistoleo');
     const btnF = document.getElementById('btnSubFaltantes');
     const btnS = document.getElementById('btnSubSobrantes');
+    const btnO = document.getElementById('btnSubObs120');
+
+    btnF.className = tipo === 'FALTANTES' ? 'btn btn-danger btn-sm flex-fill fw-bold rounded-3' : 'btn btn-outline-danger btn-sm flex-fill fw-bold rounded-3';
+    btnS.className = tipo === 'SOBRANTES' ? 'btn btn-primary btn-sm flex-fill fw-bold rounded-3' : 'btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3';
+    btnO.className = tipo === 'OBS120' ? 'btn btn-warning text-dark btn-sm flex-fill fw-bold rounded-3' : 'btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-3';
 
     if (tipo === 'FALTANTES') {
-      btnF.className = 'btn btn-danger btn-sm flex-fill fw-bold rounded-3';
-      btnS.className = 'btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3';
       const faltantes = sesionPistoleo.items.filter(it => it.cantTeorica > it.cantFisica);
       if (faltantes.length === 0) {
         cont.innerHTML = '<div class="text-success small fw-bold text-center py-3">🎉 ¡Cero faltantes! Todo el inventario teórico está cuadrado.</div>';
@@ -1557,9 +1739,7 @@
           </div>
         `;
       }).join('');
-    } else {
-      btnS.className = 'btn btn-primary btn-sm flex-fill fw-bold rounded-3';
-      btnF.className = 'btn btn-outline-danger btn-sm flex-fill fw-bold rounded-3';
+    } else if (tipo === 'SOBRANTES') {
       if (sesionPistoleo.sobrantes.length === 0) {
         cont.innerHTML = '<div class="text-muted small text-center py-3">No se han registrado sobrantes en esta tienda.</div>';
         return;
@@ -1576,7 +1756,32 @@
           </div>
         </div>
       `).join('');
+    } else {
+      const obsItems = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
+      if (obsItems.length === 0) {
+        cont.innerHTML = '<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; 120 días.</div>';
+        return;
+      }
+      cont.innerHTML = obsItems.map(it => `
+        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small" style="cursor:pointer;" onclick="reabrirEvaluacionCodigo('${it.codigo}')">
+          <div>
+            <span class="badge bg-dark">${it.codigo}</span>
+            <span class="badge bg-warning text-dark">${it.estado}</span>
+            <strong class="ms-1">${it.descripcion}</strong>
+            <div class="text-muted" style="font-size: 0.7rem;">${it.observacion}</div>
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge ${it.foto1 && it.foto2 ? 'bg-success' : 'bg-danger'}">${it.foto1 && it.foto2 ? '2/2 Fotos' : 'Falta foto'}</span>
+          </div>
+        </div>
+      `).join('');
     }
+  }
+
+  function reabrirEvaluacionCodigo(cod) {
+    if (!sesionPistoleo) return;
+    const it = sesionPistoleo.items.find(x => x.codigo === cod);
+    if (it) abrirPanelFotoInmediata(it);
   }
 
   function toggleEscanerCamara() {
@@ -1612,16 +1817,20 @@
 
   function exportarActaPistoleoCSV() {
     if (!sesionPistoleo) return;
-    let csv = 'Tipo;Sucursal;Codigo;Descripcion;Seriales;Teorico;Fisico;Diferencia;Costo_Unit;Valor_Total\n';
+    let csv = 'Tipo;Sucursal;Codigo;Descripcion;Seriales;Teorico;Fisico;Diferencia;Costo_Unit;Valor_Total;Estado_Toma;Observacion\n';
     sesionPistoleo.items.forEach(it => {
       const diff = it.cantTeorica - it.cantFisica;
       if (diff > 0) {
         const ser = it.serialesTeoricos.filter(s => !it.serialesEscaneados.includes(s)).join(', ');
-        csv += `"FALTANTE COBRO";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${ser}";${it.cantTeorica};${it.cantFisica};${diff};${it.costoUnit};${diff * it.costoUnit}\n`;
+        csv += `"FALTANTE COBRO";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${ser}";${it.cantTeorica};${it.cantFisica};${diff};${it.costoUnit};${diff * it.costoUnit};"No encontrado";"Faltante en auditoria fisica"\n`;
+      }
+      if (it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE) {
+        const serEsc = (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', ');
+        csv += `"OBSOLESCENCIA >=120D";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${serEsc}";${it.cantTeorica};${it.cantFisica};0;${it.costoUnit};${it.costoUnit * it.cantFisica};"${it.estado}";"${it.observacion}"\n`;
       }
     });
     sesionPistoleo.sobrantes.forEach(s => {
-      csv += `"SOBRANTE";"${sesionPistoleo.sucursal}";"${s.codigo}";"${s.descripcion}";"${s.serial}";0;${s.sobrante};${s.sobrante};${s.costoUnit};${s.valorSobrante}\n`;
+      csv += `"SOBRANTE";"${sesionPistoleo.sucursal}";"${s.codigo}";"${s.descripcion}";"${s.serial}";0;${s.sobrante};${s.sobrante};${s.costoUnit};${s.valorSobrante};"Sobrante";"Encontrado fisicamente sin saldo en LIKE"\n`;
     });
     const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
@@ -1635,7 +1844,7 @@
     const btn = document.getElementById('btnCerrarTiendaSync');
     const msg = document.getElementById('msgCierrePistoleo');
     btn.disabled = true;
-    msg.innerText = 'Subiendo fotos a Drive y guardando faltantes/sobrantes en Sheets...';
+    msg.innerText = 'Subiendo fotos a Drive y guardando faltantes, sobrantes y estados en Sheets...';
 
     const faltantes = sesionPistoleo.items
       .filter(it => it.cantTeorica > it.cantFisica)
@@ -1655,7 +1864,7 @@
       });
 
     const lotesComite = sesionPistoleo.items
-      .filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE && !(it.estado || '').toLowerCase().includes('dañ'))
+      .filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE)
       .map(it => ({
         sucursal: sesionPistoleo.sucursal,
         codigo: it.codigo,
@@ -1665,8 +1874,8 @@
         dias: it.dias,
         costoUnit: it.costoUnit,
         costoTotal: it.costoUnit * it.cantFisica,
-        estado: it.estado || 'Obsolescencia >=120d',
-        observacion: it.observacion || 'Detectado en pistoleo físico',
+        estado: it.estado || 'Bueno / funcional',
+        observacion: it.observacion || 'Caja deteriorada y con polvo.',
         foto1: it.foto1 || '',
         foto2: it.foto2 || ''
       }));
@@ -2105,7 +2314,7 @@
 
   function importarNovedadesExcel() {
     const file = document.getElementById('inputExcel').files[0];
-    if (!file) return alert('Selecciona primero tu archivo Excel de pistoleo.');
+    if (!file) return alert('Selecciona primero tu archivo Excel de LIKE.');
     const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim().toUpperCase() || 'TIENDA PRINCIPAL';
     const msg = document.getElementById('msgImport');
     msg.innerText = 'Procesando productos >= 120 días del Excel...';
@@ -2117,7 +2326,7 @@
       const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
 
       const grupos = {};
-      let omitidosDanados = 0, omitidosMenos120 = 0;
+      let omitidosMenos120 = 0;
 
       rows.forEach(r => {
         const clean = {};
@@ -2126,30 +2335,24 @@
         const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
         const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
         const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
-        const sucursal = String(clean['Sucursal'] || tiendaDefault).trim();
-        const dias = Number(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
-        const costo = Number(clean['costo de compra'] || clean['Costo de compra'] || 0);
-        const diferencia = Number(clean['Diferencia'] || 0);
-        const estado = String(clean['Novedades(estado)'] || '').trim();
-        const obs = String(clean['Observacion'] || '').trim();
+        const sucursal = String(clean['Sucursal'] || tiendaDefault).trim().toUpperCase();
+        const dias = limpiarNumeroLike(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
+        const costo = limpiarNumeroLike(clean['costo de compra'] || clean['Costo de compra'] || 0);
+        const cantFila = limpiarNumeroLike(clean['Existencias'] || clean['Existencia'] || clean['Cantidad'] || 1) || 1;
+        const estadoRaw = String(clean['Novedades(estado)'] || '').trim();
+        const obsRaw = String(clean['Observacion'] || '').trim();
 
         if (!codigo || codigo === '0' || !desc || desc === '0') return;
         if (dias < MIN_DIAS_COMITE) { omitidosMenos120 += 1; return; }
 
-        const estadoNorm = estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        if (estadoNorm.includes('danado') || estadoNorm.includes('dano') || estadoNorm.includes('inservible')) {
-          omitidosDanados += 1;
-          return;
-        }
-
-        const tieneEstadoNovedad = estado !== '' && estadoNorm !== 'buen estado';
-        const estadoFinal = tieneEstadoNovedad ? estado : (obs ? 'Empaque / Estética' : (diferencia !== 0 ? 'Diferencia' : 'Obsolescencia >=120d'));
-        const clave = `${sucursal}||${codigo}||${estadoFinal}||${obs}`;
+        const estadoFinal = estadoRaw || 'Bueno / funcional';
+        const obsFinal = obsRaw || (CATALOGO_ESTADOS_TOMA[estadoFinal] ? CATALOGO_ESTADOS_TOMA[estadoFinal][0] : 'Caja deteriorada y con polvo.');
+        const clave = `${sucursal}||${codigo}||${estadoFinal}||${obsFinal}`;
 
         if (!grupos[clave]) {
-          grupos[clave] = { sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [], dias, costoUnit: costo, estado: estadoFinal, observacion: obs };
+          grupos[clave] = { sucursal, codigo, descripcion: desc, cantidad: 0, serialesArr: [], dias, costoUnit: costo, estado: estadoFinal, observacion: obsFinal };
         }
-        grupos[clave].cantidad += 1;
+        grupos[clave].cantidad += cantFila;
         if (serial) grupos[clave].serialesArr.push(serial);
       });
 
@@ -2161,7 +2364,7 @@
       }));
 
       if (lotes.length === 0) {
-        msg.innerText = `No hay lotes >= 120 días para Comité (omitidos: ${omitidosMenos120} <120d, ${omitidosDanados} dañados).`;
+        msg.innerText = `No hay lotes >= 120 días para Comité (omitidos: ${omitidosMenos120} <120d).`;
         return;
       }
 
@@ -2171,12 +2374,13 @@
         body: JSON.stringify({ accion: 'importar_novedades', lotes })
       });
       const res = await resp.json();
-      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes (>= 120d) · Omitidos: ${omitidosMenos120} (<120d) y ${omitidosDanados} (dañados).`;
+      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes (>= 120d) · Omitidos: ${omitidosMenos120} (<120d).`;
 
       await cargarDatos();
       const selFotos = document.getElementById('filtroTiendaFotos');
-      if (selFotos && [...selFotos.options].some(o => o.value === tiendaDefault)) {
-        selFotos.value = tiendaDefault;
+      const sucDetectada = lotes[0].sucursal;
+      if (selFotos && [...selFotos.options].some(o => o.value === sucDetectada)) {
+        selFotos.value = sucDetectada;
         alCambiarTiendaFotos();
       }
     };
