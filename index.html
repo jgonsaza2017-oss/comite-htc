@@ -781,7 +781,7 @@
         <div class="col-6">
           <div class="border rounded-3 p-2 bg-light">
             <span class="badge bg-dark mb-1">1. Producto</span>
-            <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+            <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x180?text=Foto+1+Guardada';">
             <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3 mb-1">
               Subir / Móvil
               <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(1, this)">
@@ -792,7 +792,7 @@
         <div class="col-6">
           <div class="border rounded-3 p-2 bg-light">
             <span class="badge bg-danger mb-1">2. Caja / Estado</span>
-            <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
+            <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)" onerror="this.onerror=null; this.src='https://via.placeholder.com/250x180?text=Foto+2+Guardada';">
             <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3 mb-1">
               Subir / Móvil
               <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(2, this)">
@@ -1206,7 +1206,10 @@
 <div class="modal fade" id="modalFoto" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content bg-dark border-0">
-      <div class="modal-body text-center p-2">
+      <div class="modal-header border-0 py-1 px-2">
+        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center p-2 pt-0">
         <img id="imgModalGrande" src="" class="img-fluid rounded">
       </div>
     </div>
@@ -1260,6 +1263,16 @@
     ],
     'Otro': []
   };
+
+  function normalizarUrlFotoDrive(url) {
+    if (!url || typeof url !== 'string') return '';
+    if (url.startsWith('data:image')) return url;
+    const match = url.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{20,})/);
+    if (match && match[1]) {
+      return `https://lh3.googleusercontent.com/d/${match[1]}=w1000`;
+    }
+    return url;
+  }
 
   let usuarioActivo = localStorage.getItem('htc_usuario') || '';
   let bloquePersonaActivo = 'TODOS';
@@ -1417,7 +1430,13 @@
     try {
       const resp = await fetch(API_URL);
       const data = await resp.json();
-      listaComite = (data.comite || []).filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
+      listaComite = (data.comite || [])
+        .filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE)
+        .map(x => ({
+          ...x,
+          foto1: normalizarUrlFotoDrive(x.foto1),
+          foto2: normalizarUrlFotoDrive(x.foto2)
+        }));
       listaFaltantesGlobal = data.faltantes || [];
       listaSobrantesGlobal = data.sobrantes || [];
 
@@ -1440,14 +1459,22 @@
   }
 
   async function sincronizarSilencioso(manual = false) {
+    if (subiendoFotoActualmente && !manual) return;
     const lbl = document.getElementById('estadoSyncFotos');
     if (manual && lbl) lbl.innerText = '🔄 Actualizando lista...';
     try {
       const resp = await fetch(API_URL);
       const data = await resp.json();
       if (!data.comite) return;
+      if (subiendoFotoActualmente && !manual) return;
 
-      listaComite = data.comite.filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE);
+      listaComite = data.comite
+        .filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE)
+        .map(x => ({
+          ...x,
+          foto1: normalizarUrlFotoDrive(x.foto1),
+          foto2: normalizarUrlFotoDrive(x.foto2)
+        }));
       poblarSucursales();
       renderTablaFotos();
 
@@ -2645,8 +2672,8 @@
 
   function actualizarPasarelaFoto() {
     if (!itemActivo) return;
-    const f1 = itemActivo.foto1 || 'https://via.placeholder.com/400x260?text=Sin+Foto+1+(Producto)';
-    const f2 = itemActivo.foto2 || 'https://via.placeholder.com/400x260?text=Sin+Foto+2+(Caja+o+Estado)';
+    const f1 = normalizarUrlFotoDrive(itemActivo.foto1) || 'https://via.placeholder.com/400x260?text=Sin+Foto+1+(Producto)';
+    const f2 = normalizarUrlFotoDrive(itemActivo.foto2) || 'https://via.placeholder.com/400x260?text=Sin+Foto+2+(Caja+o+Estado)';
     document.getElementById('cFotoPasarela').src = slideFotoIdx === 0 ? f1 : f2;
     document.getElementById('cContadorFoto').innerText = `${slideFotoIdx + 1} / 2`;
   }
@@ -2887,8 +2914,8 @@
     itemFotoActivo = it;
     document.getElementById('panelFotosAud').classList.remove('d-none');
     document.getElementById('fTitulo').innerText = `${it.codigo} - ${it.descripcion} (${it.sucursal} · ${it.dias} d)`;
-    document.getElementById('aFoto1').src = it.foto1 || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
-    document.getElementById('aFoto2').src = it.foto2 || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
+    document.getElementById('aFoto1').src = normalizarUrlFotoDrive(it.foto1) || 'https://via.placeholder.com/250x180?text=Sin+Foto+1';
+    document.getElementById('aFoto2').src = normalizarUrlFotoDrive(it.foto2) || 'https://via.placeholder.com/250x180?text=Sin+Foto+2';
     document.getElementById('msgFotoAud').innerText = '';
     renderTablaFotos();
   }
@@ -2936,8 +2963,9 @@
           });
           const res = await resp.json();
           if (res.ok) {
-            if (numFoto === 1) { itemFotoActivo.foto1 = res.fotoUrl; document.getElementById('aFoto1').src = res.fotoUrl; }
-            else { itemFotoActivo.foto2 = res.fotoUrl; document.getElementById('aFoto2').src = res.fotoUrl; }
+            const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl) || comprimida;
+            if (numFoto === 1) { itemFotoActivo.foto1 = urlLimpia; document.getElementById('aFoto1').src = urlLimpia; }
+            else { itemFotoActivo.foto2 = urlLimpia; document.getElementById('aFoto2').src = urlLimpia; }
             poblarSucursales();
             renderTablaFotos();
             if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
@@ -2959,7 +2987,8 @@
   }
 
   function ampliarFoto(src) {
-    document.getElementById('imgModalGrande').src = src;
+    if (!src || src.includes('via.placeholder.com')) return;
+    document.getElementById('imgModalGrande').src = normalizarUrlFotoDrive(src);
     new bootstrap.Modal(document.getElementById('modalFoto')).show();
   }
 
@@ -3094,8 +3123,9 @@
         });
         const res = await resp.json();
         if (res.ok) {
-          if (numFoto === 1) { itemFotoActivo.foto1 = res.fotoUrl; document.getElementById('aFoto1').src = res.fotoUrl; }
-          else { itemFotoActivo.foto2 = res.fotoUrl; document.getElementById('aFoto2').src = res.fotoUrl; }
+          const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl) || base64Comprimida;
+          if (numFoto === 1) { itemFotoActivo.foto1 = urlLimpia; document.getElementById('aFoto1').src = urlLimpia; }
+          else { itemFotoActivo.foto2 = urlLimpia; document.getElementById('aFoto2').src = urlLimpia; }
           poblarSucursales();
           renderTablaFotos();
           if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
