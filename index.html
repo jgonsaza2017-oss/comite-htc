@@ -1274,6 +1274,28 @@
     return url;
   }
 
+  function comprimirImagenRapida(file, maxW = 640, calidad = 0.58) {
+    return new Promise((resolve, reject) => {
+      const urlObj = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(urlObj);
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(urlObj);
+        reject(err);
+      };
+      img.src = urlObj;
+    });
+  }
+
   let usuarioActivo = localStorage.getItem('htc_usuario') || '';
   let bloquePersonaActivo = 'TODOS';
   let listaComite = [];
@@ -1286,7 +1308,7 @@
   let itemFotoActivo = null;
   let vistaActual = 'COMITE';
   let serialesModalActuales = [];
-  let subiendoFotoActualmente = false;
+  let subidasEnCurso = 0;
   let dashSubtabTiendaActual = 'OBS';
 
   let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || 'null');
@@ -1325,7 +1347,7 @@
     cargarDatos();
     
     setInterval(() => {
-      if (usuarioActivo === 'JOHAN_OSCAR' && vistaActual === 'FOTOS' && !subiendoFotoActualmente && !document.hidden) {
+      if (usuarioActivo === 'JOHAN_OSCAR' && vistaActual === 'FOTOS' && subidasEnCurso === 0 && !document.hidden) {
         sincronizarSilencioso(false);
       }
     }, 6000);
@@ -1459,14 +1481,14 @@
   }
 
   async function sincronizarSilencioso(manual = false) {
-    if (subiendoFotoActualmente && !manual) return;
+    if (subidasEnCurso > 0 && !manual) return;
     const lbl = document.getElementById('estadoSyncFotos');
     if (manual && lbl) lbl.innerText = '🔄 Actualizando lista...';
     try {
       const resp = await fetch(API_URL);
       const data = await resp.json();
       if (!data.comite) return;
-      if (subiendoFotoActualmente && !manual) return;
+      if (subidasEnCurso > 0 && !manual) return;
 
       listaComite = data.comite
         .filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE)
@@ -1870,43 +1892,34 @@
     enfocarPistola();
   }
 
-  function capturarFotoPistoleoLocal(numFoto, inputEl) {
+  async function capturarFotoPistoleoLocal(numFoto, inputEl) {
     const file = inputEl.files[0];
     if (!file || !itemPistoleoFotoActual) return;
     const msg = document.getElementById('msgFotoPistoleo');
-    msg.innerText = `Procesando Foto ${numFoto}...`;
+    msg.innerText = `⚡ Procesando Foto ${numFoto}...`;
 
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const MAX_W = 850;
-        const scale = Math.min(1, MAX_W / img.width);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        const base64 = canvas.toDataURL('image/jpeg', 0.72);
+    try {
+      const base64 = await comprimirImagenRapida(file, 640, 0.58);
+      inputEl.value = '';
 
-        if (numFoto === 1) {
-          itemPistoleoFotoActual.foto1 = base64;
-          document.getElementById('pImg1').src = base64;
-        } else {
-          itemPistoleoFotoActual.foto2 = base64;
-          document.getElementById('pImg2').src = base64;
-        }
-        guardarSesionPistoleoLocal();
-        actualizarKPIsPistoleo();
+      if (numFoto === 1) {
+        itemPistoleoFotoActual.foto1 = base64;
+        document.getElementById('pImg1').src = base64;
+      } else {
+        itemPistoleoFotoActual.foto2 = base64;
+        document.getElementById('pImg2').src = base64;
+      }
+      guardarSesionPistoleoLocal();
+      actualizarKPIsPistoleo();
 
-        if (itemPistoleoFotoActual.foto1 && itemPistoleoFotoActual.foto2) {
-          msg.innerText = '✓ ¡2 fotos y estado listos!';
-        } else {
-          msg.innerText = `✓ Foto ${numFoto} lista. Falta la otra foto.`;
-        }
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
+      if (itemPistoleoFotoActual.foto1 && itemPistoleoFotoActual.foto2) {
+        msg.innerText = '✓ ¡2 fotos y estado listos!';
+      } else {
+        msg.innerText = `✓ Foto ${numFoto} lista. Falta la otra foto.`;
+      }
+    } catch (e) {
+      msg.innerText = '⚠️ Error al procesar la foto.';
+    }
   }
 
   function actualizarKPIsPistoleo() {
@@ -2930,60 +2943,63 @@
     }
   }
 
-  function subirFotoComprimida(numFoto, inputEl) {
+  async function subirFotoComprimida(numFoto, inputEl) {
     const file = inputEl.files[0];
     if (!file || !itemFotoActivo) return;
-    subiendoFotoActualmente = true;
+
+    const loteDestino = itemFotoActivo;
     const msg = document.getElementById('msgFotoAud');
-    msg.innerText = `Comprimiendo y subiendo Foto ${numFoto}...`;
+    msg.innerText = `⚡ Procesando Foto ${numFoto}...`;
 
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const img = new Image();
-      img.onload = async function() {
-        try {
-          const canvas = document.createElement('canvas');
-          const MAX_W = 900;
-          const scale = Math.min(1, MAX_W / img.width);
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          const comprimida = canvas.toDataURL('image/jpeg', 0.72);
+    try {
+      const comprimida = await comprimirImagenRapida(file, 640, 0.58);
+      inputEl.value = '';
 
-          const resp = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-              accion: 'foto',
-              fila: itemFotoActivo.fila,
-              codigo: itemFotoActivo.codigo,
-              numFoto,
-              base64Data: comprimida,
-              mimeType: 'image/jpeg'
-            })
-          });
-          const res = await resp.json();
-          if (res.ok) {
-            const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl) || comprimida;
-            if (numFoto === 1) { itemFotoActivo.foto1 = urlLimpia; document.getElementById('aFoto1').src = urlLimpia; }
-            else { itemFotoActivo.foto2 = urlLimpia; document.getElementById('aFoto2').src = urlLimpia; }
-            poblarSucursales();
-            renderTablaFotos();
-            if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
+      if (numFoto === 1) {
+        loteDestino.foto1 = comprimida;
+        if (itemFotoActivo.fila === loteDestino.fila) document.getElementById('aFoto1').src = comprimida;
+      } else {
+        loteDestino.foto2 = comprimida;
+        if (itemFotoActivo.fila === loteDestino.fila) document.getElementById('aFoto2').src = comprimida;
+      }
 
-            if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
-              msg.innerText = '✓ ¡2 fotos listas! Lote archivado. Cargando siguiente pendiente...';
-              setTimeout(() => siguienteSinFoto(), 700);
-            } else {
-              msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
-            }
-          }
-        } finally {
-          subiendoFotoActualmente = false;
+      renderTablaFotos();
+      if (loteDestino.foto1 && loteDestino.foto2) {
+        msg.innerText = '✓ ¡2 fotos listas! Subiendo en segundo plano...';
+        setTimeout(() => siguienteSinFoto(), 400);
+      } else {
+        msg.innerText = `✓ Foto ${numFoto} lista. Toma la otra foto.`;
+      }
+
+      subidasEnCurso += 1;
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'foto',
+          fila: loteDestino.fila,
+          codigo: loteDestino.codigo,
+          numFoto,
+          base64Data: comprimida,
+          mimeType: 'image/jpeg'
+        })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok && res.fotoUrl) {
+          const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl);
+          if (numFoto === 1) loteDestino.foto1 = urlLimpia;
+          else loteDestino.foto2 = urlLimpia;
+          poblarSucursales();
+          renderTablaFotos();
+          if (itemActivo && itemActivo.fila === loteDestino.fila) actualizarPasarelaFoto();
         }
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
+      })
+      .finally(() => {
+        subidasEnCurso = Math.max(0, subidasEnCurso - 1);
+      });
+    } catch (e) {
+      msg.innerText = '⚠️ Error al procesar la imagen.';
+    }
   }
 
   function ampliarFoto(src) {
@@ -3079,13 +3095,13 @@
     if (!video || !video.videoWidth) return;
 
     const canvas = document.createElement('canvas');
-    const MAX_W = 900;
+    const MAX_W = 640;
     const scale = Math.min(1, MAX_W / video.videoWidth);
-    canvas.width = video.videoWidth * scale;
-    canvas.height = video.videoHeight * scale;
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const base64Comprimida = canvas.toDataURL('image/jpeg', 0.72);
+    const base64Comprimida = canvas.toDataURL('image/jpeg', 0.62);
     const { numFoto, origen } = camaraWebDestino;
     cerrarCamaraWeb();
 
@@ -3106,39 +3122,51 @@
           : `✓ Foto ${numFoto} capturada desde cámara USB.`;
     } else {
       if (!itemFotoActivo) return;
-      subiendoFotoActualmente = true;
+      const loteDestino = itemFotoActivo;
       const msg = document.getElementById('msgFotoAud');
-      msg.innerText = `Subiendo Foto ${numFoto} desde cámara USB...`;
-      try {
-        const resp = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            accion: 'foto',
-            fila: itemFotoActivo.fila,
-            codigo: itemFotoActivo.codigo,
-            numFoto,
-            base64Data: base64Comprimida,
-            mimeType: 'image/jpeg'
-          })
-        });
-        const res = await resp.json();
-        if (res.ok) {
-          const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl) || base64Comprimida;
-          if (numFoto === 1) { itemFotoActivo.foto1 = urlLimpia; document.getElementById('aFoto1').src = urlLimpia; }
-          else { itemFotoActivo.foto2 = urlLimpia; document.getElementById('aFoto2').src = urlLimpia; }
+
+      if (numFoto === 1) {
+        loteDestino.foto1 = base64Comprimida;
+        document.getElementById('aFoto1').src = base64Comprimida;
+      } else {
+        loteDestino.foto2 = base64Comprimida;
+        document.getElementById('aFoto2').src = base64Comprimida;
+      }
+
+      renderTablaFotos();
+      if (loteDestino.foto1 && loteDestino.foto2) {
+        msg.innerText = '✓ ¡2 fotos listas! Subiendo en segundo plano...';
+        setTimeout(() => siguienteSinFoto(), 400);
+      } else {
+        msg.innerText = `✓ Foto ${numFoto} capturada. Toma la otra foto.`;
+      }
+
+      subidasEnCurso += 1;
+      fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          accion: 'foto',
+          fila: loteDestino.fila,
+          codigo: loteDestino.codigo,
+          numFoto,
+          base64Data: base64Comprimida,
+          mimeType: 'image/jpeg'
+        })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok && res.fotoUrl) {
+          const urlLimpia = normalizarUrlFotoDrive(res.fotoUrl);
+          if (numFoto === 1) loteDestino.foto1 = urlLimpia;
+          else loteDestino.foto2 = urlLimpia;
           poblarSucursales();
           renderTablaFotos();
-          if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
-          if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
-            msg.innerText = '✓ ¡2 fotos listas! Cargando siguiente pendiente...';
-            setTimeout(() => siguienteSinFoto(), 700);
-          } else {
-            msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
-          }
+          if (itemActivo && itemActivo.fila === loteDestino.fila) actualizarPasarelaFoto();
         }
-      } finally {
-        subiendoFotoActualmente = false;
-      }
+      })
+      .finally(() => {
+        subidasEnCurso = Math.max(0, subidasEnCurso - 1);
+      });
     }
   }
 </script>
