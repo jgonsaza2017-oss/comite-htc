@@ -782,20 +782,22 @@
           <div class="border rounded-3 p-2 bg-light">
             <span class="badge bg-dark mb-1">1. Producto</span>
             <img id="aFoto1" src="https://via.placeholder.com/250x180?text=Sin+Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-            <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
-              Tomar Foto 1
+            <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3 mb-1">
+              Subir / Móvil
               <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(1, this)">
             </label>
+            <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(1, 'FOTOS')">📷 Cámara USB / PC</button>
           </div>
         </div>
         <div class="col-6">
           <div class="border rounded-3 p-2 bg-light">
             <span class="badge bg-danger mb-1">2. Caja / Estado</span>
             <img id="aFoto2" src="https://via.placeholder.com/250x180?text=Sin+Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2" onclick="ampliarFoto(this.src)">
-            <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
-              Tomar Foto 2
+            <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3 mb-1">
+              Subir / Móvil
               <input type="file" accept="image/*" capture="environment" hidden onchange="subirFotoComprimida(2, this)">
             </label>
+            <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(2, 'FOTOS')">📷 Cámara USB / PC</button>
           </div>
         </div>
       </div>
@@ -880,11 +882,19 @@
       <div id="msgCargaLike" class="small fw-bold text-success mt-2"></div>
     </div>
 
-    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara) -->
+    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara + Interruptor Fotos >=120d) -->
     <div id="zonaTrabajoPistoleo" class="d-none">
       <div class="card p-3 mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
+            <div class="form-check form-switch m-0 bg-light border rounded-pill px-3 py-1">
+              <input class="form-check-input" type="checkbox" id="chkPedirFotos120" checked onchange="guardarPrefFotos120()">
+              <label class="form-check-label fw-bold text-dark" for="chkPedirFotos120" style="font-size: 0.72rem; cursor: pointer;">
+                📸 Pedir fotos &ge;120d
+              </label>
+            </div>
+          </div>
           <span class="small fw-bold text-primary" id="progresoPistoleoTxt">0 / 0 unidades pistoleadas</span>
         </div>
 
@@ -894,7 +904,7 @@
           </div>
           <div class="col-4 col-md-3">
             <button type="button" id="btnToggleCamara" class="btn btn-info text-white fw-bold w-100 py-2 rounded-3" onclick="toggleEscanerCamara()">
-              📷 Cámara
+              📷 Escáner
             </button>
           </div>
         </div>
@@ -902,7 +912,7 @@
         <!-- Contenedor de lector de cámara -->
         <div id="contenedorCamaraQR" class="mb-2 d-none">
           <div id="readerQR" style="width: 100%; border-radius: 12px; overflow: hidden;"></div>
-          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" onclick="detenerEscanerCamara()">Cerrar cámara</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" onclick="detenerEscanerCamara()">Cerrar escáner</button>
         </div>
 
         <!-- Alerta dinámica del último producto pistoleado -->
@@ -973,20 +983,22 @@
             <div class="border rounded-3 p-2 bg-light">
               <span class="badge bg-dark mb-1">1. Foto Producto</span>
               <img id="pImg1" src="https://via.placeholder.com/250x180?text=Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2">
-              <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3">
-                Tomar Foto 1
+              <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3 mb-1">
+                Subir / Móvil
                 <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(1, this)">
               </label>
+              <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(1, 'PISTOLEO')">📷 Cámara USB / PC</button>
             </div>
           </div>
           <div class="col-6">
             <div class="border rounded-3 p-2 bg-light">
               <span class="badge bg-danger mb-1">2. Foto Caja / Estado</span>
               <img id="pImg2" src="https://via.placeholder.com/250x180?text=Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2">
-              <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3">
-                Tomar Foto 2
+              <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3 mb-1">
+                Subir / Móvil
                 <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(2, this)">
               </label>
+              <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(2, 'PISTOLEO')">📷 Cámara USB / PC</button>
             </div>
           </div>
         </div>
@@ -1168,6 +1180,28 @@
   </div>
 </div>
 
+<!-- Modal Cámara Web PC / USB Externa -->
+<div class="modal fade" id="modalCamaraWeb" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header py-2 px-3 bg-dark text-white d-flex justify-content-between align-items-center gap-2">
+        <h6 class="modal-title fw-bold mb-0 small flex-shrink-0" id="tituloCamaraWeb">📷 Capturar Foto</h6>
+        <select id="selectDispositivoCamara" class="form-select form-select-sm py-0 px-2 fw-semibold" style="max-width: 230px; font-size: 0.75rem;" onchange="cambiarDispositivoCamara(this.value)">
+          <option value="">Cargando cámaras...</option>
+        </select>
+        <button type="button" class="btn-close btn-close-white btn-sm" onclick="cerrarCamaraWeb()"></button>
+      </div>
+      <div class="modal-body p-2 text-center bg-black">
+        <video id="videoCamaraWeb" autoplay playsinline style="width: 100%; max-height: 360px; border-radius: 10px; object-fit: cover;"></video>
+      </div>
+      <div class="modal-footer py-2 px-3 bg-light justify-content-between">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-3" onclick="cerrarCamaraWeb()">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-sm rounded-3 fw-bold px-4" onclick="capturarFrameCamaraWeb()">📸 Tomar Foto Ahora</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Foto -->
 <div class="modal fade" id="modalFoto" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1257,6 +1291,11 @@
   }
 
   window.onload = () => {
+    const prefF = localStorage.getItem('htc_pedir_fotos_120');
+    if (prefF !== null && document.getElementById('chkPedirFotos120')) {
+      document.getElementById('chkPedirFotos120').checked = (prefF === '1');
+    }
+
     if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
       mostrarAppPrincipal();
     } else {
@@ -1278,6 +1317,12 @@
       }
     }, 6000);
   };
+
+  function guardarPrefFotos120() {
+    const chk = document.getElementById('chkPedirFotos120');
+    if (chk) localStorage.setItem('htc_pedir_fotos_120', chk.checked ? '1' : '0');
+    enfocarPistola();
+  }
 
   function identificarUsuario(rol) {
     usuarioActivo = rol;
@@ -1627,7 +1672,10 @@
           item.serialesEscaneados.push(lectura);
         }
 
-        if (item.dias >= MIN_DIAS_COMITE) {
+        const pedirFotos = document.getElementById('chkPedirFotos120')?.checked;
+        const faltaFotoRef = !item.foto1 || !item.foto2;
+
+        if (item.dias >= MIN_DIAS_COMITE && pedirFotos && faltaFotoRef) {
           reproducirBeep('FOTO');
           alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
           alerta.innerHTML = `📸 <strong>${item.codigo}</strong> (${item.dias} días) — Registra Estado, Observación y 2 Fotos (${item.cantFisica}/${item.cantTeorica} und.)`;
@@ -1635,7 +1683,8 @@
         } else {
           reproducirBeep('OK');
           alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
-          alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und. · ${item.dias}d)`;
+          const tagObs = item.dias >= MIN_DIAS_COMITE ? ` · ≥120d ${pedirFotos ? '(Fotos OK)' : '(Modo solo conteo)'}` : ` · ${item.dias}d`;
+          alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und.${tagObs})`;
         }
         guardarSesionPistoleoLocal();
         actualizarKPIsPistoleo();
@@ -2924,6 +2973,143 @@
     a.href = URL.createObjectURL(blob);
     a.download = 'Comite_Obsolescencia_LIKE.csv';
     a.click();
+  }
+
+  // ================= CÁMARA WEB PC Y CÁMARA USB EXTERNA =================
+  let streamCamaraWeb = null;
+  let camaraWebDestino = { numFoto: 1, origen: 'FOTOS' };
+  let modalCamaraWebInst = null;
+  let camaraPreferidaId = localStorage.getItem('htc_camara_usb_id') || '';
+
+  async function abrirCamaraWeb(numFoto, origen) {
+    camaraWebDestino = { numFoto, origen };
+    document.getElementById('tituloCamaraWeb').innerText = `📷 Foto ${numFoto}`;
+
+    try {
+      const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      tempStream.getTracks().forEach(t => t.stop());
+
+      const dispositivos = await navigator.mediaDevices.enumerateDevices();
+      const camaras = dispositivos.filter(d => d.kind === 'videoinput');
+
+      const sel = document.getElementById('selectDispositivoCamara');
+      sel.innerHTML = camaras.map((cam, idx) => {
+        const nombre = cam.label || `Cámara ${idx + 1}`;
+        return `<option value="${cam.deviceId}">${nombre}</option>`;
+      }).join('');
+
+      let idElegido = camaraPreferidaId;
+      if (!idElegido || !camaras.some(c => c.deviceId === idElegido)) {
+        const externa = camaras.find(c => !/integrated|built-in|front/i.test(c.label));
+        idElegido = externa ? externa.deviceId : (camaras[0]?.deviceId || '');
+      }
+
+      sel.value = idElegido;
+      await iniciarStreamPorId(idElegido);
+
+      modalCamaraWebInst = new bootstrap.Modal(document.getElementById('modalCamaraWeb'));
+      modalCamaraWebInst.show();
+    } catch (err) {
+      alert('No se detectó cámara o faltan permisos en el navegador. Verifica que la cámara USB esté bien conectada y libre.');
+    }
+  }
+
+  async function cambiarDispositivoCamara(deviceId) {
+    if (!deviceId) return;
+    camaraPreferidaId = deviceId;
+    localStorage.setItem('htc_camara_usb_id', deviceId);
+    await iniciarStreamPorId(deviceId);
+  }
+
+  async function iniciarStreamPorId(deviceId) {
+    if (streamCamaraWeb) {
+      streamCamaraWeb.getTracks().forEach(track => track.stop());
+      streamCamaraWeb = null;
+    }
+    const video = document.getElementById('videoCamaraWeb');
+    const constraints = deviceId
+      ? { video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }
+      : { video: true, audio: false };
+
+    streamCamaraWeb = await navigator.mediaDevices.getUserMedia(constraints);
+    video.srcObject = streamCamaraWeb;
+  }
+
+  function cerrarCamaraWeb() {
+    if (streamCamaraWeb) {
+      streamCamaraWeb.getTracks().forEach(track => track.stop());
+      streamCamaraWeb = null;
+    }
+    if (modalCamaraWebInst) {
+      modalCamaraWebInst.hide();
+    }
+  }
+
+  async function capturarFrameCamaraWeb() {
+    const video = document.getElementById('videoCamaraWeb');
+    if (!video || !video.videoWidth) return;
+
+    const canvas = document.createElement('canvas');
+    const MAX_W = 900;
+    const scale = Math.min(1, MAX_W / video.videoWidth);
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const base64Comprimida = canvas.toDataURL('image/jpeg', 0.72);
+    const { numFoto, origen } = camaraWebDestino;
+    cerrarCamaraWeb();
+
+    if (origen === 'PISTOLEO') {
+      if (!itemPistoleoFotoActual) return;
+      if (numFoto === 1) {
+        itemPistoleoFotoActual.foto1 = base64Comprimida;
+        document.getElementById('pImg1').src = base64Comprimida;
+      } else {
+        itemPistoleoFotoActual.foto2 = base64Comprimida;
+        document.getElementById('pImg2').src = base64Comprimida;
+      }
+      guardarSesionPistoleoLocal();
+      actualizarKPIsPistoleo();
+      document.getElementById('msgFotoPistoleo').innerText =
+        itemPistoleoFotoActual.foto1 && itemPistoleoFotoActual.foto2
+          ? '✓ ¡2 fotos y estado listos!'
+          : `✓ Foto ${numFoto} capturada desde cámara USB.`;
+    } else {
+      if (!itemFotoActivo) return;
+      subiendoFotoActualmente = true;
+      const msg = document.getElementById('msgFotoAud');
+      msg.innerText = `Subiendo Foto ${numFoto} desde cámara USB...`;
+      try {
+        const resp = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            accion: 'foto',
+            fila: itemFotoActivo.fila,
+            codigo: itemFotoActivo.codigo,
+            numFoto,
+            base64Data: base64Comprimida,
+            mimeType: 'image/jpeg'
+          })
+        });
+        const res = await resp.json();
+        if (res.ok) {
+          if (numFoto === 1) { itemFotoActivo.foto1 = res.fotoUrl; document.getElementById('aFoto1').src = res.fotoUrl; }
+          else { itemFotoActivo.foto2 = res.fotoUrl; document.getElementById('aFoto2').src = res.fotoUrl; }
+          poblarSucursales();
+          renderTablaFotos();
+          if (itemActivo && itemActivo.fila === itemFotoActivo.fila) actualizarPasarelaFoto();
+          if (itemFotoActivo.foto1 && itemFotoActivo.foto2) {
+            msg.innerText = '✓ ¡2 fotos listas! Cargando siguiente pendiente...';
+            setTimeout(() => siguienteSinFoto(), 700);
+          } else {
+            msg.innerText = `✓ Foto ${numFoto} guardada con éxito`;
+          }
+        }
+      } finally {
+        subiendoFotoActualmente = false;
+      }
+    }
   }
 </script>
 </body>
