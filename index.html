@@ -477,7 +477,7 @@
       <div>
         <span class="badge bg-white text-dark fw-bold mb-3 px-3 py-1 rounded-pill" style="font-size: 0.78rem;">📦 HTC · 32 Tiendas</span>
         <h1 class="fw-bold mb-2" style="letter-spacing: -0.6px; font-size: 2rem;">Control &<br>Comité 4/4</h1>
-        <p class="mb-0" style="opacity: 0.9; font-size: 0.95rem;">Auditoría física, pistoleo y gestión de obsolescencia &ge;120d en tiempo real.</p>
+        <p class="mb-0" style="opacity: 0.9; font-size: 0.95rem;">Auditoría física, pistoleo y gestión de obsolescencia en tiempo real.</p>
       </div>
       <div class="d-none d-md-block mt-4 pt-3 border-top border-white border-opacity-25 small" style="opacity: 0.85;">
         Sistema unificado de validación en punto de venta y decisión gerencial.
@@ -530,7 +530,7 @@
           <span style="font-size: 1.8rem;">🎯</span>
           <div>
             <span class="fw-bold d-block" style="font-size: 1.02rem;">Johan y Oscar</span>
-            <small style="font-size: 0.78rem; opacity: 0.92;">Pistoleo, Fotos (&ge;120d) y Cruces</small>
+            <small style="font-size: 0.78rem; opacity: 0.92;">Pistoleo, Fotos y Cruces</small>
           </div>
         </div>
         <span class="fw-bold fs-4">→</span>
@@ -753,8 +753,8 @@
   <!-- ==================== PESTAÑA 2: CARGA EXCEL Y TOMA DE 2 FOTOS ==================== -->
   <div id="tabCargaFotos" class="d-none">
     <div class="card p-3 mb-3">
-      <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades (&ge; 120 días)</h6>
-      <p class="small text-muted mb-2">Sube tu reporte de LIKE (<code>.xls / .xlsx</code>). Solo entran al comité productos con <strong>120 días o más</strong> en inventario.</p>
+      <h6 class="fw-bold text-success mb-1">Paso 1: Subir Novedades (&ge; <span id="lblPaso1MinDias">120</span> días)</h6>
+      <p class="small text-muted mb-2">Sube tu reporte de LIKE (<code>.xls / .xlsx</code>). Entran al comité los productos que cumplan el mínimo de días configurado.</p>
       <div class="row g-2 align-items-end">
         <div class="col-12 col-md-5">
           <label class="form-label small fw-bold mb-1">Archivo Excel (.xls / .xlsx)</label>
@@ -865,7 +865,7 @@
         <h6 class="fw-bold text-primary mb-0">🎯 Auditoría Física: Pistoleo vs. Teórico LIKE</h6>
         <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">Reiniciar sesión</button>
       </div>
-      <p class="small text-muted mb-2">1. Carga el archivo tal cual sale de LIKE (<code>.xls / .xlsx</code>). 2. Pistolea cada producto. Si tiene <strong>&ge; 120 días</strong> te pedirá <strong>Estado, Observación y 2 Fotos</strong>.</p>
+      <p class="small text-muted mb-2" id="descPistoleoDias">1. Carga el archivo tal cual sale de LIKE (<code>.xls / .xlsx</code>). 2. Pistolea cada producto. Si tiene <strong>&ge; 120 días</strong> te pedirá <strong>Estado, Observación y 2 Fotos</strong>.</p>
       <div class="row g-2 align-items-end">
         <div class="col-12 col-md-5">
           <label class="form-label small fw-bold mb-1">Reporte LIKE (.xls / .xlsx)</label>
@@ -882,15 +882,22 @@
       <div id="msgCargaLike" class="small fw-bold text-success mt-2"></div>
     </div>
 
-    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara + Interruptor Fotos >=120d) -->
+    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara + Días Configurables + Interruptor Fotos) -->
     <div id="zonaTrabajoPistoleo" class="d-none">
       <div class="card p-3 mb-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
           <div class="d-flex flex-wrap align-items-center gap-2">
             <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
+            <div class="d-flex align-items-center gap-1 bg-light border rounded-pill px-2 py-1">
+              <label for="inputMinDiasComite" class="fw-bold text-dark mb-0" style="font-size: 0.72rem;">⏳ Mín. días:</label>
+              <input type="number" id="inputMinDiasComite" value="120" min="1" max="999"
+                class="form-control form-control-sm border-0 bg-transparent fw-bold text-primary p-0 text-center"
+                style="width: 46px; font-size: 0.78rem;"
+                onchange="actualizarMinDiasComite(this.value)">
+            </div>
             <div class="form-check form-switch m-0 bg-light border rounded-pill px-3 py-1">
               <input class="form-check-input" type="checkbox" id="chkPedirFotos120" checked onchange="guardarPrefFotos120()">
-              <label class="form-check-label fw-bold text-dark" for="chkPedirFotos120" style="font-size: 0.72rem; cursor: pointer;">
+              <label class="form-check-label fw-bold text-dark" for="chkPedirFotos120" style="font-size: 0.72rem; cursor: pointer;" id="lblPedirFotosDias">
                 📸 Pedir fotos &ge;120d
               </label>
             </div>
@@ -921,11 +928,11 @@
         </div>
       </div>
 
-      <!-- Paso C: Evaluación Física (Estado + Observación Oficial + 2 Fotos) para productos >= 120 días -->
+      <!-- Paso C: Evaluación Física (Estado + Observación Oficial + 2 Fotos) -->
       <div id="panelFotoInmediataPistoleo" class="card border-warning p-3 mb-3 d-none" style="border-width: 2px;">
         <div class="d-flex justify-content-between align-items-start mb-2">
           <div>
-            <span class="badge bg-danger">⚠️ OBSOLESCENCIA &ge; 120 DÍAS — TOMA FÍSICA OBLIGATORIA</span>
+            <span class="badge bg-danger" id="badgeAlertaObsDias">⚠️ OBSOLESCENCIA &ge; 120 DÍAS — TOMA FÍSICA OBLIGATORIA</span>
             <h6 class="fw-bold text-dark mt-1 mb-0 small" id="pFotoTitulo">-</h6>
           </div>
           <button type="button" class="btn-close btn-sm" onclick="cerrarPanelEvaluacionPistoleo()"></button>
@@ -1034,7 +1041,7 @@
           </div>
         </div>
 
-        <!-- Selector entre Faltantes para Cobro, Sobrantes y Evaluados >=120d -->
+        <!-- Selector entre Faltantes para Cobro, Sobrantes y Evaluados -->
         <div class="d-flex gap-1 mb-2">
           <button type="button" id="btnSubFaltantes" class="btn btn-danger btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('FALTANTES')">
             🚨 Faltantes (<span id="badgeSubFalt">0</span>)
@@ -1043,7 +1050,7 @@
             ➕ Sobrantes (<span id="badgeSubSob">0</span>)
           </button>
           <button type="button" id="btnSubObs120" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('OBS120')">
-            📸 &ge;120d (<span id="badgeSubObs120">0</span>)
+            📸 &ge;<span id="lblBtnSubDias">120</span>d (<span id="badgeSubObs120">0</span>)
           </button>
         </div>
 
@@ -1088,7 +1095,7 @@
       <div class="row g-2 mb-3">
         <div class="col-6 col-md-3">
           <div class="kpi-card-dash kpi-navy">
-            <span class="fin-lbl">Obsolescencia &ge;120d</span>
+            <span class="fin-lbl" id="lblDashKpiObs">Obsolescencia &ge;120d</span>
             <span class="fin-val" id="dashValTotal">$0</span>
             <span class="fin-sub" id="dashSubLotes">0 lotes evaluados</span>
           </div>
@@ -1137,7 +1144,7 @@
         <div class="row g-2 mb-3">
           <div class="col-6 col-md-3">
             <button type="button" id="btnDashSub_OBS" class="btn-dash-tienda-tab activo" onclick="seleccionarSubtabDashTienda('OBS')">
-              📦 Obsolescencia &ge;120d
+              📦 Obsolescencia
               <span class="d-block small opacity-75" id="cntDashSub_OBS">0 lotes</span>
             </button>
           </div>
@@ -1239,7 +1246,8 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
-  const MIN_DIAS_COMITE = 120;
+  let MIN_DIAS_COMITE = Number(localStorage.getItem('htc_min_dias_comite') || 120);
+
   const NOMBRES_EVAL = {
     OSMEL: 'Oswal (Gerente General)',
     ANGELICA: 'Angélica (Gerente Administrativa)',
@@ -1263,6 +1271,34 @@
     ],
     'Otro': []
   };
+
+  function aplicarEtiquetasMinDias() {
+    const d = MIN_DIAS_COMITE;
+    const inp = document.getElementById('inputMinDiasComite');
+    if (inp) inp.value = d;
+    const lbl = document.getElementById('lblPedirFotosDias');
+    if (lbl) lbl.innerHTML = `📸 Pedir fotos &ge;${d}d`;
+    const lblPaso1 = document.getElementById('lblPaso1MinDias');
+    if (lblPaso1) lblPaso1.innerText = d;
+    const descPist = document.getElementById('descPistoleoDias');
+    if (descPist) descPist.innerHTML = `1. Carga el archivo tal cual sale de LIKE (<code>.xls / .xlsx</code>). 2. Pistolea cada producto. Si tiene <strong>&ge; ${d} días</strong> te pedirá <strong>Estado, Observación y 2 Fotos</strong>.`;
+    const badgeAlerta = document.getElementById('badgeAlertaObsDias');
+    if (badgeAlerta) badgeAlerta.innerHTML = `⚠️ OBSOLESCENCIA &ge; ${d} DÍAS — TOMA FÍSICA OBLIGATORIA`;
+    const lblBtnSub = document.getElementById('lblBtnSubDias');
+    if (lblBtnSub) lblBtnSub.innerText = d;
+    const lblKpiDash = document.getElementById('lblDashKpiObs');
+    if (lblKpiDash) lblKpiDash.innerHTML = `Obsolescencia &ge;${d}d`;
+  }
+
+  function actualizarMinDiasComite(valor) {
+    const num = Math.max(1, parseInt(valor, 10) || 120);
+    MIN_DIAS_COMITE = num;
+    localStorage.setItem('htc_min_dias_comite', String(num));
+    aplicarEtiquetasMinDias();
+    if (sesionPistoleo) actualizarKPIsPistoleo();
+    cargarDatos();
+    enfocarPistola();
+  }
 
   function normalizarUrlFotoDrive(url) {
     if (!url || typeof url !== 'string') return '';
@@ -1330,6 +1366,7 @@
     if (prefF !== null && document.getElementById('chkPedirFotos120')) {
       document.getElementById('chkPedirFotos120').checked = (prefF === '1');
     }
+    aplicarEtiquetasMinDias();
 
     if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
       mostrarAppPrincipal();
@@ -1732,7 +1769,7 @@
         } else {
           reproducirBeep('OK');
           alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
-          const tagObs = item.dias >= MIN_DIAS_COMITE ? ` · ≥120d ${pedirFotos ? '(Fotos OK)' : '(Modo solo conteo)'}` : ` · ${item.dias}d`;
+          const tagObs = item.dias >= MIN_DIAS_COMITE ? ` · ≥${MIN_DIAS_COMITE}d ${pedirFotos ? '(Fotos OK)' : '(Modo solo conteo)'}` : ` · ${item.dias}d`;
           alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und.${tagObs})`;
         }
         guardarSesionPistoleoLocal();
@@ -2029,7 +2066,7 @@
     } else {
       const obsItems = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
       if (obsItems.length === 0) {
-        cont.innerHTML = '<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; 120 días.</div>';
+        cont.innerHTML = `<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; ${MIN_DIAS_COMITE} días.</div>`;
         return;
       }
       cont.innerHTML = obsItems.map(it => `
@@ -2038,7 +2075,7 @@
             <span class="badge bg-dark">${it.codigo}</span>
             <span class="badge bg-warning text-dark">${it.estado}</span>
             <strong class="ms-1">${it.descripcion}</strong>
-            <div class="text-muted" style="font-size: 0.7rem;">${it.observacion}</div>
+            <div class="text-muted" style="font-size: 0.7rem;">${it.dias}d · ${it.observacion}</div>
           </div>
           <div class="text-end flex-shrink-0">
             <span class="badge ${it.foto1 && it.foto2 ? 'bg-success' : 'bg-danger'}">${it.foto1 && it.foto2 ? '2/2 Fotos' : 'Falta foto'}</span>
@@ -2194,7 +2231,7 @@
       }
       if (it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE) {
         const serEsc = (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', ');
-        csv += `"OBSOLESCENCIA >=120D";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${serEsc}";${it.cantTeorica};${it.cantFisica};0;${it.costoUnit};${it.costoUnit * it.cantFisica};"${it.estado}";"${it.observacion}"\n`;
+        csv += `"OBSOLESCENCIA >=${MIN_DIAS_COMITE}D";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${serEsc}";${it.cantTeorica};${it.cantFisica};0;${it.costoUnit};${it.costoUnit * it.cantFisica};"${it.estado}";"${it.observacion}"\n`;
       }
     });
     sesionPistoleo.sobrantes.forEach(s => {
@@ -2329,7 +2366,7 @@
     const porcAvance = comiteFilt.length > 0 ? Math.round((lotesCerrados / comiteFilt.length) * 100) : 0;
 
     document.getElementById('dashValTotal').innerText = '$' + valTotalObs.toLocaleString('es-CO');
-    document.getElementById('dashSubLotes').innerText = `${comiteFilt.length} lotes (>=120d)`;
+    document.getElementById('dashSubLotes').innerText = `${comiteFilt.length} lotes (>=${MIN_DIAS_COMITE}d)`;
     document.getElementById('dashPorcRecup').innerText = `${porcRecup}%`;
     document.getElementById('dashValRecup').innerText = '$' + valRecup.toLocaleString('es-CO') + ' salvado';
     document.getElementById('dashValFaltantes').innerText = '$' + valFalt.toLocaleString('es-CO');
@@ -2385,7 +2422,7 @@
         data: {
           labels: topTiendas.map(t => t[0]),
           datasets: [
-            { label: 'Obsolescencia >=120d ($)', data: topTiendas.map(t => t[1].obs), backgroundColor: '#5b6ef5' },
+            { label: `Obsolescencia >=${MIN_DIAS_COMITE}d ($)`, data: topTiendas.map(t => t[1].obs), backgroundColor: '#5b6ef5' },
             { label: 'Faltantes Cobro ($)', data: topTiendas.map(t => t[1].falt), backgroundColor: '#ec4899' }
           ]
         },
@@ -2408,7 +2445,7 @@
       const cont = document.getElementById('contenedorDetalleCodigosTienda');
       if (dashSubtabTiendaActual === 'OBS') {
         cont.innerHTML = comiteFilt.length === 0
-          ? '<div class="text-muted small text-center py-3">Sin productos &ge;120 días en esta tienda.</div>'
+          ? `<div class="text-muted small text-center py-3">Sin productos &ge;${MIN_DIAS_COMITE} días en esta tienda.</div>`
           : comiteFilt.map(it => `
               <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
                 <div>
@@ -2779,7 +2816,7 @@
     if (!file) return alert('Selecciona primero tu archivo Excel de LIKE.');
     const tiendaDefault = document.getElementById('txtTiendaDefault').value.trim().toUpperCase() || 'TIENDA PRINCIPAL';
     const msg = document.getElementById('msgImport');
-    msg.innerText = 'Procesando productos >= 120 días del Excel...';
+    msg.innerText = `Procesando productos >= ${MIN_DIAS_COMITE} días del Excel...`;
 
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -2826,17 +2863,17 @@
       }));
 
       if (lotes.length === 0) {
-        msg.innerText = `No hay lotes >= 120 días para Comité (omitidos: ${omitidosMenos120} <120d).`;
+        msg.innerText = `No hay lotes >= ${MIN_DIAS_COMITE} días para Comité (omitidos: ${omitidosMenos120} <${MIN_DIAS_COMITE}d).`;
         return;
       }
 
-      msg.innerText = `Subiendo ${lotes.length} lotes (>= 120 días)...`;
+      msg.innerText = `Subiendo ${lotes.length} lotes (>= ${MIN_DIAS_COMITE} días)...`;
       const resp = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify({ accion: 'importar_novedades', lotes })
       });
       const res = await resp.json();
-      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes (>= 120d) · Omitidos: ${omitidosMenos120} (<120d).`;
+      msg.innerText = `¡Listo! Se cargaron ${res.lotesInsertados} lotes (>= ${MIN_DIAS_COMITE}d) · Omitidos: ${omitidosMenos120} (<${MIN_DIAS_COMITE}d).`;
 
       await cargarDatos();
       const selFotos = document.getElementById('filtroTiendaFotos');
@@ -2902,7 +2939,7 @@
 
     document.getElementById('listaTarjetasFotos').innerHTML = pendientes.length > 0
       ? pendientes.map(construirTarjetaFoto).join('')
-      : '<div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">🎉 ¡Todos los lotes (>= 120d) de este filtro ya tienen sus 2 fotos completas!</div>';
+      : `<div class="alert alert-success text-center small fw-bold rounded-3 mb-0 py-2">🎉 ¡Todos los lotes (>= ${MIN_DIAS_COMITE}d) de este filtro ya tienen sus 2 fotos completas!</div>`;
 
     const bloqueComp = document.getElementById('bloqueFotosCompletadas');
     if (completados.length > 0) {
@@ -2939,7 +2976,7 @@
       const distinto = pendientes.find(x => !itemFotoActivo || x.fila !== itemFotoActivo.fila);
       seleccionarParaFoto((distinto || pendientes[0]).fila);
     } else {
-      alert('🎉 ¡Todos los lotes (>= 120d) de esta tienda/bloque ya tienen sus 2 fotos!');
+      alert(`🎉 ¡Todos los lotes (>= ${MIN_DIAS_COMITE}d) de esta tienda/bloque ya tienen sus 2 fotos!`);
     }
   }
 
