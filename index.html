@@ -489,8 +489,28 @@
     .fin-val { font-size: 0.96rem; font-weight: 800; display: block; margin-top: 2px; }
     .fin-sub { font-size: 0.62rem; opacity: 0.85; display: block; }
 
-    /* KPIs Dashboard y Botones de Filtro por Tienda */
-    .kpi-card-dash { border-radius: 20px; padding: 14px 10px; color: #ffffff; height: 100%; box-shadow: var(--ui-shadow-sm); }
+    /* KPIs Dashboard Interactivos y Botones de Filtro por Tienda */
+    .kpi-card-dash {
+      border-radius: 20px;
+      padding: 14px 10px;
+      color: #ffffff;
+      height: 100%;
+      box-shadow: var(--ui-shadow-sm);
+      cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.18s ease, outline 0.15s ease;
+      position: relative;
+    }
+    .kpi-card-dash:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.16);
+    }
+    .kpi-card-dash:active {
+      transform: scale(0.97);
+    }
+    .kpi-card-dash.kpi-seleccionado {
+      outline: 3px solid #1e293b;
+      outline-offset: 2px;
+    }
     .kpi-navy  { background: var(--ui-grad-main); }
     .kpi-green { background: linear-gradient(135deg, #10b981, #059669); }
     .kpi-red   { background: var(--ui-grad-pink); }
@@ -1144,100 +1164,159 @@
 
   </div>
 
-  <!-- ==================== PESTAÑA 4: DASHBOARD GERENCIAL (32 TIENDAS) ==================== -->
+  <!-- ==================== PESTAÑA 4: DASHBOARD GERENCIAL Y CONSOLIDADO PISTOLEO (32 TIENDAS) ==================== -->
   <div id="tabDashboard" class="d-none">
     <div class="card p-3 mb-3">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-          <h6 class="fw-bold text-dark mb-0">📊 Panel General de Auditoría (32 Tiendas)</h6>
-          <small class="text-muted" id="subtituloDashModo">Vista consolidada global de las 32 sedes</small>
+          <h6 class="fw-bold text-dark mb-0">📊 Panel General de Auditoría y Pistoleo (32 Tiendas)</h6>
+          <small class="text-muted" id="subtituloDashModo">Toca cualquiera de los 6 cuadros para filtrar su detalle abajo</small>
         </div>
-        <div class="d-flex gap-2">
-          <select id="filtroDashTienda" class="form-select form-select-sm fw-bold rounded-3" onchange="renderDashboard()">
+        <div class="d-flex flex-wrap gap-2">
+          <select id="filtroDashTienda" class="form-select form-select-sm fw-bold rounded-3" style="width: auto;" onchange="renderDashboard()">
             <option value="TODAS">Todas las tiendas</option>
           </select>
+          <button type="button" class="btn btn-success btn-sm fw-bold rounded-3" onclick="exportarReporteDashboardCSV()">📥 Exportar Panel</button>
           <button type="button" class="btn btn-outline-primary btn-sm fw-bold rounded-3" onclick="cargarDatos()">🔄</button>
         </div>
       </div>
 
-      <!-- 4 KPIs Principales -->
+      <!-- 6 KPIs Interactivos (Clic para filtrar el detalle inferior) -->
       <div class="row g-2 mb-3">
-        <div class="col-6 col-md-3">
-          <div class="kpi-card-dash kpi-navy">
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_OBS" class="kpi-card-dash kpi-navy kpi-seleccionado" onclick="activarFiltroKpiDash('OBS')">
             <span class="fin-lbl" id="lblDashKpiObs">Obsolescencia &ge;120d</span>
             <span class="fin-val" id="dashValTotal">$0</span>
-            <span class="fin-sub" id="dashSubLotes">0 lotes evaluados</span>
+            <span class="fin-sub" id="dashSubLotes">0 lotes ▾</span>
           </div>
         </div>
-        <div class="col-6 col-md-3">
-          <div class="kpi-card-dash kpi-green">
-            <span class="fin-lbl">% Recuperación</span>
-            <span class="fin-val" id="dashPorcRecup">0%</span>
-            <span class="fin-sub" id="dashValRecup">$0 salvado</span>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_BAJAS" class="kpi-card-dash" style="background: linear-gradient(135deg, #334155, #0f172a);" onclick="activarFiltroKpiDash('BAJAS')">
+            <span class="fin-lbl">🗑️ Valor Bajas</span>
+            <span class="fin-val" id="dashValBajas">$0</span>
+            <span class="fin-sub" id="dashSubBajas">0 lotes ▾</span>
           </div>
         </div>
-        <div class="col-6 col-md-3">
-          <div class="kpi-card-dash kpi-red">
-            <span class="fin-lbl">Faltantes Cobro</span>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_RECUP" class="kpi-card-dash kpi-green" onclick="activarFiltroKpiDash('RECUP')">
+            <span class="fin-lbl">✅ Recuperación</span>
+            <span class="fin-val" id="dashValRecup">$0</span>
+            <span class="fin-sub" id="dashPorcRecup">0% salvado ▾</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_FALT" class="kpi-card-dash kpi-red" onclick="activarFiltroKpiDash('FALT')">
+            <span class="fin-lbl">🚨 Faltantes Cobro</span>
             <span class="fin-val" id="dashValFaltantes">$0</span>
-            <span class="fin-sub" id="dashCntFaltantes">0 und. faltantes</span>
+            <span class="fin-sub" id="dashCntFaltantes">0 und. ▾</span>
           </div>
         </div>
-        <div class="col-6 col-md-3">
-          <div class="kpi-card-dash kpi-gold">
-            <span class="fin-lbl">Avance Comité 4/4</span>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_SOB" class="kpi-card-dash" style="background: linear-gradient(135deg, #0ea5e9, #2563eb);" onclick="activarFiltroKpiDash('SOB')">
+            <span class="fin-lbl">➕ Sobrantes</span>
+            <span class="fin-val" id="dashValSobrantes">$0</span>
+            <span class="fin-sub" id="dashCntSobrantes">0 und. ▾</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div id="kpiBox_VOTOS" class="kpi-card-dash kpi-gold" onclick="activarFiltroKpiDash('VOTOS')">
+            <span class="fin-lbl">🎯 Pistoleo / 4-4</span>
             <span class="fin-val" id="dashAvanceComite">0%</span>
-            <span class="fin-sub" id="dashSubAvance">0 de 0 cerrados</span>
+            <span class="fin-sub" id="dashSubAvance">0 cerrados ▾</span>
           </div>
         </div>
       </div>
 
-      <!-- MODO A: GRÁFICAS GLOBALES -->
-      <div id="dashVistaGlobalGraficas" class="row g-3">
-        <div class="col-12 col-md-5">
-          <div class="border rounded-4 p-3 bg-white h-100">
-            <h6 class="fw-bold small text-center mb-2">Decisiones del Comité</h6>
-            <canvas id="chartDecisiones" height="220"></canvas>
+      <!-- MODO A: GRÁFICAS + TABLA CONSOLIDADA POR TIENDA -->
+      <div id="dashVistaGlobalGraficas">
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-md-5">
+            <div class="border rounded-4 p-3 bg-white h-100">
+              <h6 class="fw-bold small text-center mb-2">Decisiones del Comité</h6>
+              <canvas id="chartDecisiones" height="200"></canvas>
+            </div>
+          </div>
+          <div class="col-12 col-md-7">
+            <div class="border rounded-4 p-3 bg-white h-100">
+              <h6 class="fw-bold small text-center mb-2">Comparativo por Tienda: Obsolescencia, Bajas y Faltantes ($)</h6>
+              <canvas id="chartTiendas" height="200"></canvas>
+            </div>
           </div>
         </div>
-        <div class="col-12 col-md-7">
-          <div class="border rounded-4 p-3 bg-white h-100">
-            <h6 class="fw-bold small text-center mb-2">Top Tiendas: Obsolescencia vs. Faltantes ($)</h6>
-            <canvas id="chartTiendas" height="220"></canvas>
+
+        <!-- Tabla Resumen por Tienda -->
+        <div class="border rounded-4 p-3 bg-white mb-3">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold small mb-0">🏪 Resumen Consolidado por Sede (Toca una tienda para ver su detalle)</h6>
+            <span class="badge bg-light text-dark border" id="badgeTotalTiendasDash">0 sedes</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.76rem;">
+              <thead class="table-light">
+                <tr>
+                  <th>Tienda</th>
+                  <th class="text-end">Obsolescencia</th>
+                  <th class="text-end text-dark">Bajas ($)</th>
+                  <th class="text-end text-success">Recup. ($)</th>
+                  <th class="text-end text-danger">Faltantes ($)</th>
+                  <th class="text-center text-primary">Sobrantes</th>
+                  <th class="text-center">Comité 4/4</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyResumenTiendasDash"></tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <!-- MODO B: 4 BOTONES INTERACTIVOS DE DETALLE -->
-      <div id="dashVistaDetalleTienda" class="d-none">
+      <!-- DETALLE POR CÓDIGO (VISIBLE TANTO EN GLOBAL COMO AL FILTRAR 1 TIENDA) -->
+      <div id="dashVistaDetalleTienda" class="border rounded-4 p-3 bg-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+          <h6 class="fw-bold small mb-0" id="tituloDetalleCodigosDash">🔍 Explorador Detallado de Códigos (Todas las tiendas)</h6>
+          <input type="text" id="buscarCodigoDash" class="form-control form-control-sm rounded-3" style="max-width: 260px;"
+            placeholder="Filtrar por código, serial o nombre..." oninput="renderDashboard()">
+        </div>
+
         <div class="row g-2 mb-3">
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-2">
             <button type="button" id="btnDashSub_OBS" class="btn-dash-tienda-tab activo" onclick="seleccionarSubtabDashTienda('OBS')">
               📦 Obsolescencia
               <span class="d-block small opacity-75" id="cntDashSub_OBS">0 lotes</span>
             </button>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-2">
+            <button type="button" id="btnDashSub_BAJAS" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('BAJAS')">
+              🗑️ Bajas ($)
+              <span class="d-block small opacity-75" id="cntDashSub_BAJAS">0 lotes</span>
+            </button>
+          </div>
+          <div class="col-6 col-md-2">
+            <button type="button" id="btnDashSub_RECUP" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('RECUP')">
+              ✅ Recuperación
+              <span class="d-block small opacity-75" id="cntDashSub_RECUP">0 lotes</span>
+            </button>
+          </div>
+          <div class="col-6 col-md-2">
             <button type="button" id="btnDashSub_FALT" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('FALT')">
-              🚨 Faltantes Cobro
+              🚨 Faltantes
               <span class="d-block small opacity-75" id="cntDashSub_FALT">0 und.</span>
             </button>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-2">
             <button type="button" id="btnDashSub_SOB" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('SOB')">
               ➕ Sobrantes
               <span class="d-block small opacity-75" id="cntDashSub_SOB">0 und.</span>
             </button>
           </div>
-          <div class="col-6 col-md-3">
+          <div class="col-6 col-md-2">
             <button type="button" id="btnDashSub_VOTOS" class="btn-dash-tienda-tab" onclick="seleccionarSubtabDashTienda('VOTOS')">
-              ✅ Votos Comité 4/4
-              <span class="d-block small opacity-75" id="cntDashSub_VOTOS">0 aprobados</span>
+              🎯 Votos 4/4
+              <span class="d-block small opacity-75" id="cntDashSub_VOTOS">0 cerrados</span>
             </button>
           </div>
         </div>
 
-        <div id="contenedorDetalleCodigosTienda" class="bg-light rounded-4 p-2" style="max-height: 360px; overflow-y: auto;"></div>
+        <div id="contenedorDetalleCodigosTienda" class="bg-light rounded-4 p-2" style="max-height: 380px; overflow-y: auto;"></div>
       </div>
     </div>
   </div>
@@ -1385,7 +1464,6 @@
     localStorage.setItem('htc_min_dias_comite', String(num));
     aplicarEtiquetasMinDias();
 
-    // Efecto visual de aprobación en verde
     const caja = document.getElementById('cajaControlDias');
     const btn = document.getElementById('btnAprobarDias');
     if (caja && btn) {
@@ -1659,7 +1737,8 @@
   function poblarSucursales() {
     const sucs = [...new Set([
       ...listaComite.map(x => x.sucursal),
-      ...listaFaltantesGlobal.map(x => x.sucursal)
+      ...listaFaltantesGlobal.map(x => x.sucursal),
+      ...(sesionPistoleo && sesionPistoleo.sucursal ? [sesionPistoleo.sucursal] : [])
     ].filter(Boolean))];
     
     const sel = document.getElementById('filtroSucursal');
@@ -1776,6 +1855,7 @@
       };
       guardarSesionPistoleoLocal();
       restaurarUIPistoleo();
+      poblarSucursales();
       msg.innerText = `✓ Inventario cargado: ${items.length} referencias (${unidadesTotales} unidades) listas en ${sesionPistoleo.sucursal}.`;
       enfocarPistola();
     };
@@ -2407,74 +2487,177 @@
     }
   }
 
-  // ================= PESTAÑA 4: DASHBOARD GERENCIAL (GLOBAL Y POR TIENDA) =================
+  // ================= PESTAÑA 4: DASHBOARD GERENCIAL INTERACTIVO (GLOBAL Y POR TIENDA) =================
+  function activarFiltroKpiDash(subtab) {
+    seleccionarSubtabDashTienda(subtab);
+    const destino = document.getElementById('dashVistaDetalleTienda');
+    if (destino) {
+      destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   function seleccionarSubtabDashTienda(subtab) {
     dashSubtabTiendaActual = subtab;
-    ['OBS', 'FALT', 'SOB', 'VOTOS'].forEach(k => {
+    ['OBS', 'BAJAS', 'RECUP', 'FALT', 'SOB', 'VOTOS'].forEach(k => {
       const btn = document.getElementById('btnDashSub_' + k);
       if (btn) btn.classList.toggle('activo', k === subtab);
+      const box = document.getElementById('kpiBox_' + k);
+      if (box) box.classList.toggle('kpi-seleccionado', k === subtab);
     });
     renderDashboard();
   }
 
-  function renderDashboard() {
-    const suc = document.getElementById('filtroDashTienda').value;
-    const comiteFilt = suc === 'TODAS' ? listaComite : listaComite.filter(x => x.sucursal === suc);
-    const faltFilt = suc === 'TODAS' ? listaFaltantesGlobal : listaFaltantesGlobal.filter(x => x.sucursal === suc);
-    const sobFilt = suc === 'TODAS' ? listaSobrantesGlobal : listaSobrantesGlobal.filter(x => x.sucursal === suc);
+  function obtenerDatosConsolidadosDashboard() {
+    const comiteAll = [...listaComite];
+    const faltantesAll = [...listaFaltantesGlobal];
+    const sobrantesAll = [...listaSobrantesGlobal];
 
-    let valTotalObs = 0, valRecup = 0, lotesCerrados = 0;
+    if (sesionPistoleo && sesionPistoleo.items && sesionPistoleo.items.length > 0) {
+      const sucActiva = sesionPistoleo.sucursal;
+
+      sesionPistoleo.items.forEach(it => {
+        const diff = Math.max(0, it.cantTeorica - it.cantFisica);
+        if (diff > 0) {
+          const yaEnSheets = faltantesAll.some(f => f.sucursal === sucActiva && f.codigo === it.codigo);
+          if (!yaEnSheets) {
+            faltantesAll.push({
+              sucursal: sucActiva,
+              codigo: it.codigo,
+              descripcion: it.descripcion,
+              seriales: it.serialesTeoricos.filter(s => !it.serialesEscaneados.includes(s)).join(', '),
+              faltante: diff,
+              costoUnit: it.costoUnit,
+              valorCobro: diff * it.costoUnit,
+              enVivo: true
+            });
+          }
+        }
+        if (it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE) {
+          const yaEnComite = comiteAll.some(c => c.sucursal === sucActiva && c.codigo === it.codigo);
+          if (!yaEnComite) {
+            comiteAll.push({
+              sucursal: sucActiva,
+              codigo: it.codigo,
+              descripcion: it.descripcion,
+              cantidad: it.cantFisica,
+              seriales: (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', '),
+              dias: it.dias,
+              costoUnit: it.costoUnit,
+              costoTotal: it.costoUnit * it.cantFisica,
+              estado: it.estado || 'Bueno / funcional',
+              observacion: it.observacion || '',
+              votos: { OSMEL: '', ANGELICA: '', ORLANDO: '', ANDRES: '' },
+              enVivo: true
+            });
+          }
+        }
+      });
+
+      (sesionPistoleo.sobrantes || []).forEach(s => {
+        const yaEnSheets = sobrantesAll.some(x => x.sucursal === sucActiva && x.codigo === s.codigo && x.serial === s.serial);
+        if (!yaEnSheets) {
+          sobrantesAll.push({
+            sucursal: sucActiva,
+            codigo: s.codigo,
+            descripcion: s.descripcion,
+            serial: s.serial,
+            sobrante: s.sobrante,
+            costoUnit: s.costoUnit,
+            valorSobrante: s.valorSobrante,
+            enVivo: true
+          });
+        }
+      });
+    }
+
+    return { comiteAll, faltantesAll, sobrantesAll };
+  }
+
+  function esItemDeBaja(it) {
+    const votosArr = [it.votos?.OSMEL, it.votos?.ANGELICA, it.votos?.ORLANDO, it.votos?.ANDRES]
+      .filter(v => v && v.trim() !== '')
+      .map(v => v.split('(')[0].trim().toLowerCase());
+    if (votosArr.length > 0) {
+      const votosBaja = votosArr.filter(v => v.includes('baja')).length;
+      if (votosBaja > 0 && votosBaja >= (votosArr.length - votosBaja)) return true;
+    }
+    return String(it.estado || '').toLowerCase().trim() === 'baja';
+  }
+
+  function renderDashboard() {
+    const { comiteAll, faltantesAll, sobrantesAll } = obtenerDatosConsolidadosDashboard();
+    const suc = document.getElementById('filtroDashTienda').value;
+    const q = (document.getElementById('buscarCodigoDash')?.value || '').trim().toLowerCase();
+
+    const comiteFilt = suc === 'TODAS' ? comiteAll : comiteAll.filter(x => x.sucursal === suc);
+    const faltFilt = suc === 'TODAS' ? faltantesAll : faltantesAll.filter(x => x.sucursal === suc);
+    const sobFilt = suc === 'TODAS' ? sobrantesAll : sobrantesAll.filter(x => x.sucursal === suc);
+
+    let valTotalObs = 0, valBajas = 0, cntBajas = 0, valRecup = 0, lotesCerrados = 0;
     const conteoDecisiones = { Descuento: 0, Obsequio: 0, Traslado: 0, Reempaque: 0, Baja: 0, Pendiente: 0 };
+    const bajasList = [];
+    const recupList = [];
 
     comiteFilt.forEach(it => {
       const val = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
       valTotalObs += val;
 
-      const votosArr = [it.votos.OSMEL, it.votos.ANGELICA, it.votos.ORLANDO, it.votos.ANDRES]
+      const votosArr = [it.votos?.OSMEL, it.votos?.ANGELICA, it.votos?.ORLANDO, it.votos?.ANDRES]
         .filter(v => v && v.trim() !== '')
         .map(v => v.split('(')[0].trim());
 
       if (votosArr.length === 4 && new Set(votosArr).size === 1) lotesCerrados += 1;
 
+      if (esItemDeBaja(it)) {
+        valBajas += val;
+        cntBajas += 1;
+        bajasList.push(it);
+      } else if (votosArr.length > 0) {
+        valRecup += val;
+        recupList.push(it);
+      }
+
       if (votosArr.length === 0) {
-        conteoDecisiones.Pendiente += 1;
+        if (String(it.estado || '').toLowerCase().trim() === 'baja') conteoDecisiones.Baja += 1;
+        else conteoDecisiones.Pendiente += 1;
       } else {
         const d = votosArr[0].toLowerCase();
-        if (d.includes('baja')) {
-          conteoDecisiones.Baja += 1;
-        } else {
-          valRecup += val;
-          if (d.includes('descuento')) conteoDecisiones.Descuento += 1;
-          else if (d.includes('obsequio')) conteoDecisiones.Obsequio += 1;
-          else if (d.includes('tienda')) conteoDecisiones.Traslado += 1;
-          else conteoDecisiones.Reempaque += 1;
-        }
+        if (d.includes('baja')) conteoDecisiones.Baja += 1;
+        else if (d.includes('descuento')) conteoDecisiones.Descuento += 1;
+        else if (d.includes('obsequio')) conteoDecisiones.Obsequio += 1;
+        else if (d.includes('tienda')) conteoDecisiones.Traslado += 1;
+        else conteoDecisiones.Reempaque += 1;
       }
     });
 
     const valFalt = faltFilt.reduce((a, b) => a + Number(b.valorCobro || 0), 0);
     const undFalt = faltFilt.reduce((a, b) => a + Number(b.faltante || 0), 0);
+    const valSob = sobFilt.reduce((a, b) => a + Number(b.valorSobrante || (b.sobrante * b.costoUnit) || 0), 0);
     const undSob = sobFilt.reduce((a, b) => a + Number(b.sobrante || 0), 0);
     const porcRecup = valTotalObs > 0 ? Math.round((valRecup / valTotalObs) * 100) : 0;
     const porcAvance = comiteFilt.length > 0 ? Math.round((lotesCerrados / comiteFilt.length) * 100) : 0;
 
     document.getElementById('dashValTotal').innerText = '$' + valTotalObs.toLocaleString('es-CO');
-    document.getElementById('dashSubLotes').innerText = `${comiteFilt.length} lotes (>=${MIN_DIAS_COMITE}d)`;
-    document.getElementById('dashPorcRecup').innerText = `${porcRecup}%`;
-    document.getElementById('dashValRecup').innerText = '$' + valRecup.toLocaleString('es-CO') + ' salvado';
+    document.getElementById('dashSubLotes').innerText = `${comiteFilt.length} lotes ▾`;
+    document.getElementById('dashValBajas').innerText = '$' + valBajas.toLocaleString('es-CO');
+    document.getElementById('dashSubBajas').innerText = `${cntBajas} lotes ▾`;
+    document.getElementById('dashValRecup').innerText = '$' + valRecup.toLocaleString('es-CO');
+    document.getElementById('dashPorcRecup').innerText = `${porcRecup}% salvado ▾`;
     document.getElementById('dashValFaltantes').innerText = '$' + valFalt.toLocaleString('es-CO');
-    document.getElementById('dashCntFaltantes').innerText = `${undFalt} und. faltantes`;
+    document.getElementById('dashCntFaltantes').innerText = `${undFalt} und. ▾`;
+    document.getElementById('dashValSobrantes').innerText = '$' + valSob.toLocaleString('es-CO');
+    document.getElementById('dashCntSobrantes').innerText = `${undSob} und. ▾`;
     document.getElementById('dashAvanceComite').innerText = `${porcAvance}%`;
-    document.getElementById('dashSubAvance').innerText = `${lotesCerrados} de ${comiteFilt.length} cerrados`;
+    document.getElementById('dashSubAvance').innerText = `${lotesCerrados}/${comiteFilt.length} cerrados ▾`;
 
     const vistaGlobal = document.getElementById('dashVistaGlobalGraficas');
-    const vistaTienda = document.getElementById('dashVistaDetalleTienda');
     const subtitulo = document.getElementById('subtituloDashModo');
+    const tituloDetalle = document.getElementById('tituloDetalleCodigosDash');
 
     if (suc === 'TODAS') {
-      subtitulo.innerText = 'Vista consolidada global de las 32 sedes';
+      subtitulo.innerText = 'Toca cualquiera de los 6 cuadros para ver sus productos abajo';
+      tituloDetalle.innerText = '🔍 Explorador Detallado de Códigos (Todas las tiendas)';
       vistaGlobal.classList.remove('d-none');
-      vistaTienda.classList.add('d-none');
 
       const ctx1 = document.getElementById('chartDecisiones');
       if (chartDecisionesInst) chartDecisionesInst.destroy();
@@ -2488,114 +2671,226 @@
               conteoDecisiones.Traslado, conteoDecisiones.Reempaque,
               conteoDecisiones.Baja, conteoDecisiones.Pendiente
             ],
-            backgroundColor: ['#5b6ef5', '#f59e0b', '#8b5cf6', '#10b981', '#ec4899', '#cbd5e1']
+            backgroundColor: ['#5b6ef5', '#f59e0b', '#8b5cf6', '#10b981', '#334155', '#cbd5e1']
           }]
         },
-        options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } } }
+        options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 10 } } } } }
       });
 
       const mapaTiendas = {};
-      listaComite.forEach(it => {
-        if (!mapaTiendas[it.sucursal]) mapaTiendas[it.sucursal] = { obs: 0, falt: 0 };
-        mapaTiendas[it.sucursal].obs += Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+      const asegurarTienda = (nombre) => {
+        if (!mapaTiendas[nombre]) {
+          mapaTiendas[nombre] = { obs: 0, bajas: 0, recup: 0, falt: 0, sobUnd: 0, lotes: 0, cerrados: 0 };
+        }
+      };
+
+      comiteAll.forEach(it => {
+        asegurarTienda(it.sucursal);
+        const val = Number(it.costoTotal || (it.costoUnit * it.cantidad) || 0);
+        mapaTiendas[it.sucursal].obs += val;
+        mapaTiendas[it.sucursal].lotes += 1;
+
+        const votosArr = [it.votos?.OSMEL, it.votos?.ANGELICA, it.votos?.ORLANDO, it.votos?.ANDRES].filter(v => v && v.trim() !== '');
+        if (votosArr.length === 4 && new Set(votosArr.map(v => v.split('(')[0].trim())).size === 1) {
+          mapaTiendas[it.sucursal].cerrados += 1;
+        }
+        if (esItemDeBaja(it)) mapaTiendas[it.sucursal].bajas += val;
+        else if (votosArr.length > 0) mapaTiendas[it.sucursal].recup += val;
       });
-      listaFaltantesGlobal.forEach(f => {
-        if (!mapaTiendas[f.sucursal]) mapaTiendas[f.sucursal] = { obs: 0, falt: 0 };
+
+      faltantesAll.forEach(f => {
+        asegurarTienda(f.sucursal);
         mapaTiendas[f.sucursal].falt += Number(f.valorCobro || 0);
       });
 
-      const topTiendas = Object.entries(mapaTiendas)
-        .sort((a, b) => (b[1].obs + b[1].falt) - (a[1].obs + a[1].falt))
-        .slice(0, 10);
+      sobrantesAll.forEach(s => {
+        asegurarTienda(s.sucursal);
+        mapaTiendas[s.sucursal].sobUnd += Number(s.sobrante || 0);
+      });
 
+      const rankingTiendas = Object.entries(mapaTiendas)
+        .sort((a, b) => (b[1].obs + b[1].falt) - (a[1].obs + a[1].falt));
+
+      document.getElementById('badgeTotalTiendasDash').innerText = `${rankingTiendas.length} sedes con datos`;
+      document.getElementById('tbodyResumenTiendasDash').innerHTML = rankingTiendas.map(([nombreSuc, d]) => `
+        <tr style="cursor:pointer;" onclick="document.getElementById('filtroDashTienda').value='${nombreSuc.replace(/'/g, "\\'")}'; renderDashboard();">
+          <td class="fw-bold text-primary">${nombreSuc}</td>
+          <td class="text-end fw-semibold">$${d.obs.toLocaleString('es-CO')}</td>
+          <td class="text-end fw-bold text-dark">$${d.bajas.toLocaleString('es-CO')}</td>
+          <td class="text-end text-success">$${d.recup.toLocaleString('es-CO')}</td>
+          <td class="text-end fw-bold text-danger">$${d.falt.toLocaleString('es-CO')}</td>
+          <td class="text-center"><span class="badge bg-info text-dark">+${d.sobUnd}</span></td>
+          <td class="text-center"><span class="badge bg-light text-dark border">${d.cerrados}/${d.lotes}</span></td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" class="text-center text-muted py-3">Sin datos registrados aún.</td></tr>';
+
+      const top10 = rankingTiendas.slice(0, 10);
       const ctx2 = document.getElementById('chartTiendas');
       if (chartTiendasInst) chartTiendasInst.destroy();
       chartTiendasInst = new Chart(ctx2, {
         type: 'bar',
         data: {
-          labels: topTiendas.map(t => t[0]),
+          labels: top10.map(t => t[0]),
           datasets: [
-            { label: `Obsolescencia >=${MIN_DIAS_COMITE}d ($)`, data: topTiendas.map(t => t[1].obs), backgroundColor: '#5b6ef5' },
-            { label: 'Faltantes Cobro ($)', data: topTiendas.map(t => t[1].falt), backgroundColor: '#ec4899' }
+            { label: `Obsolescencia >=${MIN_DIAS_COMITE}d ($)`, data: top10.map(t => t[1].obs), backgroundColor: '#5b6ef5' },
+            { label: 'Bajas ($)', data: top10.map(t => t[1].bajas), backgroundColor: '#334155' },
+            { label: 'Faltantes Cobro ($)', data: top10.map(t => t[1].falt), backgroundColor: '#ec4899' }
           ]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
-          plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 11, font: { size: 10 } } } }
         }
       });
     } else {
-      subtitulo.innerText = `Detalle operativo de sede: ${suc}`;
+      subtitulo.innerText = `Detalle operativo de sede: ${suc} (toca un cuadro para cambiar vista)`;
+      tituloDetalle.innerText = `🔍 Códigos detallados de ${suc}`;
       vistaGlobal.classList.add('d-none');
-      vistaTienda.classList.remove('d-none');
+    }
 
-      document.getElementById('cntDashSub_OBS').innerText = `${comiteFilt.length} lotes`;
-      document.getElementById('cntDashSub_FALT').innerText = `${undFalt} und.`;
-      document.getElementById('cntDashSub_SOB').innerText = `${undSob} und.`;
-      document.getElementById('cntDashSub_VOTOS').innerText = `${lotesCerrados} cerrados`;
+    document.getElementById('cntDashSub_OBS').innerText = `${comiteFilt.length} lotes`;
+    document.getElementById('cntDashSub_BAJAS').innerText = `${cntBajas} lotes`;
+    document.getElementById('cntDashSub_RECUP').innerText = `${recupList.length} lotes`;
+    document.getElementById('cntDashSub_FALT').innerText = `${undFalt} und.`;
+    document.getElementById('cntDashSub_SOB').innerText = `${undSob} und.`;
+    document.getElementById('cntDashSub_VOTOS').innerText = `${lotesCerrados} cerrados`;
 
-      const cont = document.getElementById('contenedorDetalleCodigosTienda');
-      if (dashSubtabTiendaActual === 'OBS') {
-        cont.innerHTML = comiteFilt.length === 0
-          ? `<div class="text-muted small text-center py-3">Sin productos &ge;${MIN_DIAS_COMITE} días en esta tienda.</div>`
-          : comiteFilt.map(it => `
+    const matchTexto = (obj) => !q ||
+      String(obj.codigo || '').toLowerCase().includes(q) ||
+      String(obj.descripcion || '').toLowerCase().includes(q) ||
+      String(obj.seriales || obj.serial || '').toLowerCase().includes(q) ||
+      String(obj.sucursal || '').toLowerCase().includes(q);
+
+    const cont = document.getElementById('contenedorDetalleCodigosTienda');
+    if (dashSubtabTiendaActual === 'OBS') {
+      const lista = comiteFilt.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? `<div class="text-muted small text-center py-3">Sin productos &ge;${MIN_DIAS_COMITE} días para este filtro.</div>`
+        : lista.map(it => `
+            <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+              <div>
+                <span class="badge bg-dark">${it.codigo}</span>
+                <span class="badge bg-secondary">${it.sucursal}</span>
+                <span class="badge bg-light text-primary border">${it.estado}</span>
+                ${it.enVivo ? '<span class="badge bg-warning text-dark">En vivo</span>' : ''}
+                <strong class="ms-1">${it.descripcion}</strong>
+                <div class="text-muted" style="font-size:0.7rem;">Cant: ${it.cantidad} · ${it.dias} días · ${it.observacion || ''}</div>
+              </div>
+              <div class="text-end fw-bold text-primary flex-shrink-0">$${Number(it.costoTotal || 0).toLocaleString('es-CO')}</div>
+            </div>
+          `).join('');
+    } else if (dashSubtabTiendaActual === 'BAJAS') {
+      const lista = bajasList.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? '<div class="text-muted small text-center py-3">No hay productos marcados para baja en este filtro.</div>'
+        : lista.map(it => `
+            <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+              <div>
+                <span class="badge bg-dark">${it.codigo}</span>
+                <span class="badge bg-secondary">${it.sucursal}</span>
+                <span class="badge bg-danger">BAJA</span>
+                <strong class="ms-1">${it.descripcion}</strong>
+                <div class="text-muted" style="font-size:0.7rem;">Cant: ${it.cantidad} · ${it.dias} días · ${it.observacion || ''}</div>
+              </div>
+              <div class="text-end fw-bold text-danger flex-shrink-0">$${Number(it.costoTotal || 0).toLocaleString('es-CO')}</div>
+            </div>
+          `).join('');
+    } else if (dashSubtabTiendaActual === 'RECUP') {
+      const lista = recupList.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? '<div class="text-muted small text-center py-3">Aún no hay lotes con decisión de recuperación (Descuento, Traslado, Obsequio o Reempaque).</div>'
+        : lista.map(it => {
+            const est = obtenerEstadoVotosUI(it);
+            return `
               <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
                 <div>
                   <span class="badge bg-dark">${it.codigo}</span>
-                  <span class="badge bg-light text-primary border">${it.estado}</span>
+                  <span class="badge bg-secondary">${it.sucursal}</span>
+                  <span class="badge bg-success-subtle text-success border border-success">${est.texto}</span>
                   <strong class="ms-1">${it.descripcion}</strong>
                   <div class="text-muted" style="font-size:0.7rem;">Cant: ${it.cantidad} · ${it.dias} días · ${it.observacion || ''}</div>
                 </div>
-                <div class="text-end fw-bold text-primary flex-shrink-0">$${Number(it.costoTotal || 0).toLocaleString('es-CO')}</div>
+                <div class="text-end fw-bold text-success flex-shrink-0">$${Number(it.costoTotal || 0).toLocaleString('es-CO')}</div>
               </div>
-            `).join('');
-      } else if (dashSubtabTiendaActual === 'FALT') {
-        cont.innerHTML = faltFilt.length === 0
-          ? '<div class="text-success small fw-bold text-center py-3">🎉 Cero faltantes registrados en esta tienda.</div>'
-          : faltFilt.map(f => `
+            `;
+          }).join('');
+    } else if (dashSubtabTiendaActual === 'FALT') {
+      const lista = faltFilt.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? '<div class="text-success small fw-bold text-center py-3">🎉 Cero faltantes registrados para este filtro.</div>'
+        : lista.map(f => `
+            <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+              <div>
+                <span class="badge bg-danger">${f.codigo}</span>
+                <span class="badge bg-secondary">${f.sucursal}</span>
+                ${f.enVivo ? '<span class="badge bg-warning text-dark">En vivo</span>' : ''}
+                <strong class="ms-1">${f.descripcion}</strong>
+                <div class="text-muted" style="font-size:0.7rem;">Faltan: ${f.faltante} und. ${f.seriales ? '· Serial: ' + f.seriales : ''}</div>
+              </div>
+              <div class="text-end fw-bold text-danger flex-shrink-0">$${Number(f.valorCobro || 0).toLocaleString('es-CO')}</div>
+            </div>
+          `).join('');
+    } else if (dashSubtabTiendaActual === 'SOB') {
+      const lista = sobFilt.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? '<div class="text-muted small text-center py-3">Sin sobrantes registrados para este filtro.</div>'
+        : lista.map(s => `
+            <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
+              <div>
+                <span class="badge bg-primary">${s.codigo}</span>
+                <span class="badge bg-secondary">${s.sucursal}</span>
+                ${s.enVivo ? '<span class="badge bg-warning text-dark">En vivo</span>' : ''}
+                <strong class="ms-1">${s.descripcion}</strong>
+                ${s.serial ? `<div class="text-muted font-monospace" style="font-size:0.7rem;">Serial: ${s.serial}</div>` : ''}
+              </div>
+              <span class="badge bg-info text-dark">+${s.sobrante} und.</span>
+            </div>
+          `).join('');
+    } else {
+      const lista = comiteFilt.filter(matchTexto);
+      cont.innerHTML = lista.length === 0
+        ? '<div class="text-muted small text-center py-3">Sin lotes en votación para este filtro.</div>'
+        : lista.map(it => {
+            const est = obtenerEstadoVotosUI(it);
+            return `
               <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
                 <div>
-                  <span class="badge bg-danger">${f.codigo}</span>
-                  <strong class="ms-1">${f.descripcion}</strong>
-                  <div class="text-muted" style="font-size:0.7rem;">Faltan: ${f.faltante} und. ${f.seriales ? '· Serial: ' + f.seriales : ''}</div>
-                </div>
-                <div class="text-end fw-bold text-danger flex-shrink-0">$${Number(f.valorCobro || 0).toLocaleString('es-CO')}</div>
-              </div>
-            `).join('');
-      } else if (dashSubtabTiendaActual === 'SOB') {
-        cont.innerHTML = sobFilt.length === 0
-          ? '<div class="text-muted small text-center py-3">Sin sobrantes registrados en esta tienda.</div>'
-          : sobFilt.map(s => `
-              <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
-                <div>
-                  <span class="badge bg-primary">${s.codigo}</span>
-                  <strong class="ms-1">${s.descripcion}</strong>
-                  ${s.serial ? `<div class="text-muted font-monospace" style="font-size:0.7rem;">Serial: ${s.serial}</div>` : ''}
-                </div>
-                <span class="badge bg-info text-dark">+${s.sobrante} und.</span>
-              </div>
-            `).join('');
-      } else {
-        cont.innerHTML = comiteFilt.length === 0
-          ? '<div class="text-muted small text-center py-3">Sin lotes en votación para esta tienda.</div>'
-          : comiteFilt.map(it => {
-              const est = obtenerEstadoVotosUI(it);
-              return `
-                <div class="bg-white rounded-3 p-2 mb-1 shadow-sm d-flex justify-content-between align-items-center small">
-                  <div>
-                    <span class="badge bg-dark">${it.codigo}</span>
-                    <strong class="ms-1">${it.descripcion}</strong>
-                    <div class="text-muted" style="font-size:0.68rem;">
-                      Oswal: <b>${it.votos.OSMEL || '-'}</b> · Angélica: <b>${it.votos.ANGELICA || '-'}</b> · Orlando: <b>${it.votos.ORLANDO || '-'}</b> · Andrés: <b>${it.votos.ANDRES || '-'}</b>
-                    </div>
+                  <span class="badge bg-dark">${it.codigo}</span>
+                  <span class="badge bg-secondary">${it.sucursal}</span>
+                  <strong class="ms-1">${it.descripcion}</strong>
+                  <div class="text-muted" style="font-size:0.68rem;">
+                    Oswal: <b>${it.votos.OSMEL || '-'}</b> · Angélica: <b>${it.votos.ANGELICA || '-'}</b> · Orlando: <b>${it.votos.ORLANDO || '-'}</b> · Andrés: <b>${it.votos.ANDRES || '-'}</b>
                   </div>
-                  <span class="pill-meta ${est.clase} flex-shrink-0">${est.texto}</span>
                 </div>
-              `;
-            }).join('');
-      }
+                <span class="pill-meta ${est.clase} flex-shrink-0">${est.texto}</span>
+              </div>
+            `;
+          }).join('');
     }
+  }
+
+  function exportarReporteDashboardCSV() {
+    const { comiteAll, faltantesAll, sobrantesAll } = obtenerDatosConsolidadosDashboard();
+    const suc = document.getElementById('filtroDashTienda').value;
+    let csv = 'Categoria;Sucursal;Codigo;Descripcion;Seriales;Cantidad;Dias;Costo_Unit;Valor_Total;Estado_o_Decision;Observacion\n';
+
+    comiteAll.filter(x => suc === 'TODAS' || x.sucursal === suc).forEach(it => {
+      const cat = esItemDeBaja(it) ? 'BAJA' : `OBSOLESCENCIA >=${MIN_DIAS_COMITE}D`;
+      csv += `"${cat}";"${it.sucursal}";"${it.codigo}";"${it.descripcion}";"${it.seriales}";${it.cantidad};${it.dias};${it.costoUnit};${it.costoTotal};"${it.consenso || it.estado}";"${it.observacion}"\n`;
+    });
+    faltantesAll.filter(x => suc === 'TODAS' || x.sucursal === suc).forEach(f => {
+      csv += `"FALTANTE COBRO";"${f.sucursal}";"${f.codigo}";"${f.descripcion}";"${f.seriales || ''}";${f.faltante};0;${f.costoUnit};${f.valorCobro};"Faltante";"Faltante en pistoleo"\n`;
+    });
+    sobrantesAll.filter(x => suc === 'TODAS' || x.sucursal === suc).forEach(s => {
+      csv += `"SOBRANTE";"${s.sucursal}";"${s.codigo}";"${s.descripcion}";"${s.serial || ''}";${s.sobrante};0;${s.costoUnit || 0};${s.valorSobrante || 0};"Sobrante";"Encontrado sin saldo en LIKE"\n`;
+    });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `Panel_Auditoria_${suc}.csv`;
+    a.click();
   }
 
   // ================= FUNCIONES COMPARTIDAS PESTAÑAS 1 Y 2 =================
