@@ -125,7 +125,7 @@
       color: #6d28d9;
     }
 
-    /* Pestañas en fila horizontal compacta (un solo renglón) */
+    /* Pestañas en fila horizontal compacta */
     .nav-segmented {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -184,7 +184,76 @@
       }
     }
 
-    /* Tarjetas Soft UI con sombra uniforme en todas las pestañas */
+    /* ===== CONTROLES VISUALES ON/OFF Y APROBACIÓN DE DÍAS EN PISTOLEO ===== */
+    .pill-dias-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eef2ff;
+      border: 1.5px solid #c7d2fe;
+      border-radius: 999px;
+      padding: 3px 6px 3px 12px;
+      transition: all 0.2s ease;
+    }
+    .pill-dias-control.aprobado-flash {
+      background: #dcfce7;
+      border-color: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.22);
+    }
+    .pill-dias-control input {
+      width: 44px;
+      border: none;
+      background: #ffffff;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.78rem;
+      color: #4338ca;
+      text-align: center;
+      padding: 2px 4px;
+      outline: none;
+    }
+    .btn-aprobar-dias {
+      border: none;
+      background: #5b6ef5;
+      color: #ffffff;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .btn-aprobar-dias:hover {
+      background: #4338ca;
+    }
+    .btn-aprobar-dias.confirmado {
+      background: #16a34a;
+    }
+
+    .btn-toggle-fotos-estado {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-toggle-fotos-estado.modo-on {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.32);
+    }
+    .btn-toggle-fotos-estado.modo-off {
+      background: #334155;
+      color: #f8fafc;
+      box-shadow: 0 4px 10px rgba(51, 65, 85, 0.22);
+    }
+
+    /* Tarjetas Soft UI con sombra uniforme */
     .card, .ficha-card, .resumen-financiero-card {
       background: #ffffff !important;
       border: 1px solid rgba(255, 255, 255, 0.9) !important;
@@ -882,25 +951,25 @@
       <div id="msgCargaLike" class="small fw-bold text-success mt-2"></div>
     </div>
 
-    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara + Días Configurables + Interruptor Fotos) -->
+    <!-- Paso B: Barra Dual de Pistoleo (Bluetooth/USB + Cámara + Días con Aprobación + Botón ON/OFF Fotos) -->
     <div id="zonaTrabajoPistoleo" class="d-none">
       <div class="card p-3 mb-3">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
           <div class="d-flex flex-wrap align-items-center gap-2">
-            <span class="badge bg-dark" id="badgeTiendaPistoleo">TIENDA: -</span>
-            <div class="d-flex align-items-center gap-1 bg-light border rounded-pill px-2 py-1">
+            <span class="badge bg-dark py-2 px-3 rounded-pill" id="badgeTiendaPistoleo">TIENDA: -</span>
+
+            <!-- Control de Mín. Días con botón de aprobación -->
+            <div class="pill-dias-control" id="cajaControlDias">
               <label for="inputMinDiasComite" class="fw-bold text-dark mb-0" style="font-size: 0.72rem;">⏳ Mín. días:</label>
               <input type="number" id="inputMinDiasComite" value="120" min="1" max="999"
-                class="form-control form-control-sm border-0 bg-transparent fw-bold text-primary p-0 text-center"
-                style="width: 46px; font-size: 0.78rem;"
-                onchange="actualizarMinDiasComite(this.value)">
+                onkeydown="if(event.key==='Enter'){ event.preventDefault(); aprobarMinDiasComite(); }">
+              <button type="button" id="btnAprobarDias" class="btn-aprobar-dias" onclick="aprobarMinDiasComite()">✓ Aplicar</button>
             </div>
-            <div class="form-check form-switch m-0 bg-light border rounded-pill px-3 py-1">
-              <input class="form-check-input" type="checkbox" id="chkPedirFotos120" checked onchange="guardarPrefFotos120()">
-              <label class="form-check-label fw-bold text-dark" for="chkPedirFotos120" style="font-size: 0.72rem; cursor: pointer;" id="lblPedirFotosDias">
-                📸 Pedir fotos &ge;120d
-              </label>
-            </div>
+
+            <!-- Botón ON/OFF de Fotos con cambio completo de color -->
+            <button type="button" id="btnToggleFotos120" class="btn-toggle-fotos-estado modo-on" onclick="alternarPedirFotos120()">
+              📸 Fotos &ge;120d: ON
+            </button>
           </div>
           <span class="small fw-bold text-primary" id="progresoPistoleoTxt">0 / 0 unidades pistoleadas</span>
         </div>
@@ -1123,7 +1192,7 @@
         </div>
       </div>
 
-      <!-- MODO A: GRÁFICAS GLOBALES (Cuando está seleccionada "Todas las tiendas") -->
+      <!-- MODO A: GRÁFICAS GLOBALES -->
       <div id="dashVistaGlobalGraficas" class="row g-3">
         <div class="col-12 col-md-5">
           <div class="border rounded-4 p-3 bg-white h-100">
@@ -1139,7 +1208,7 @@
         </div>
       </div>
 
-      <!-- MODO B: 4 BOTONES INTERACTIVOS DE DETALLE (Cuando eliges 1 tienda específica) -->
+      <!-- MODO B: 4 BOTONES INTERACTIVOS DE DETALLE -->
       <div id="dashVistaDetalleTienda" class="d-none">
         <div class="row g-2 mb-3">
           <div class="col-6 col-md-3">
@@ -1247,6 +1316,7 @@
 <script>
   const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
   let MIN_DIAS_COMITE = Number(localStorage.getItem('htc_min_dias_comite') || 120);
+  let pedirFotosActivo = localStorage.getItem('htc_pedir_fotos_120') !== '0';
 
   const NOMBRES_EVAL = {
     OSMEL: 'Oswal (Gerente General)',
@@ -1272,12 +1342,30 @@
     'Otro': []
   };
 
+  function actualizarBotonFotosUI() {
+    const btn = document.getElementById('btnToggleFotos120');
+    if (!btn) return;
+    if (pedirFotosActivo) {
+      btn.className = 'btn-toggle-fotos-estado modo-on';
+      btn.innerHTML = `📸 Fotos &ge;${MIN_DIAS_COMITE}d: ON`;
+    } else {
+      btn.className = 'btn-toggle-fotos-estado modo-off';
+      btn.innerHTML = `🚫 Fotos &ge;${MIN_DIAS_COMITE}d: OFF`;
+    }
+  }
+
+  function alternarPedirFotos120() {
+    pedirFotosActivo = !pedirFotosActivo;
+    localStorage.setItem('htc_pedir_fotos_120', pedirFotosActivo ? '1' : '0');
+    actualizarBotonFotosUI();
+    enfocarPistola();
+  }
+
   function aplicarEtiquetasMinDias() {
     const d = MIN_DIAS_COMITE;
     const inp = document.getElementById('inputMinDiasComite');
     if (inp) inp.value = d;
-    const lbl = document.getElementById('lblPedirFotosDias');
-    if (lbl) lbl.innerHTML = `📸 Pedir fotos &ge;${d}d`;
+    actualizarBotonFotosUI();
     const lblPaso1 = document.getElementById('lblPaso1MinDias');
     if (lblPaso1) lblPaso1.innerText = d;
     const descPist = document.getElementById('descPistoleoDias');
@@ -1290,11 +1378,27 @@
     if (lblKpiDash) lblKpiDash.innerHTML = `Obsolescencia &ge;${d}d`;
   }
 
-  function actualizarMinDiasComite(valor) {
-    const num = Math.max(1, parseInt(valor, 10) || 120);
+  function aprobarMinDiasComite() {
+    const inp = document.getElementById('inputMinDiasComite');
+    const num = Math.max(1, parseInt(inp?.value, 10) || 120);
     MIN_DIAS_COMITE = num;
     localStorage.setItem('htc_min_dias_comite', String(num));
     aplicarEtiquetasMinDias();
+
+    // Efecto visual de aprobación en verde
+    const caja = document.getElementById('cajaControlDias');
+    const btn = document.getElementById('btnAprobarDias');
+    if (caja && btn) {
+      caja.classList.add('aprobado-flash');
+      btn.classList.add('confirmado');
+      btn.innerText = '✓ Listo';
+      setTimeout(() => {
+        caja.classList.remove('aprobado-flash');
+        btn.classList.remove('confirmado');
+        btn.innerText = '✓ Aplicar';
+      }, 1200);
+    }
+
     if (sesionPistoleo) actualizarKPIsPistoleo();
     cargarDatos();
     enfocarPistola();
@@ -1362,10 +1466,6 @@
   }
 
   window.onload = () => {
-    const prefF = localStorage.getItem('htc_pedir_fotos_120');
-    if (prefF !== null && document.getElementById('chkPedirFotos120')) {
-      document.getElementById('chkPedirFotos120').checked = (prefF === '1');
-    }
     aplicarEtiquetasMinDias();
 
     if (usuarioActivo && NOMBRES_EVAL[usuarioActivo]) {
@@ -1389,12 +1489,6 @@
       }
     }, 6000);
   };
-
-  function guardarPrefFotos120() {
-    const chk = document.getElementById('chkPedirFotos120');
-    if (chk) localStorage.setItem('htc_pedir_fotos_120', chk.checked ? '1' : '0');
-    enfocarPistola();
-  }
 
   function identificarUsuario(rol) {
     usuarioActivo = rol;
@@ -1758,10 +1852,9 @@
           item.serialesEscaneados.push(lectura);
         }
 
-        const pedirFotos = document.getElementById('chkPedirFotos120')?.checked;
         const faltaFotoRef = !item.foto1 || !item.foto2;
 
-        if (item.dias >= MIN_DIAS_COMITE && pedirFotos && faltaFotoRef) {
+        if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && faltaFotoRef) {
           reproducirBeep('FOTO');
           alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
           alerta.innerHTML = `📸 <strong>${item.codigo}</strong> (${item.dias} días) — Registra Estado, Observación y 2 Fotos (${item.cantFisica}/${item.cantTeorica} und.)`;
@@ -1769,7 +1862,7 @@
         } else {
           reproducirBeep('OK');
           alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
-          const tagObs = item.dias >= MIN_DIAS_COMITE ? ` · ≥${MIN_DIAS_COMITE}d ${pedirFotos ? '(Fotos OK)' : '(Modo solo conteo)'}` : ` · ${item.dias}d`;
+          const tagObs = item.dias >= MIN_DIAS_COMITE ? ` · ≥${MIN_DIAS_COMITE}d ${pedirFotosActivo ? '(Fotos OK)' : '(Modo solo conteo)'}` : ` · ${item.dias}d`;
           alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und.${tagObs})`;
         }
         guardarSesionPistoleoLocal();
