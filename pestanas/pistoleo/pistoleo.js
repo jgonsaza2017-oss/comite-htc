@@ -93,11 +93,14 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     const serEscaneados = Array.from(
       new Set((it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean))
     ).filter(s => !serialesDeshechosLocal.has(`${cod}|${s}`));
+    const serBaja = Array.from(
+      new Set((it.serialesBaja || []).map(normalizarClavePistoleo).filter(Boolean))
+    );
 
     const mapaAud = { ...(it.fisicoPorAuditor || {}) };
-    const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA';
+    const esBajaTotal = String(it.estado || '').trim().toUpperCase() === 'BAJA';
     const yaPedida = Boolean(
-      it.fotoSolicitadaPLU || it.foto1 || it.foto2 || esBaja || plusConFotoPedida.has(cod)
+      it.fotoSolicitadaPLU || it.foto1 || it.foto2 || esBajaTotal || plusConFotoPedida.has(cod)
     );
 
     if (!mapaItems.has(cod)) {
@@ -109,6 +112,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
         fisicoPorAuditor: mapaAud,
         serialesTeoricos: serTeoricos,
         serialesEscaneados: serEscaneados,
+        serialesBaja: serBaja,
         fotoSolicitadaPLU: yaPedida
       };
       recalcularFisicoItem(nuevo);
@@ -124,6 +128,9 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     actual.serialesEscaneados = Array.from(
       new Set([...(actual.serialesEscaneados || []), ...serEscaneados])
     ).filter(s => !serialesDeshechosLocal.has(`${cod}|${s}`));
+    actual.serialesBaja = Array.from(
+      new Set([...(actual.serialesBaja || []), ...serBaja])
+    ).filter(s => actual.serialesEscaneados.includes(s));
 
     if (!actual.fisicoPorAuditor) actual.fisicoPorAuditor = {};
     Object.entries(mapaAud).forEach(([aud, cant]) => {
@@ -371,6 +378,7 @@ function subirYUnirMitadLike() {
           fisicoPorAuditor: {},
           serialesTeoricos: [],
           serialesEscaneados: [],
+          serialesBaja: [],
           dias,
           costoUnit: costo,
           estado: estadoExcel || 'Bueno / funcional',
@@ -491,7 +499,7 @@ function enviarDisparoEnVivo(payload) {
 function fusionarProgresoEnVivo(remoto) {
   if (!sesionPistoleo || !remoto || remoto.sucursal !== sesionPistoleo.sucursal) return;
   const antes = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -499,7 +507,7 @@ function fusionarProgresoEnVivo(remoto) {
   sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, remoto);
 
   const despues = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -603,25 +611,27 @@ function procesarDisparoPistola(valorRaw) {
       }
       recalcularFisicoItem(item);
 
-      const esBaja = String(item.estado || '').trim().toUpperCase() === 'BAJA';
+      const esBajaTotal = String(item.estado || '').trim().toUpperCase() === 'BAJA';
       const tieneFotoGuardada = Boolean(item.foto1 || item.foto2);
       const yaEvaluadoPLU = Boolean(
         tieneFotoGuardada || item.fotoSolicitadaPLU || plusConFotoPedida.has(codItemNorm)
       );
 
-      if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && !yaEvaluadoPLU && !esBaja) {
+      if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && !yaEvaluadoPLU && !esBajaTotal) {
         item.fotoSolicitadaPLU = true;
         marcarPluFotoPedida(codItemNorm);
         reproducirBeep('FOTO');
         alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
-        alerta.innerHTML = `📸 <strong>PLU ${item.codigo}</strong> (${item.dias} días) — Toma 1 foto para este PLU o márcalo como <strong>Baja</strong> en el buscador (${item.cantFisica}/${item.cantTeorica} und.)`;
+        alerta.innerHTML = `📸 <strong>PLU ${item.codigo}</strong> (${item.dias} días) — Toma 1 foto para este PLU (${item.cantFisica}/${item.cantTeorica} und.)`;
         abrirPanelFotoInmediata(item);
       } else {
         reproducirBeep('OK');
         alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
+        const cantBaja = (item.serialesBaja || []).length;
+        const tagBaja = cantBaja > 0 ? ` · ${cantBaja} en Baja` : '';
         const tagObs = item.dias >= MIN_DIAS_COMITE
-          ? ` · ≥${MIN_DIAS_COMITE}d (${esBaja ? 'BAJA - sin foto' : (tieneFotoGuardada ? 'Foto PLU OK' : item.estado)})`
-          : ` · ${item.dias}d`;
+          ? ` · ≥${MIN_DIAS_COMITE}d (${esBajaTotal ? 'BAJA - sin foto' : (tieneFotoGuardada ? 'Foto PLU OK' : item.estado)}${tagBaja})`
+          : ` · ${item.dias}d${tagBaja}`;
         alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und.${tagObs})`;
       }
 
@@ -663,40 +673,57 @@ function procesarDisparoPistola(valorRaw) {
   }
 }
 
-function marcarBajaDesdeBuscador(codigo) {
+function marcarBajaDesdeBuscador(codigo, serialSeleccionado = '') {
   if (!sesionPistoleo) return;
   const codNorm = normalizarClavePistoleo(codigo);
   const item = sesionPistoleo.items.find(x => normalizarClavePistoleo(x.codigo) === codNorm);
   if (!item) return;
 
-  item.esEstadoOtro = false;
-  item.estado = 'Baja';
-  if (!item.observacion || item.observacion === 'Caja deteriorada y con polvo.') {
-    item.observacion = 'Identificado como Baja en toma física';
-  }
-  item.fotoSolicitadaPLU = true;
-  marcarPluFotoPedida(codNorm);
+  if (!Array.isArray(item.serialesBaja)) item.serialesBaja = [];
+  const serNorm = normalizarClavePistoleo(serialSeleccionado);
 
-  const panelFoto = document.getElementById('panelFotoInmediataPistoleo');
-  if (panelFoto && itemPistoleoFotoActual && normalizarClavePistoleo(itemPistoleoFotoActual.codigo) === codNorm) {
-    panelFoto.classList.add('d-none');
-  }
+  if (serNorm) {
+    // Alterna Baja SOLO para ese serial específico, dejando las demás unidades buenas
+    const idx = item.serialesBaja.findIndex(s => normalizarClavePistoleo(s) === serNorm);
+    const yaEstabaEnBaja = idx >= 0;
+    if (yaEstabaEnBaja) {
+      item.serialesBaja.splice(idx, 1);
+    } else {
+      item.serialesBaja.push(serNorm);
+    }
 
-  const alerta = document.getElementById('alertaUltimoPistoleo');
-  if (alerta) {
-    alerta.className = 'alert alert-warning text-dark small fw-bold mb-0 py-2 rounded-3';
-    alerta.innerHTML = `🗑️ <strong>MARCADO COMO BAJA:</strong> <code>${item.codigo}</code> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und. · Sin foto).`;
+    // Si antes había quedado marcado todo el PLU en Baja pero hay unidades buenas, restaurar estado base
+    if (String(item.estado || '').trim().toUpperCase() === 'BAJA' && Number(item.cantFisica || 0) > item.serialesBaja.length) {
+      item.estado = 'Bueno / funcional';
+    }
+
+    const alerta = document.getElementById('alertaUltimoPistoleo');
+    if (alerta) {
+      alerta.className = 'alert alert-warning text-dark small fw-bold mb-0 py-2 rounded-3';
+      alerta.innerHTML = yaEstabaEnBaja
+        ? `✅ <strong>SERIAL QUITADO DE BAJA:</strong> <code>${serNorm}</code> vuelve a estado bueno en <code>${item.codigo}</code>.`
+        : `🗑️ <strong>SERIAL MARCADO COMO BAJA (1 und.):</strong> <code>${serNorm}</code> en <code>${item.codigo}</code> - ${item.descripcion} (las demás ${Math.max(0, item.cantFisica - item.serialesBaja.length)} und. siguen buenas).`;
+    }
+  } else {
+    // Si es producto sin seriales, marca el código como Baja
+    item.esEstadoOtro = false;
+    item.estado = 'Baja';
+    if (!item.observacion || item.observacion === 'Caja deteriorada y con polvo.') {
+      item.observacion = 'Identificado como Baja en toma física';
+    }
+    item.fotoSolicitadaPLU = true;
+    marcarPluFotoPedida(codNorm);
+
+    const alerta = document.getElementById('alertaUltimoPistoleo');
+    if (alerta) {
+      alerta.className = 'alert alert-warning text-dark small fw-bold mb-0 py-2 rounded-3';
+      alerta.innerHTML = `🗑️ <strong>CÓDIGO MARCADO COMO BAJA:</strong> <code>${item.codigo}</code> - ${item.descripcion}.`;
+    }
   }
 
   guardarSesionPistoleoLocal();
   actualizarKPIsPistoleo();
   buscarProductoPistoleado(document.getElementById('inputBuscarPistoleado')?.value || '');
-  enviarDisparoEnVivo({
-    tipo: 'MARCAR_BAJA',
-    codigo: item.codigo,
-    estado: 'Baja',
-    observacion: item.observacion
-  });
   enfocarPistola();
 }
 
@@ -722,7 +749,11 @@ function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
   }
 
   if (serialQuitado) {
-    serialesDeshechosLocal.add(`${codNorm}|${normalizarClavePistoleo(serialQuitado)}`);
+    const serQuitadoNorm = normalizarClavePistoleo(serialQuitado);
+    serialesDeshechosLocal.add(`${codNorm}|${serQuitadoNorm}`);
+    if (Array.isArray(item.serialesBaja)) {
+      item.serialesBaja = item.serialesBaja.filter(s => normalizarClavePistoleo(s) !== serQuitadoNorm);
+    }
   }
   ajustesDeshacerPorPlu[codNorm] = Number(ajustesDeshacerPorPlu[codNorm] || 0) + 1;
   guardarEstadoDeshacerLocal();
@@ -753,6 +784,7 @@ function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
   item.cantFisica = nuevaCantidad;
   if (item.cantFisica === 0) {
     item.fotoSolicitadaPLU = false;
+    item.serialesBaja = [];
     quitarMarcaPluFotoPedida(codNorm);
   }
 
@@ -799,28 +831,52 @@ function buscarProductoPistoleado(textoFiltro = '') {
 
   cont.innerHTML = pistoleados.slice(0, 15).map(it => {
     const serEsc = it.serialesEscaneados || [];
-    const serCoincidente = serEsc.find(s => normalizarClavePistoleo(s).includes(q)) || serEsc[0] || '';
-    const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA';
+    const serBajaSet = new Set((it.serialesBaja || []).map(normalizarClavePistoleo));
+    const serCoincidente = serEsc.find(s => normalizarClavePistoleo(s).includes(q)) || '';
     const codEscapado = String(it.codigo).replace(/'/g, "\\'");
-    const serEscapado = String(serCoincidente).replace(/'/g, "\\'");
+    const serCoincEscapado = String(serCoincidente).replace(/'/g, "\\'");
+    const esSerialCoincBaja = serCoincidente && serBajaSet.has(normalizarClavePistoleo(serCoincidente));
+    const esBajaTotal = String(it.estado || '').trim().toUpperCase() === 'BAJA' && serEsc.length === 0;
+    const activoBaja = serCoincidente ? esSerialCoincBaja : esBajaTotal;
+
+    const listaSerialesHtml = serEsc.length ? `
+      <div class="d-flex flex-wrap gap-1 mt-1">
+        ${serEsc.map(s => {
+          const sNorm = normalizarClavePistoleo(s);
+          const sBaja = serBajaSet.has(sNorm);
+          const sEsc = String(s).replace(/'/g, "\\'");
+          return `
+            <span class="badge ${sBaja ? 'bg-danger' : 'bg-light text-dark border'} font-monospace d-inline-flex align-items-center gap-1">
+              ${s}${sBaja ? ' (BAJA)' : ''}
+              <button type="button" class="btn btn-link p-0 text-decoration-none ${sBaja ? 'text-white' : 'text-danger'}" style="font-size:0.68rem;"
+                title="Marcar/Quitar Baja solo a este serial"
+                onclick="marcarBajaDesdeBuscador('${codEscapado}', '${sEsc}')">🗑️</button>
+            </span>
+          `;
+        }).join('')}
+      </div>
+    ` : '';
+
     return `
       <div class="d-flex justify-content-between align-items-center py-2 px-2 border bg-white rounded-2 mb-1 small gap-2">
         <div>
           <span class="badge bg-success">${it.codigo}</span>
-          <span class="badge ${esBaja ? 'bg-danger' : 'bg-secondary'}">${it.estado || 'Bueno / funcional'}</span>
+          ${serBajaSet.size > 0 ? `<span class="badge bg-danger">${serBajaSet.size} en Baja</span>` : ''}
           <strong class="ms-1">${it.descripcion}</strong>
           <div class="text-muted" style="font-size:0.7rem;">
             Físico: <strong>${it.cantFisica}</strong> / ${it.cantTeorica} · ${it.dias}d
-            ${serEsc.length ? `<br>Seriales escaneados: <span class="font-monospace">${serEsc.join(', ')}</span>` : ''}
           </div>
+          ${listaSerialesHtml}
         </div>
         <div class="d-flex align-items-center gap-1 flex-shrink-0">
-          <button type="button" class="btn ${esBaja ? 'btn-danger' : 'btn-outline-danger'} btn-sm py-0 px-2 fw-bold" style="font-size:0.7rem;"
-            onclick="marcarBajaDesdeBuscador('${codEscapado}')">
-            🗑️ Baja
-          </button>
+          ${(serCoincidente || serEsc.length === 0) ? `
+            <button type="button" class="btn ${activoBaja ? 'btn-danger' : 'btn-outline-danger'} btn-sm py-0 px-2 fw-bold" style="font-size:0.7rem;"
+              onclick="marcarBajaDesdeBuscador('${codEscapado}', '${serCoincEscapado}')">
+              🗑️ ${serCoincidente ? (activoBaja ? 'Quitar Baja' : 'Baja serial') : 'Baja'}
+            </button>
+          ` : ''}
           <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 fw-bold" style="font-size:0.7rem;"
-            onclick="deshacerPistoleoCodigo('${codEscapado}', '${serEscapado}'); buscarProductoPistoleado(document.getElementById('inputBuscarPistoleado')?.value || '');">
+            onclick="deshacerPistoleoCodigo('${codEscapado}', '${serCoincEscapado}'); buscarProductoPistoleado(document.getElementById('inputBuscarPistoleado')?.value || '');">
             ↩ Quitar 1
           </button>
         </div>
@@ -892,12 +948,9 @@ function abrirPanelFotoInmediata(item) {
     seleccionarEstadoToma('Otro', '', false);
   } else seleccionarEstadoToma('Bueno / funcional', item.observacion, false);
 
-  const esBaja = String(item.estado || '').trim().toUpperCase() === 'BAJA';
-  document.getElementById('msgFotoPistoleo').innerText = esBaja
-    ? `🗑️ PLU ${item.codigo} marcado como BAJA (no requiere foto).`
-    : (item.foto1 || item.foto2)
-      ? `✓ Este PLU (${item.codigo}) ya tiene foto registrada.`
-      : `📸 Toma 1 foto para el PLU ${item.codigo}, o marca BAJA si no requiere foto.`;
+  document.getElementById('msgFotoPistoleo').innerText = (item.foto1 || item.foto2)
+    ? `✓ Este PLU (${item.codigo}) ya tiene foto registrada.`
+    : `📸 Toma 1 foto para el PLU ${item.codigo} (aplica a las unidades buenas del lote).`;
 }
 
 function seleccionarEstadoToma(estadoNombre, obsPrevia = '', cerrarSiEsBaja = true) {
@@ -1115,20 +1168,28 @@ function mostrarSublistaPistoleo(tipo) {
       cont.innerHTML = `<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; ${MIN_DIAS_COMITE} días.</div>`;
       return;
     }
-    cont.innerHTML = obsItems.map(it => `
-      <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
-        <div style="cursor:pointer;" onclick="reabrirEvaluacionCodigo('${it.codigo}')">
-          <span class="badge bg-dark">${it.codigo}</span>
-          <span class="badge bg-warning text-dark">${it.estado}</span>
-          <strong class="ms-1">${it.descripcion}</strong>
-          <div class="text-muted" style="font-size: 0.7rem;">${it.dias}d · Físico: ${it.cantFisica}/${it.cantTeorica} · ${it.observacion}</div>
+    cont.innerHTML = obsItems.map(it => {
+      const cantBaja = (it.serialesBaja || []).length;
+      const badgeBaja = cantBaja > 0 ? `<span class="badge bg-danger">${cantBaja} Baja</span>` : '';
+      return `
+        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
+          <div style="cursor:pointer;" onclick="reabrirEvaluacionCodigo('${it.codigo}')">
+            <span class="badge bg-dark">${it.codigo}</span>
+            <span class="badge bg-warning text-dark">${it.estado}</span>
+            ${badgeBaja}
+            <strong class="ms-1">${it.descripcion}</strong>
+            <div class="text-muted" style="font-size: 0.7rem;">
+              ${it.dias}d · Físico: ${it.cantFisica}/${it.cantTeorica} · ${it.observacion}
+              ${cantBaja > 0 ? `<br><span class="text-danger fw-bold">Seriales en Baja: ${it.serialesBaja.join(', ')}</span>` : ''}
+            </div>
+          </div>
+          <div class="text-end flex-shrink-0">
+            <span class="badge ${it.foto1 || it.foto2 ? 'bg-success' : 'bg-danger'}">${it.foto1 || it.foto2 ? 'Foto PLU OK' : 'Falta foto'}</span>
+            <div><button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="deshacerPistoleoCodigo('${it.codigo.replace(/'/g, "\\'")}')">↩ Quitar 1</button></div>
+          </div>
         </div>
-        <div class="text-end flex-shrink-0">
-          <span class="badge ${it.foto1 || it.foto2 ? 'bg-success' : 'bg-danger'}">${it.foto1 || it.foto2 ? 'Foto PLU OK' : 'Falta foto'}</span>
-          <div><button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="deshacerPistoleoCodigo('${it.codigo.replace(/'/g, "\\'")}')">↩ Quitar 1</button></div>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 }
 
@@ -1254,6 +1315,68 @@ function detenerEscanerCamara() {
   }
 }
 
+function dividirLotesComitePorSerialBaja(it) {
+  const serEsc = it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos;
+  const serBajaSet = new Set((it.serialesBaja || []).map(normalizarClavePistoleo));
+
+  if (serBajaSet.size > 0 && serEsc.length > 0) {
+    const serialesEnBaja = serEsc.filter(s => serBajaSet.has(normalizarClavePistoleo(s)));
+    const serialesBuenos = serEsc.filter(s => !serBajaSet.has(normalizarClavePistoleo(s)));
+    const cantBaja = serialesEnBaja.length;
+    const cantBuena = Math.max(0, it.cantFisica - cantBaja);
+    const lotes = [];
+
+    if (cantBuena > 0) {
+      lotes.push({
+        sucursal: sesionPistoleo.sucursal,
+        codigo: it.codigo,
+        descripcion: it.descripcion,
+        cantidad: cantBuena,
+        seriales: serialesBuenos.join(', '),
+        dias: it.dias,
+        costoUnit: it.costoUnit,
+        costoTotal: it.costoUnit * cantBuena,
+        estado: it.estado === 'Baja' ? 'Bueno / funcional' : (it.estado || 'Bueno / funcional'),
+        observacion: it.observacion || 'Caja deteriorada y con polvo.',
+        foto1: (it.foto1 && it.foto1 !== 'OK') ? it.foto1 : '',
+        foto2: (it.foto2 && it.foto2 !== 'OK') ? it.foto2 : ''
+      });
+    }
+    if (cantBaja > 0) {
+      lotes.push({
+        sucursal: sesionPistoleo.sucursal,
+        codigo: it.codigo,
+        descripcion: it.descripcion,
+        cantidad: cantBaja,
+        seriales: serialesEnBaja.join(', '),
+        dias: it.dias,
+        costoUnit: it.costoUnit,
+        costoTotal: it.costoUnit * cantBaja,
+        estado: 'Baja',
+        observacion: `Identificado como Baja en toma física (Serial: ${serialesEnBaja.join(', ')})`,
+        foto1: '',
+        foto2: ''
+      });
+    }
+    return lotes;
+  }
+
+  return [{
+    sucursal: sesionPistoleo.sucursal,
+    codigo: it.codigo,
+    descripcion: it.descripcion,
+    cantidad: it.cantFisica,
+    seriales: serEsc.join(', '),
+    dias: it.dias,
+    costoUnit: it.costoUnit,
+    costoTotal: it.costoUnit * it.cantFisica,
+    estado: it.estado || 'Bueno / funcional',
+    observacion: it.observacion || 'Caja deteriorada y con polvo.',
+    foto1: (it.foto1 && it.foto1 !== 'OK') ? it.foto1 : '',
+    foto2: (it.foto2 && it.foto2 !== 'OK') ? it.foto2 : ''
+  }];
+}
+
 function exportarActaPistoleoCSV() {
   if (!sesionPistoleo) return;
   let csv = 'Tipo;Sucursal;Codigo;Descripcion;Seriales;Teorico;Fisico;Diferencia;Costo_Unit;Valor_Total;Estado_Toma;Observacion\n';
@@ -1264,8 +1387,10 @@ function exportarActaPistoleoCSV() {
       csv += `"FALTANTE COBRO";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${ser}";${it.cantTeorica};${it.cantFisica};${diff};${it.costoUnit};${diff * it.costoUnit};"No encontrado";"Faltante en auditoria fisica"\n`;
     }
     if (it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE) {
-      const serEsc = (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', ');
-      csv += `"OBSOLESCENCIA >=${MIN_DIAS_COMITE}D";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${serEsc}";${it.cantTeorica};${it.cantFisica};0;${it.costoUnit};${it.costoUnit * it.cantFisica};"${it.estado}";"${it.observacion}"\n`;
+      const lotes = dividirLotesComitePorSerialBaja(it);
+      lotes.forEach(l => {
+        csv += `"OBSOLESCENCIA >=${MIN_DIAS_COMITE}D";"${l.sucursal}";"${l.codigo}";"${l.descripcion}";"${l.seriales}";${it.cantTeorica};${l.cantidad};0;${l.costoUnit};${l.costoTotal};"${l.estado}";"${l.observacion}"\n`;
+      });
     }
   });
   sesionPistoleo.sobrantes.forEach(s => {
@@ -1312,20 +1437,7 @@ async function cerrarYEnviarAuditoriaTienda() {
 
   const lotesComite = sesionPistoleo.items
     .filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE)
-    .map(it => ({
-      sucursal: sesionPistoleo.sucursal,
-      codigo: it.codigo,
-      descripcion: it.descripcion,
-      cantidad: it.cantFisica,
-      seriales: (it.serialesEscaneados.length > 0 ? it.serialesEscaneados : it.serialesTeoricos).join(', '),
-      dias: it.dias,
-      costoUnit: it.costoUnit,
-      costoTotal: it.costoUnit * it.cantFisica,
-      estado: it.estado || 'Bueno / funcional',
-      observacion: it.observacion || 'Caja deteriorada y con polvo.',
-      foto1: (it.foto1 && it.foto1 !== 'OK') ? it.foto1 : '',
-      foto2: (it.foto2 && it.foto2 !== 'OK') ? it.foto2 : ''
-    }));
+    .flatMap(it => dividirLotesComitePorSerialBaja(it));
 
   try {
     const resp = await fetch(API_URL, {
