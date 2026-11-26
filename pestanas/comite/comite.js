@@ -19,13 +19,22 @@ function poblarSucursales() {
 }
 
 function obtenerClaveVotoUsuario() {
-  const mapa = {
-    OSMEL: 'vOsmel',
-    ANGELICA: 'vAngelica',
-    ORLANDO: 'vOrlando',
-    ANDRES: 'vAndres'
+  if (['OSMEL', 'ANGELICA', 'ORLANDO', 'ANDRES'].includes(usuarioActivo)) {
+    return usuarioActivo;
+  }
+  return '';
+}
+
+function leerVotoDeItem(item, rol) {
+  if (!item) return '';
+  if (item.votos && item.votos[rol]) return String(item.votos[rol]).trim();
+  const mapaLegado = {
+    OSMEL: item.vOsmel,
+    ANGELICA: item.vAngelica,
+    ORLANDO: item.vOrlando,
+    ANDRES: item.vAndres
   };
-  return mapa[usuarioActivo] || '';
+  return String(mapaLegado[rol] || '').trim();
 }
 
 function aplicarFiltrosComite() {
@@ -38,9 +47,14 @@ function aplicarFiltrosComite() {
     const sucItem = String(item.sucursal || '').trim().toUpperCase();
     if (sede !== 'TODAS' && sucItem !== sede) return false;
 
-    const votos = [item.vOsmel, item.vAngelica, item.vOrlando, item.vAndres];
-    const completos = votos.every(v => v && String(v).trim() !== '');
-    const miVoto = claveVoto ? String(item[claveVoto] || '').trim() : '';
+    const votos = [
+      leerVotoDeItem(item, 'OSMEL'),
+      leerVotoDeItem(item, 'ANGELICA'),
+      leerVotoDeItem(item, 'ORLANDO'),
+      leerVotoDeItem(item, 'ANDRES')
+    ];
+    const completos = votos.every(v => v !== '');
+    const miVoto = claveVoto ? leerVotoDeItem(item, claveVoto) : '';
 
     if (estado === 'PENDIENTES_MI_VOTO' && (!claveVoto || miVoto !== '')) return false;
     if (estado === 'COMPLETOS_4_4' && !completos) return false;
@@ -100,10 +114,10 @@ function renderFichaComite() {
   const fotoActual = fotos[indiceFotoPasarela] || 'https://via.placeholder.com/400x240?text=Sin+Foto';
 
   const votos = [
-    { rol: 'Oswal', val: item.vOsmel || '-' },
-    { rol: 'Angélica', val: item.vAngelica || '-' },
-    { rol: 'Orlando', val: item.vOrlando || '-' },
-    { rol: 'Andrés', val: item.vAndres || '-' }
+    { rol: 'Oswal', val: leerVotoDeItem(item, 'OSMEL') || '-' },
+    { rol: 'Angélica', val: leerVotoDeItem(item, 'ANGELICA') || '-' },
+    { rol: 'Orlando', val: leerVotoDeItem(item, 'ORLANDO') || '-' },
+    { rol: 'Andrés', val: leerVotoDeItem(item, 'ANDRES') || '-' }
   ];
   const votosCompletos = votos.every(v => v.val !== '-');
 
@@ -124,7 +138,7 @@ function renderFichaComite() {
           <span class="pill-meta pill-days">${item.dias || 0} días</span>
         </div>
         <span class="pill-meta ${votosCompletos ? 'status-aprobado' : 'status-progreso'}">
-          ${votosCompletos ? '✓ Comité 4/4 Completo' : '⏳ En evaluación'}
+          ${item.consenso || (votosCompletos ? '✓ Comité 4/4 Completo' : '⏳ En evaluación')}
         </span>
       </div>
 
@@ -218,21 +232,24 @@ async function emitirVotoComite(decision) {
     return;
   }
 
-  item[claveVoto] = decision;
+  if (!item.votos) item.votos = {};
+  item.votos[claveVoto] = decision;
   renderFichaComite();
 
   try {
-    await fetch(API_URL, {
+    const resp = await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify({
-        accion: 'registrar_voto_comite',
-        usuario: usuarioActivo,
+        accion: 'votar',
+        evaluador: claveVoto,
         fila: item.fila || item.rowIndex || '',
-        sucursal: item.sucursal || '',
-        codigo: item.codigo || '',
-        voto: decision
+        decision: decision
       })
     });
+    const res = await resp.json();
+    if (res && res.consenso) {
+      item.consenso = res.consenso;
+    }
   } catch (e) {
     console.warn('Error enviando voto a Sheets:', e);
   }

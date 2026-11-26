@@ -189,11 +189,19 @@ async function cargarDatos() {
     const data = await resp.json();
     listaComite = (data.comite || [])
       .filter(x => Number(x.dias || 0) >= MIN_DIAS_COMITE)
-      .map(x => ({
-        ...x,
-        foto1: normalizarUrlFotoDrive(x.foto1),
-        foto2: normalizarUrlFotoDrive(x.foto2)
-      }));
+      .map(x => {
+        const vObj = x.votos || {};
+        return {
+          ...x,
+          votos: vObj,
+          vOsmel: x.vOsmel || vObj.OSMEL || '',
+          vAngelica: x.vAngelica || vObj.ANGELICA || '',
+          vOrlando: x.vOrlando || vObj.ORLANDO || '',
+          vAndres: x.vAndres || vObj.ANDRES || '',
+          foto1: normalizarUrlFotoDrive(x.foto1),
+          foto2: normalizarUrlFotoDrive(x.foto2)
+        };
+      });
     listaFaltantesGlobal = data.faltantes || [];
     listaSobrantesGlobal = data.sobrantes || [];
 
@@ -292,7 +300,8 @@ async function capturarFrameCamaraWeb() {
   const scale = Math.min(1, MAX_W / video.videoWidth);
   canvas.width = Math.round(video.videoWidth * scale);
   canvas.height = Math.round(video.videoHeight * scale);
-  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const base64Comprimida = canvas.toDataURL('image/jpeg', 0.62);
   const { numFoto, origen } = camaraWebDestino;

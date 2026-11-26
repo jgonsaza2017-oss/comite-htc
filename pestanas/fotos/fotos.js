@@ -123,21 +123,36 @@ async function guardarFotosLoteAuditoria() {
   msg.innerText = 'Subiendo fotos a Google Drive...';
 
   try {
-    const resp = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        accion: 'guardar_fotos_lote',
-        fila: loteFotosSeleccionado.fila || loteFotosSeleccionado.rowIndex || '',
-        sucursal: loteFotosSeleccionado.sucursal || '',
-        codigo: loteFotosSeleccionado.codigo || '',
-        foto1: fotoAuditoriaBase64[1] || '',
-        foto2: fotoAuditoriaBase64[2] || ''
-      })
+    const envios = [];
+    [1, 2].forEach(num => {
+      if (fotoAuditoriaBase64[num]) {
+        envios.push(
+          fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              accion: 'foto',
+              fila: loteFotosSeleccionado.fila || loteFotosSeleccionado.rowIndex || '',
+              codigo: loteFotosSeleccionado.codigo || '',
+              numFoto: num,
+              base64Data: fotoAuditoriaBase64[num]
+            })
+          }).then(r => r.json()).then(res => ({ num, res }))
+        );
+      }
     });
-    const res = await resp.json();
-    if (res.ok) {
-      if (res.foto1) loteFotosSeleccionado.foto1 = normalizarUrlFotoDrive(res.foto1);
-      if (res.foto2) loteFotosSeleccionado.foto2 = normalizarUrlFotoDrive(res.foto2);
+
+    const resultados = await Promise.all(envios);
+    let okCount = 0;
+    resultados.forEach(({ num, res }) => {
+      if (res && res.ok) {
+        okCount += 1;
+        if (res.fotoUrl) {
+          loteFotosSeleccionado[`foto${num}`] = normalizarUrlFotoDrive(res.fotoUrl);
+        }
+      }
+    });
+
+    if (okCount > 0) {
       msg.innerText = '✅ Fotos guardadas correctamente.';
       renderTablaFotos();
     } else {
