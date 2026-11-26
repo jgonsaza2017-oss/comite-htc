@@ -8,7 +8,6 @@ let intervaloSyncPistoleo = null;
 function normalizarClavePistoleo(val) {
   let str = String(val ?? '').trim();
   if (!str) return '';
-  // Si SheetJS convierte un serial numérico largo a notación científica (ej: 8.1240016345e+10)
   if (/^\d+(\.\d+)?e\+\d+$/i.test(str)) {
     const num = Number(str);
     if (!Number.isNaN(num)) str = num.toFixed(0);
@@ -17,6 +16,10 @@ function normalizarClavePistoleo(val) {
     .replace(/\.0+$/, '')
     .replace(/\s+/g, '')
     .toUpperCase();
+}
+
+function obtenerAuditorActivoPistoleo() {
+  return (document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1').trim().toUpperCase();
 }
 
 function obtenerCampoFilaLike(cleanObj, posiblesClaves) {
@@ -35,6 +38,148 @@ function obtenerCampoFilaLike(cleanObj, posiblesClaves) {
     }
   }
   return '';
+}
+
+function recalcularFisicoItem(item) {
+  if (!item.fisicoPorAuditor || typeof item.fisicoPorAuditor !== 'object') {
+    item.fisicoPorAuditor = {};
+  }
+  const sumaPorAuditor = Object.values(item.fisicoPorAuditor).reduce(
+    (acc, n) => acc + (Number(n) || 0),
+    0
+  );
+  const serialesUnicos = Array.isArray(item.serialesEscaneados)
+    ? item.serialesEscaneados.length
+    : 0;
+  const totalCombinado = Math.max(sumaPorAuditor, serialesUnicos, Number(item.cantFisica || 0));
+  item.cantFisica = Math.min(Number(item.cantTeorica || 0), totalCombinado);
+}
+
+function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
+  if (!sesionBase) return sesionEntrante;
+  if (!sesionEntrante) return sesionBase;
+
+  const mapaItems = new Map();
+
+  const absorberItem = (it) => {
+    const cod = normalizarClavePistoleo(it.codigo);
+    if (!cod) return;
+
+    const serTeoricos = Array.from(
+      new Set((it.serialesTeoricos || []).map(normalizarClavePistoleo).filter(Boolean))
+    );
+    const serEscaneados = Array.from(
+      new Set((it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean))
+    );
+    const mapaAud = { ...(it.fisicoPorAuditor || {}) };
+
+    if (!mapaItems.has(cod)) {
+      const nuevo = {
+        ...it,
+        codigo: cod,
+        cantTeorica: Number(it.cantTeorica || 0),
+        cantFisica: Number(it.cantFisica || 0),
+        fisicoPorAuditor: mapaAud,
+        serialesTeoricos: serTeoricos,
+        serialesEscaneados: serEscaneados
+      };
+      recalcularFisicoItem(nuevo);
+      mapaItems.set(cod, nuevo);
+      return;
+    }
+
+    const actual = mapaItems.get(cod);
+    actual.cantTeorica = Math.max(actual.cantTeorica, Number(it.cantTeorica || 0));
+    actual.serialesTeoricos = Array.from(
+      new Set([...(actual.serialesTeoricos || []), ...serTeoricos])
+    );
+    actual.serialesEscaneados = Array.from(
+      new Set([...(actual.serialesEscaneados || []), ...serEscaneados])
+    );
+
+    if (!actual.fisicoPorAuditor) actual.fisicoPorAuditor = {};
+    Object.entries(mapaAud).forEach(([aud, cant]) => {
+      actual.fisicoPorAuditor[aud] = Math.max(
+        Number(actual.fisicoPorAuditor[aud] || 0),
+        Number(cant || 0)
+      );
+    });
+
+    const sumaAuditores = Object.values(actual.fisicoPorAuditor).reduce(
+      (acc, n) => acc + (Number(n) || 0),
+      0
+    );
+    const maxDirecto = Math.max(
+      Number(actual.cantFisica || 0),
+      Number(it.cantFisica || 0),
+      actual.serialesEscaneados.length,
+      sumaAuditores
+    );
+    actual.cantFisica = Math.min(actual.cantTeorica, maxDirecto);
+
+    if (Number(it.dias || 0) > Number(actual.dias || 0)) actual.dias = Number(it.dias);
+    if (Number(it.costoUnit || 0) > 0) actual.costoUnit = Number(it.costoUnit);
+    if (!actual.foto1 && it.foto1) actual.foto1 = it.foto1;
+    if (!actual.foto2 && it.foto2) actual.foto2 = it.foto2;
+    if (it.observacion && it.observacion !== 'Caja deteriorada y con polvo.') {
+      actual.observacion = it.observacion;
+    }
+  };
+
+  (sesionBase.items || []).forEach(absorberItem);
+  (sesionEntrante.items || []).forEach(absorberItem);
+
+  const itemsConsolidados = Array.from(mapaItems.values());
+  const codigosValidos = new Set(itemsConsolidados.map(i => normalizarClavePistoleo(i.codigo)));
+  const serialesValidos = new Set();
+  itemsConsolidados.forEach(i => {
+    (i.serialesTeoricos || []).forEach(s => serialesValidos.add(normalizarClavePistoleo(s)));
+    (i.serialesEscaneados || []).forEach(s => serialesValidos.add(normalizarClavePistoleo(s)));
+  });
+
+  // Filtrar y unificar sobrantes (eliminando cualquier serial/código que ya exista en la base total)
+  const mapaSobrantes = new Map();
+  [...(sesionBase.sobrantes || []), ...(sesionEntrante.sobrantes || [])].forEach(s => {
+    const codSob = normalizarClavePistoleo(s.codigo);
+    const serSob = normalizarClavePistoleo(s.serial);
+    if (codigosValidos.has(codSob) || serialesValidos.has(serSob) || serialesValidos.has(codSob)) {
+      return;
+    }
+    const key = `${codSob}|${serSob}`;
+    if (!mapaSobrantes.has(key)) {
+      mapaSobrantes.set(key, { ...s, codigo: codSob, serial: serSob });
+    } else {
+      const prev = mapaSobrantes.get(key);
+      prev.sobrante = Math.max(Number(prev.sobrante || 0), Number(s.sobrante || 0));
+      prev.costoUnit = Number(s.costoUnit || prev.costoUnit || 0);
+      prev.valorSobrante = prev.sobrante * prev.costoUnit;
+    }
+  });
+
+  const crucesMap = new Map();
+  [...(sesionBase.cruces || []), ...(sesionEntrante.cruces || [])].forEach(c => {
+    const k = `${c.codigoSobrante}|${c.serialSobrante}|${c.codigoFaltante}`;
+    if (!crucesMap.has(k)) crucesMap.set(k, c);
+  });
+
+  const auditoresUnidos = Array.from(
+    new Set([
+      ...(sesionBase.mitadesCargadas || []),
+      ...(sesionEntrante.mitadesCargadas || []),
+      sesionBase.auditor,
+      sesionEntrante.auditor
+    ].filter(Boolean))
+  );
+
+  return {
+    ...sesionBase,
+    ...sesionEntrante,
+    sucursal: sesionEntrante.sucursal || sesionBase.sucursal,
+    mitadesCargadas: auditoresUnidos,
+    items: itemsConsolidados,
+    sobrantes: Array.from(mapaSobrantes.values()),
+    cruces: Array.from(crucesMap.values())
+  };
 }
 
 function inicializarModuloPistoleo() {
@@ -130,21 +275,20 @@ function aprobarMinDiasComite() {
 
 function subirYUnirMitadLike() {
   const file = document.getElementById('inputExcelLike')?.files[0];
-  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1';
+  const auditorMitad = obtenerAuditorActivoPistoleo();
   let tiendaNombre = document.getElementById('txtTiendaPistoleo')?.value.trim().toUpperCase() || '';
   const msg = document.getElementById('msgCargaLike');
 
   if (!file) {
-    msg.innerText = '📡 Unificando mitades actuales desde Google Sheets...';
+    msg.innerText = '📡 Unificando avances actuales desde Google Sheets...';
     unirseASesionVivo();
     return;
   }
 
-  msg.innerText = `Leyendo mitad de ${auditorMitad} y unificando en la nube...`;
+  msg.innerText = `Leyendo base total de ${auditorMitad} y cruzando avances...`;
 
   const reader = new FileReader();
-  reader.onload = function(e) {
-    // raw: false evita que los seriales numéricos largos (11-12 dígitos) se deformen en HTML/XLS
+  reader.onload = async function(e) {
     const wb = XLSX.read(e.target.result, { type: 'array', raw: false });
     const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '', raw: false });
@@ -182,6 +326,7 @@ function subirYUnirMitadLike() {
           descripcion: desc,
           cantTeorica: 0,
           cantFisica: 0,
+          fisicoPorAuditor: {},
           serialesTeoricos: [],
           serialesEscaneados: [],
           dias,
@@ -203,47 +348,60 @@ function subirYUnirMitadLike() {
 
     const items = Object.values(mapa);
     if (items.length === 0) {
-      msg.innerText = 'No se encontraron productos válidos en esa mitad del Excel.';
+      msg.innerText = 'No se encontraron productos válidos en ese archivo Excel.';
       return;
     }
 
-    const payloadMitad = {
-      sucursal: tiendaNombre || 'TIENDA',
+    const sucursalFinal = tiendaNombre || 'TIENDA';
+    let sesionNueva = {
+      sucursal: sucursalFinal,
       auditor: auditorMitad,
+      mitadesCargadas: [auditorMitad],
       items,
       sobrantes: [],
       cruces: []
     };
 
+    // 1) Combinar primero con lo que ya estaba pistoleado localmente si es la misma tienda
+    if (sesionPistoleo && sesionPistoleo.sucursal === sucursalFinal) {
+      sesionNueva = consolidarSesionesInventarioTotal(sesionPistoleo, sesionNueva);
+    }
+
+    // 2) Consultar la nube por si el otro auditor ya subió o pistoleó su parte en esta tienda
+    try {
+      const rRemoto = await fetch(API_URL);
+      const dRemoto = await rRemoto.json();
+      if (dRemoto.sesionVivo && dRemoto.sesionVivo.sucursal === sucursalFinal) {
+        sesionNueva = consolidarSesionesInventarioTotal(dRemoto.sesionVivo, sesionNueva);
+      }
+    } catch (err) {}
+
+    // 3) Publicar en la nube el estado ya consolidado para que no pise al otro auditor
     fetch(API_URL, {
       method: 'POST',
-      body: JSON.stringify({ accion: 'iniciar_sesion_vivo', sesion: payloadMitad })
+      body: JSON.stringify({ accion: 'iniciar_sesion_vivo', sesion: sesionNueva })
     })
     .then(r => r.json())
     .then(res => {
       if (res.ok && res.sesion) {
-        // Conservamos los serialesTeoricos completos por si el backend omitió alguno al unificar
-        const mapaLocalSeriales = new Map(items.map(it => [normalizarClavePistoleo(it.codigo), it.serialesTeoricos]));
-        res.sesion.items.forEach(srvIt => {
-          const codNorm = normalizarClavePistoleo(srvIt.codigo);
-          const locales = mapaLocalSeriales.get(codNorm) || [];
-          const actuales = Array.isArray(srvIt.serialesTeoricos) ? srvIt.serialesTeoricos.map(normalizarClavePistoleo) : [];
-          srvIt.serialesTeoricos = Array.from(new Set([...actuales, ...locales]));
-          srvIt.serialesEscaneados = Array.isArray(srvIt.serialesEscaneados) ? srvIt.serialesEscaneados.map(normalizarClavePistoleo) : [];
-        });
-
-        sesionPistoleo = res.sesion;
+        sesionPistoleo = consolidarSesionesInventarioTotal(sesionNueva, res.sesion);
         guardarSesionPistoleoLocal();
         restaurarUIPistoleo();
         if (typeof poblarSucursales === 'function') poblarSucursales();
-        const cargados = (res.sesion.mitadesCargadas || [auditorMitad]).join(' + ');
-        msg.innerText = `✅ Mitad de ${auditorMitad} subida y unificada (${cargados}): ${res.sesion.items.length} refs (${unidadesTotales} und.) en ${res.sesion.sucursal}.`;
+        const cargados = (sesionPistoleo.mitadesCargadas || [auditorMitad]).join(' + ');
+        msg.innerText = `✅ Base cargada y cruzada (${cargados}): ${sesionPistoleo.items.length} refs (${unidadesTotales} und.) en ${sesionPistoleo.sucursal}.`;
       } else {
-        msg.innerText = '⚠️ Error al subir mitad: ' + (res.error || 'revisa el script');
+        sesionPistoleo = sesionNueva;
+        guardarSesionPistoleoLocal();
+        restaurarUIPistoleo();
+        msg.innerText = '⚠️ Guardado local (revisa conexión con Sheets): ' + (res.error || '');
       }
     })
     .catch(() => {
-      msg.innerText = '⚠️ Error de conexión al subir la mitad.';
+      sesionPistoleo = sesionNueva;
+      guardarSesionPistoleoLocal();
+      restaurarUIPistoleo();
+      msg.innerText = '⚠️ Trabajando en modo local sin conexión a la nube.';
     });
     enfocarPistola();
   };
@@ -252,31 +410,32 @@ function subirYUnirMitadLike() {
 
 async function unirseASesionVivo() {
   const msg = document.getElementById('msgCargaLike');
-  msg.innerText = '📡 Conectando y unificando mitades desde Google Sheets...';
+  msg.innerText = '📡 Conectando y cruzando avances desde Google Sheets...';
   try {
     const resp = await fetch(API_URL);
     const data = await resp.json();
     if (!data.sesionVivo || !data.sesionVivo.items || data.sesionVivo.items.length === 0) {
-      msg.innerText = '⚠️ Aún no hay mitades cargadas en la nube. Sube tu mitad con el botón verde.';
+      msg.innerText = '⚠️ Aún no hay inventario cargado en la nube. Sube el archivo con el botón verde.';
       return;
     }
-    data.sesionVivo.items.forEach(it => {
-      it.serialesTeoricos = (it.serialesTeoricos || []).map(normalizarClavePistoleo).filter(Boolean);
-      it.serialesEscaneados = (it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean);
-    });
-    sesionPistoleo = data.sesionVivo;
+    if (sesionPistoleo && sesionPistoleo.sucursal === data.sesionVivo.sucursal) {
+      sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, data.sesionVivo);
+    } else {
+      sesionPistoleo = consolidarSesionesInventarioTotal(null, data.sesionVivo);
+    }
     guardarSesionPistoleoLocal();
     restaurarUIPistoleo();
     if (typeof poblarSucursales === 'function') poblarSucursales();
-    msg.innerText = `✅ Conectado a ${sesionPistoleo.sucursal} (${sesionPistoleo.items.length} refs unificadas). ¡Ya pueden pistolear!`;
+    const cargados = (sesionPistoleo.mitadesCargadas || []).join(' + ');
+    msg.innerText = `✅ Conectado y cruzado (${cargados || 'En vivo'}) en ${sesionPistoleo.sucursal} (${sesionPistoleo.items.length} refs).`;
     enfocarPistola();
   } catch (e) {
-    msg.innerText = '⚠️ Error de conexión al unificar en vivo.';
+    msg.innerText = '⚠️ Error de conexión al sincronizar en vivo.';
   }
 }
 
 function enviarDisparoEnVivo(payload) {
-  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1';
+  const auditorMitad = obtenerAuditorActivoPistoleo();
   fetch(API_URL, {
     method: 'POST',
     body: JSON.stringify({ accion: 'sync_disparo_vivo', auditor: auditorMitad, ...payload })
@@ -291,36 +450,21 @@ function enviarDisparoEnVivo(payload) {
 
 function fusionarProgresoEnVivo(remoto) {
   if (!sesionPistoleo || !remoto || remoto.sucursal !== sesionPistoleo.sucursal) return;
-  let huboCambios = false;
-
-  remoto.items.forEach(rItem => {
-    const codRemoto = normalizarClavePistoleo(rItem.codigo);
-    const local = sesionPistoleo.items.find(x => normalizarClavePistoleo(x.codigo) === codRemoto);
-    if (local) {
-      if (rItem.cantFisica > local.cantFisica) { local.cantFisica = rItem.cantFisica; huboCambios = true; }
-      (rItem.serialesTeoricos || []).forEach(s => {
-        const sn = normalizarClavePistoleo(s);
-        if (sn && !local.serialesTeoricos.includes(sn)) { local.serialesTeoricos.push(sn); huboCambios = true; }
-      });
-      (rItem.serialesEscaneados || []).forEach(s => {
-        const sn = normalizarClavePistoleo(s);
-        if (sn && !local.serialesEscaneados.includes(sn)) { local.serialesEscaneados.push(sn); huboCambios = true; }
-      });
-      if (!local.foto1 && rItem.foto1 === 'OK') { local.foto1 = 'OK'; huboCambios = true; }
-      if (!local.foto2 && rItem.foto2 === 'OK') { local.foto2 = 'OK'; huboCambios = true; }
-    }
+  const antes = JSON.stringify({
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2]),
+    sobrantes: sesionPistoleo.sobrantes,
+    cruces: sesionPistoleo.cruces
   });
 
-  if (Array.isArray(remoto.sobrantes) && JSON.stringify(remoto.sobrantes) !== JSON.stringify(sesionPistoleo.sobrantes)) {
-    sesionPistoleo.sobrantes = remoto.sobrantes;
-    huboCambios = true;
-  }
-  if (Array.isArray(remoto.cruces) && JSON.stringify(remoto.cruces) !== JSON.stringify(sesionPistoleo.cruces)) {
-    sesionPistoleo.cruces = remoto.cruces;
-    huboCambios = true;
-  }
+  sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, remoto);
 
-  if (huboCambios) {
+  const despues = JSON.stringify({
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2]),
+    sobrantes: sesionPistoleo.sobrantes,
+    cruces: sesionPistoleo.cruces
+  });
+
+  if (antes !== despues) {
     guardarSesionPistoleoLocal();
     actualizarKPIsPistoleo();
   }
@@ -366,6 +510,7 @@ function procesarDisparoPistola(valorRaw) {
   const lecturaSinParentesis = normalizarClavePistoleo(String(valorRaw || '').split('(')[0]);
   if (!lecturaNorm || !sesionPistoleo) return;
 
+  const auditorActual = obtenerAuditorActivoPistoleo();
   const alerta = document.getElementById('alertaUltimoPistoleo');
 
   const itemPorSerialEscaneado = sesionPistoleo.items.find(x =>
@@ -382,7 +527,6 @@ function procesarDisparoPistola(valorRaw) {
     return;
   }
 
-  // 1) Buscar primero por Serial 1 exacto, luego por Código Producto exacto o base sin paréntesis
   const item =
     sesionPistoleo.items.find(x =>
       (x.serialesTeoricos || []).some(s => normalizarClavePistoleo(s) === lecturaNorm)
@@ -394,12 +538,15 @@ function procesarDisparoPistola(valorRaw) {
 
   if (item) {
     if (item.cantFisica < item.cantTeorica) {
-      item.cantFisica += 1;
+      if (!item.fisicoPorAuditor) item.fisicoPorAuditor = {};
+      item.fisicoPorAuditor[auditorActual] = Number(item.fisicoPorAuditor[auditorActual] || 0) + 1;
+
       const codItemNorm = normalizarClavePistoleo(item.codigo);
       const serialDisparado = (lecturaNorm !== codItemNorm && lecturaSinParentesis !== codItemNorm) ? lecturaNorm : '';
       if (serialDisparado && !item.serialesEscaneados.includes(serialDisparado)) {
         item.serialesEscaneados.push(serialDisparado);
       }
+      recalcularFisicoItem(item);
 
       const faltaFotoRef = !item.foto1 || !item.foto2;
       if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && faltaFotoRef) {
@@ -925,7 +1072,7 @@ async function cerrarYEnviarAuditoriaTienda() {
       body: JSON.stringify({
         accion: 'guardar_auditoria_pistoleo',
         sucursal: sesionPistoleo.sucursal,
-        auditor: document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1',
+        auditor: obtenerAuditorActivoPistoleo(),
         faltantes,
         sobrantes: sesionPistoleo.sobrantes,
         lotesComite
