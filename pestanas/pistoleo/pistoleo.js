@@ -1,9 +1,17 @@
 let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || 'null');
+let plusConFotoPedida = new Set(JSON.parse(localStorage.getItem('htc_plus_foto_pedida') || '[]'));
 let itemPistoleoFotoActual = null;
 let sublistaPistoleoVista = 'FALTANTES';
 let html5QrScanner = null;
 let syncVivoEnCurso = false;
 let intervaloSyncPistoleo = null;
+
+function marcarPluFotoPedida(codigoPlu) {
+  const cod = normalizarClavePistoleo(codigoPlu);
+  if (!cod) return;
+  plusConFotoPedida.add(cod);
+  localStorage.setItem('htc_plus_foto_pedida', JSON.stringify(Array.from(plusConFotoPedida)));
+}
 
 function normalizarClavePistoleo(val) {
   let str = String(val ?? '').trim();
@@ -72,6 +80,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
       new Set((it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean))
     );
     const mapaAud = { ...(it.fisicoPorAuditor || {}) };
+    const yaPedida = Boolean(it.fotoSolicitadaPLU || it.foto1 || it.foto2 || plusConFotoPedida.has(cod));
 
     if (!mapaItems.has(cod)) {
       const nuevo = {
@@ -82,7 +91,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
         fisicoPorAuditor: mapaAud,
         serialesTeoricos: serTeoricos,
         serialesEscaneados: serEscaneados,
-        fotoSolicitadaPLU: Boolean(it.fotoSolicitadaPLU || it.foto1 || it.foto2)
+        fotoSolicitadaPLU: yaPedida
       };
       recalcularFisicoItem(nuevo);
       mapaItems.set(cod, nuevo);
@@ -122,7 +131,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     if (Number(it.costoUnit || 0) > 0) actual.costoUnit = Number(it.costoUnit);
     if (!actual.foto1 && it.foto1) actual.foto1 = it.foto1;
     if (!actual.foto2 && it.foto2) actual.foto2 = it.foto2;
-    if (it.fotoSolicitadaPLU || actual.foto1 || actual.foto2) {
+    if (yaPedida || actual.fotoSolicitadaPLU || actual.foto1 || actual.foto2) {
       actual.fotoSolicitadaPLU = true;
     }
     if (it.observacion && it.observacion !== 'Caja deteriorada y con polvo.') {
@@ -338,7 +347,7 @@ function subirYUnirMitadLike() {
           observacion: obsExcel || 'Caja deteriorada y con polvo.',
           obsAdicional: '',
           esEstadoOtro: false,
-          fotoSolicitadaPLU: false,
+          fotoSolicitadaPLU: plusConFotoPedida.has(codigo),
           foto1: '',
           foto2: ''
         };
@@ -452,7 +461,7 @@ function enviarDisparoEnVivo(payload) {
 function fusionarProgresoEnVivo(remoto) {
   if (!sesionPistoleo || !remoto || remoto.sucursal !== sesionPistoleo.sucursal) return;
   const antes = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2, i.fotoSolicitadaPLU]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -460,7 +469,7 @@ function fusionarProgresoEnVivo(remoto) {
   sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, remoto);
 
   const despues = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.foto1, i.foto2, i.fotoSolicitadaPLU]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -478,6 +487,8 @@ function guardarSesionPistoleoLocal() {
 function reiniciarSesionPistoleo() {
   if (!confirm('¿Seguro que deseas borrar el conteo actual en memoria para iniciar una tienda nueva?')) return;
   localStorage.removeItem('htc_sesion_pistoleo');
+  localStorage.removeItem('htc_plus_foto_pedida');
+  plusConFotoPedida.clear();
   sesionPistoleo = null;
   document.getElementById('zonaTrabajoPistoleo').classList.add('d-none');
   document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
@@ -549,10 +560,12 @@ function procesarDisparoPistola(valorRaw) {
       }
       recalcularFisicoItem(item);
 
-      // Solicita 1 sola foto por PLU (item.codigo), sin repetir en los siguientes seriales del mismo PLU
-      const yaTieneFotoPLU = Boolean(item.foto1 || item.foto2 || item.fotoSolicitadaPLU);
+      const yaTieneFotoPLU = Boolean(
+        item.foto1 || item.foto2 || item.fotoSolicitadaPLU || plusConFotoPedida.has(codItemNorm)
+      );
       if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && !yaTieneFotoPLU) {
         item.fotoSolicitadaPLU = true;
+        marcarPluFotoPedida(codItemNorm);
         reproducirBeep('FOTO');
         alerta.className = 'alert alert-warning small fw-bold mb-0 py-2 rounded-3';
         alerta.innerHTML = `📸 <strong>PLU ${item.codigo}</strong> (${item.dias} días) — Toma 1 foto de evidencia para este PLU (${item.cantFisica}/${item.cantTeorica} und.)`;
@@ -651,6 +664,7 @@ function eliminarSobranteIdx(idx) {
 function abrirPanelFotoInmediata(item) {
   itemPistoleoFotoActual = item;
   item.fotoSolicitadaPLU = true;
+  marcarPluFotoPedida(item.codigo);
   document.getElementById('panelFotoInmediataPistoleo').classList.remove('d-none');
   document.getElementById('pFotoTitulo').innerText = `PLU ${item.codigo} - ${item.descripcion} (${item.dias} días · ${item.cantFisica}/${item.cantTeorica} und.)`;
   document.getElementById('pImg1').src = (item.foto1 && item.foto1 !== 'OK') ? item.foto1 : 'https://via.placeholder.com/250x180?text=Foto+1';
@@ -728,6 +742,7 @@ function cerrarPanelEvaluacionPistoleo() {
 function aplicarFotoCamaraPistoleo(numFoto, base64) {
   if (!itemPistoleoFotoActual) return;
   itemPistoleoFotoActual.fotoSolicitadaPLU = true;
+  marcarPluFotoPedida(itemPistoleoFotoActual.codigo);
   if (numFoto === 1) {
     itemPistoleoFotoActual.foto1 = base64;
     document.getElementById('pImg1').src = base64;
