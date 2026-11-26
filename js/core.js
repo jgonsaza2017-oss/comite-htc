@@ -9,7 +9,8 @@ const NOMBRES_EVAL = {
   ANGELICA: 'Angélica (Gerente Administrativa)',
   ORLANDO: 'Orlando (Director Comercial)',
   ANDRES: 'Andrés (Jefe de Bodega)',
-  JOHAN_OSCAR: 'Johan y Oscar (Operación)'
+  AUDITOR_1: 'AUDITOR 1 (OPERACIÓN)',
+  AUDITOR_2: 'AUDITOR 2 (OPERACIÓN)'
 };
 
 const CATALOGO_ESTADOS_TOMA = {
@@ -120,14 +121,14 @@ async function mostrarAppPrincipal() {
     label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
   }
 
-  const navMenu = document.getElementById('navSegmentedMenu');
-  if (usuarioActivo === 'JOHAN_OSCAR') {
-    navMenu.classList.remove('modo-comite');
-    document.getElementById('btnTabComite').classList.add('d-none');
-    document.getElementById('btnTabCarga').classList.remove('d-none');
-    document.getElementById('btnTabPistoleo').classList.remove('d-none');
-    await cambiarVistaPestana('pistoleo');
-  } else {
+  const esOperacion = usuarioActivo === 'AUDITOR_1' || usuarioActivo === 'AUDITOR_2';
+  if (esOperacion) {
+  navMenu.classList.remove('modo-comite');
+  document.getElementById('btnTabComite').classList.add('d-none');
+  document.getElementById('btnTabCarga').classList.remove('d-none');
+  document.getElementById('btnTabPistoleo').classList.remove('d-none');
+  await cambiarVistaPestana('pistoleo');
+} else {
     navMenu.classList.add('modo-comite');
     document.getElementById('btnTabComite').classList.remove('d-none');
     document.getElementById('btnTabCarga').classList.add('d-none');
@@ -171,8 +172,8 @@ async function cambiarVistaPestana(nombre) {
 
   const barra = document.getElementById('barraFlotanteComite');
   const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
-  const tieneItems = typeof listaFiltrada !== 'undefined' && listaFiltrada.length > 0;
-  if (appVisible && nombre === 'comite' && tieneItems && usuarioActivo && usuarioActivo !== 'JOHAN_OSCAR') {
+  const esOperacion = usuarioActivo === 'AUDITOR_1' || usuarioActivo === 'AUDITOR_2';
+  if (appVisible && nombre === 'comite' && tieneItems && usuarioActivo && !esOperacion) {
     barra.classList.remove('d-none');
   } else {
     barra.classList.add('d-none');

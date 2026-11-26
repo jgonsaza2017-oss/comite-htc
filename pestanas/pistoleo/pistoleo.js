@@ -98,7 +98,7 @@ function aprobarMinDiasComite() {
 
 function subirYUnirMitadLike() {
   const file = document.getElementById('inputExcelLike')?.files[0];
-  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'Johan';
+  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1';
   let tiendaNombre = document.getElementById('txtTiendaPistoleo')?.value.trim().toUpperCase() || '';
   const msg = document.getElementById('msgCargaLike');
 
@@ -216,7 +216,7 @@ async function unirseASesionVivo() {
 }
 
 function enviarDisparoEnVivo(payload) {
-  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'Johan';
+  const auditorMitad = document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1';
   fetch(API_URL, {
     method: 'POST',
     body: JSON.stringify({ accion: 'sync_disparo_vivo', auditor: auditorMitad, ...payload })
@@ -851,7 +851,7 @@ async function cerrarYEnviarAuditoriaTienda() {
       body: JSON.stringify({
         accion: 'guardar_auditoria_pistoleo',
         sucursal: sesionPistoleo.sucursal,
-        auditor: document.getElementById('selAuditorMitad')?.value || 'Johan/Oscar',
+        auditor: document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1',
         faltantes,
         sobrantes: sesionPistoleo.sobrantes,
         lotesComite
