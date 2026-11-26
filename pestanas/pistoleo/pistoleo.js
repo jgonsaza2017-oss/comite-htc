@@ -645,16 +645,30 @@ function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
     }
   }
 
-  if (item.fisicoPorAuditor && Number(item.fisicoPorAuditor[auditorActual] || 0) > 0) {
-    item.fisicoPorAuditor[auditorActual] = Number(item.fisicoPorAuditor[auditorActual]) - 1;
-  } else if (item.fisicoPorAuditor) {
-    const audConSaldo = Object.keys(item.fisicoPorAuditor).find(k => Number(item.fisicoPorAuditor[k] || 0) > 0);
-    if (audConSaldo) {
-      item.fisicoPorAuditor[audConSaldo] = Number(item.fisicoPorAuditor[audConSaldo]) - 1;
+  const nuevaCantidad = Math.max(0, Number(item.cantFisica || 0) - 1);
+
+  if (item.fisicoPorAuditor && typeof item.fisicoPorAuditor === 'object') {
+    if (Number(item.fisicoPorAuditor[auditorActual] || 0) > 0) {
+      item.fisicoPorAuditor[auditorActual] = Number(item.fisicoPorAuditor[auditorActual]) - 1;
+    } else {
+      const audConSaldo = Object.keys(item.fisicoPorAuditor).find(k => Number(item.fisicoPorAuditor[k] || 0) > 0);
+      if (audConSaldo) {
+        item.fisicoPorAuditor[audConSaldo] = Number(item.fisicoPorAuditor[audConSaldo]) - 1;
+      }
+    }
+    const sumaAud = Object.values(item.fisicoPorAuditor).reduce((acc, n) => acc + (Number(n) || 0), 0);
+    if (sumaAud > nuevaCantidad) {
+      const sobranteAud = sumaAud - nuevaCantidad;
+      const claveAjuste = Number(item.fisicoPorAuditor[auditorActual] || 0) >= sobranteAud
+        ? auditorActual
+        : Object.keys(item.fisicoPorAuditor).find(k => Number(item.fisicoPorAuditor[k] || 0) >= sobranteAud);
+      if (claveAjuste) {
+        item.fisicoPorAuditor[claveAjuste] = Math.max(0, Number(item.fisicoPorAuditor[claveAjuste]) - sobranteAud);
+      }
     }
   }
 
-  item.cantFisica = Math.max(0, Number(item.cantFisica || 0) - 1);
+  item.cantFisica = nuevaCantidad;
   if (item.cantFisica === 0) {
     item.fotoSolicitadaPLU = false;
     quitarMarcaPluFotoPedida(codNorm);
@@ -675,6 +689,52 @@ function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
     cantFisica: item.cantFisica
   });
   enfocarPistola();
+}
+
+function buscarProductoPistoleado(textoFiltro = '') {
+  const cont = document.getElementById('contenedorBuscadorPistoleados');
+  if (!cont || !sesionPistoleo) return;
+
+  const q = normalizarClavePistoleo(textoFiltro);
+  const qTexto = String(textoFiltro || '').trim().toUpperCase();
+  if (!qTexto) {
+    cont.innerHTML = '';
+    return;
+  }
+
+  const pistoleados = (sesionPistoleo.items || []).filter(it => {
+    if (Number(it.cantFisica || 0) <= 0) return false;
+    const cod = normalizarClavePistoleo(it.codigo);
+    const desc = String(it.descripcion || '').toUpperCase();
+    const serEsc = (it.serialesEscaneados || []).map(normalizarClavePistoleo);
+    return cod.includes(qTexto) || desc.includes(qTexto) || serEsc.some(s => s.includes(q));
+  });
+
+  if (pistoleados.length === 0) {
+    cont.innerHTML = `<div class="text-muted small py-2">No hay productos pistoleados con "<strong>${textoFiltro}</strong>".</div>`;
+    return;
+  }
+
+  cont.innerHTML = pistoleados.slice(0, 15).map(it => {
+    const serEsc = it.serialesEscaneados || [];
+    const serCoincidente = serEsc.find(s => normalizarClavePistoleo(s).includes(q)) || serEsc[0] || '';
+    return `
+      <div class="d-flex justify-content-between align-items-center py-2 px-2 border bg-white rounded-2 mb-1 small gap-2">
+        <div>
+          <span class="badge bg-success">${it.codigo}</span>
+          <strong class="ms-1">${it.descripcion}</strong>
+          <div class="text-muted" style="font-size:0.7rem;">
+            Físico: <strong>${it.cantFisica}</strong> / ${it.cantTeorica} · ${it.dias}d
+            ${serEsc.length ? `<br>Seriales escaneados: <span class="font-monospace">${serEsc.join(', ')}</span>` : ''}
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2 flex-shrink-0 fw-bold"
+          onclick="deshacerPistoleoCodigo('${String(it.codigo).replace(/'/g, "\\'")}', '${String(serCoincidente).replace(/'/g, "\\'")}'); buscarProductoPistoleado(document.getElementById('inputBuscarPistoleado')?.value || '');">
+          ↩ Quitar 1
+        </button>
+      </div>
+    `;
+  }).join('');
 }
 
 function forzarSobranteManual(lectura, codigoRef) {
