@@ -1,10 +1,17 @@
 let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || 'null');
 let plusConFotoPedida = new Set(JSON.parse(localStorage.getItem('htc_plus_foto_pedida') || '[]'));
+let serialesDeshechosLocal = new Set(JSON.parse(localStorage.getItem('htc_seriales_deshechos') || '[]'));
+let ajustesDeshacerPorPlu = JSON.parse(localStorage.getItem('htc_ajustes_deshacer_plu') || '{}');
 let itemPistoleoFotoActual = null;
 let sublistaPistoleoVista = 'FALTANTES';
 let html5QrScanner = null;
 let syncVivoEnCurso = false;
 let intervaloSyncPistoleo = null;
+
+function guardarEstadoDeshacerLocal() {
+  localStorage.setItem('htc_seriales_deshechos', JSON.stringify(Array.from(serialesDeshechosLocal)));
+  localStorage.setItem('htc_ajustes_deshacer_plu', JSON.stringify(ajustesDeshacerPorPlu));
+}
 
 function marcarPluFotoPedida(codigoPlu) {
   const cod = normalizarClavePistoleo(codigoPlu);
@@ -85,9 +92,13 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     );
     const serEscaneados = Array.from(
       new Set((it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean))
-    );
+    ).filter(s => !serialesDeshechosLocal.has(`${cod}|${s}`));
+
     const mapaAud = { ...(it.fisicoPorAuditor || {}) };
-    const yaPedida = Boolean(it.fotoSolicitadaPLU || it.foto1 || it.foto2 || plusConFotoPedida.has(cod));
+    const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA';
+    const yaPedida = Boolean(
+      it.fotoSolicitadaPLU || it.foto1 || it.foto2 || esBaja || plusConFotoPedida.has(cod)
+    );
 
     if (!mapaItems.has(cod)) {
       const nuevo = {
@@ -112,7 +123,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     );
     actual.serialesEscaneados = Array.from(
       new Set([...(actual.serialesEscaneados || []), ...serEscaneados])
-    );
+    ).filter(s => !serialesDeshechosLocal.has(`${cod}|${s}`));
 
     if (!actual.fisicoPorAuditor) actual.fisicoPorAuditor = {};
     Object.entries(mapaAud).forEach(([aud, cant]) => {
@@ -132,7 +143,14 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
       actual.serialesEscaneados.length,
       sumaAuditores
     );
-    actual.cantFisica = Math.min(actual.cantTeorica, maxDirecto);
+    let calculado = Math.min(actual.cantTeorica, maxDirecto);
+
+    const descPlu = Number(ajustesDeshacerPorPlu[cod] || 0);
+    if (descPlu > 0) {
+      calculado = Math.max(0, calculado - descPlu);
+    }
+
+    actual.cantFisica = calculado;
 
     if (Number(it.dias || 0) > Number(actual.dias || 0)) actual.dias = Number(it.dias);
     if (Number(it.costoUnit || 0) > 0) actual.costoUnit = Number(it.costoUnit);
@@ -140,6 +158,9 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     if (!actual.foto2 && it.foto2) actual.foto2 = it.foto2;
     if (yaPedida || actual.fotoSolicitadaPLU || actual.foto1 || actual.foto2) {
       actual.fotoSolicitadaPLU = true;
+    }
+    if (it.estado && it.estado !== 'Bueno / funcional') {
+      actual.estado = it.estado;
     }
     if (it.observacion && it.observacion !== 'Caja deteriorada y con polvo.') {
       actual.observacion = it.observacion;
@@ -339,6 +360,8 @@ function subirYUnirMitadLike() {
       if (!codigo || codigo === '0' || !desc || desc === '0') return;
       unidadesTotales += cantFila;
 
+      const esBajaExcel = estadoExcel.toUpperCase() === 'BAJA';
+
       if (!mapa[codigo]) {
         mapa[codigo] = {
           codigo,
@@ -354,7 +377,7 @@ function subirYUnirMitadLike() {
           observacion: obsExcel || 'Caja deteriorada y con polvo.',
           obsAdicional: '',
           esEstadoOtro: false,
-          fotoSolicitadaPLU: plusConFotoPedida.has(codigo),
+          fotoSolicitadaPLU: esBajaExcel || plusConFotoPedida.has(codigo),
           foto1: '',
           foto2: ''
         };
@@ -495,7 +518,11 @@ function reiniciarSesionPistoleo() {
   if (!confirm('¿Seguro que deseas borrar el conteo actual en memoria para iniciar una tienda nueva?')) return;
   localStorage.removeItem('htc_sesion_pistoleo');
   localStorage.removeItem('htc_plus_foto_pedida');
+  localStorage.removeItem('htc_seriales_deshechos');
+  localStorage.removeItem('htc_ajustes_deshacer_plu');
   plusConFotoPedida.clear();
+  serialesDeshechosLocal.clear();
+  ajustesDeshacerPorPlu = {};
   sesionPistoleo = null;
   document.getElementById('zonaTrabajoPistoleo').classList.add('d-none');
   document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
@@ -557,20 +584,34 @@ function procesarDisparoPistola(valorRaw) {
 
   if (item) {
     if (item.cantFisica < item.cantTeorica) {
+      const codItemNorm = normalizarClavePistoleo(item.codigo);
+      const serialDisparado = (lecturaNorm !== codItemNorm && lecturaSinParentesis !== codItemNorm) ? lecturaNorm : '';
+
+      if (serialDisparado) {
+        serialesDeshechosLocal.delete(`${codItemNorm}|${serialDisparado}`);
+      }
+      if (Number(ajustesDeshacerPorPlu[codItemNorm] || 0) > 0) {
+        ajustesDeshacerPorPlu[codItemNorm] = Math.max(0, Number(ajustesDeshacerPorPlu[codItemNorm]) - 1);
+      }
+      guardarEstadoDeshacerLocal();
+
       if (!item.fisicoPorAuditor) item.fisicoPorAuditor = {};
       item.fisicoPorAuditor[auditorActual] = Number(item.fisicoPorAuditor[auditorActual] || 0) + 1;
 
-      const codItemNorm = normalizarClavePistoleo(item.codigo);
-      const serialDisparado = (lecturaNorm !== codItemNorm && lecturaSinParentesis !== codItemNorm) ? lecturaNorm : '';
       if (serialDisparado && !item.serialesEscaneados.includes(serialDisparado)) {
         item.serialesEscaneados.push(serialDisparado);
       }
       recalcularFisicoItem(item);
 
+      const esBaja = String(item.estado || '').trim().toUpperCase() === 'BAJA';
       const yaTieneFotoPLU = Boolean(
         item.foto1 || item.foto2 || item.fotoSolicitadaPLU || plusConFotoPedida.has(codItemNorm)
       );
-      if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && !yaTieneFotoPLU) {
+      if (esBaja) {
+        item.fotoSolicitadaPLU = true;
+        marcarPluFotoPedida(codItemNorm);
+      }
+      if (item.dias >= MIN_DIAS_COMITE && pedirFotosActivo && !yaTieneFotoPLU && !esBaja) {
         item.fotoSolicitadaPLU = true;
         marcarPluFotoPedida(codItemNorm);
         reproducirBeep('FOTO');
@@ -581,7 +622,7 @@ function procesarDisparoPistola(valorRaw) {
         reproducirBeep('OK');
         alerta.className = 'alert alert-success small fw-bold mb-0 py-2 rounded-3';
         const tagObs = item.dias >= MIN_DIAS_COMITE
-          ? ` · ≥${MIN_DIAS_COMITE}d ${item.foto1 || item.foto2 ? '(Foto PLU OK)' : '(PLU ya solicitado)'}`
+          ? ` · ≥${MIN_DIAS_COMITE}d ${esBaja ? '(Baja - sin foto)' : (item.foto1 || item.foto2 ? '(Foto PLU OK)' : '(PLU ya solicitado)')}`
           : ` · ${item.dias}d`;
         alerta.innerHTML = `✅ <strong>${item.codigo}</strong> - ${item.descripcion} (${item.cantFisica}/${item.cantTeorica} und.${tagObs})`;
       }
@@ -644,6 +685,12 @@ function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
       serialQuitado = item.serialesEscaneados.pop() || '';
     }
   }
+
+  if (serialQuitado) {
+    serialesDeshechosLocal.add(`${codNorm}|${normalizarClavePistoleo(serialQuitado)}`);
+  }
+  ajustesDeshacerPorPlu[codNorm] = Number(ajustesDeshacerPorPlu[codNorm] || 0) + 1;
+  guardarEstadoDeshacerLocal();
 
   const nuevaCantidad = Math.max(0, Number(item.cantFisica || 0) - 1);
 
@@ -782,6 +829,18 @@ function eliminarSobranteIdx(idx) {
 }
 
 function abrirPanelFotoInmediata(item) {
+  if (!item) return;
+  const esBaja = String(item.estado || '').trim().toUpperCase() === 'BAJA';
+  if (esBaja) {
+    item.fotoSolicitadaPLU = true;
+    marcarPluFotoPedida(item.codigo);
+    document.getElementById('panelFotoInmediataPistoleo').classList.add('d-none');
+    guardarSesionPistoleoLocal();
+    actualizarKPIsPistoleo();
+    enfocarPistola();
+    return;
+  }
+
   itemPistoleoFotoActual = item;
   item.fotoSolicitadaPLU = true;
   marcarPluFotoPedida(item.codigo);
@@ -816,6 +875,22 @@ function seleccionarEstadoToma(estadoNombre, obsPrevia = '') {
     const btn = document.getElementById(info.id);
     if (btn) btn.className = 'btn-estado-toma' + (est === estadoNombre ? ' ' + info.cls : '');
   });
+
+  if (estadoNombre === 'Baja') {
+    itemPistoleoFotoActual.esEstadoOtro = false;
+    itemPistoleoFotoActual.estado = 'Baja';
+    itemPistoleoFotoActual.fotoSolicitadaPLU = true;
+    marcarPluFotoPedida(itemPistoleoFotoActual.codigo);
+    document.getElementById('bloqueObsOtro').classList.add('d-none');
+    document.getElementById('bloqueObsEstandar').classList.remove('d-none');
+    const opciones = CATALOGO_ESTADOS_TOMA['Baja'] || [];
+    const sel = document.getElementById('selectObsEstandar');
+    sel.innerHTML = opciones.map(op => `<option value="${op}">${op}</option>`).join('');
+    if (obsPrevia && opciones.includes(obsPrevia)) sel.value = obsPrevia;
+    actualizarObservacionItemPistoleo();
+    cerrarPanelEvaluacionPistoleo();
+    return;
+  }
 
   const bloqueEst = document.getElementById('bloqueObsEstandar');
   const bloqueOtro = document.getElementById('bloqueObsOtro');
