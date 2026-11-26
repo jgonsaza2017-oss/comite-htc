@@ -13,6 +13,13 @@ function marcarPluFotoPedida(codigoPlu) {
   localStorage.setItem('htc_plus_foto_pedida', JSON.stringify(Array.from(plusConFotoPedida)));
 }
 
+function quitarMarcaPluFotoPedida(codigoPlu) {
+  const cod = normalizarClavePistoleo(codigoPlu);
+  if (!cod) return;
+  plusConFotoPedida.delete(cod);
+  localStorage.setItem('htc_plus_foto_pedida', JSON.stringify(Array.from(plusConFotoPedida)));
+}
+
 function normalizarClavePistoleo(val) {
   let str = String(val ?? '').trim();
   if (!str) return '';
@@ -60,7 +67,7 @@ function recalcularFisicoItem(item) {
     ? item.serialesEscaneados.length
     : 0;
   const totalCombinado = Math.max(sumaPorAuditor, serialesUnicos, Number(item.cantFisica || 0));
-  item.cantFisica = Math.min(Number(item.cantTeorica || 0), totalCombinado);
+  item.cantFisica = Math.min(Number(item.cantTeorica || 0), Math.max(0, totalCombinado));
 }
 
 function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
@@ -617,6 +624,59 @@ function procesarDisparoPistola(valorRaw) {
   }
 }
 
+function deshacerPistoleoCodigo(codigo, serialOpcional = '') {
+  if (!sesionPistoleo) return;
+  const codNorm = normalizarClavePistoleo(codigo);
+  const item = sesionPistoleo.items.find(x => normalizarClavePistoleo(x.codigo) === codNorm);
+  if (!item || Number(item.cantFisica || 0) <= 0) return;
+
+  const auditorActual = obtenerAuditorActivoPistoleo();
+  let serialQuitado = '';
+
+  if (Array.isArray(item.serialesEscaneados) && item.serialesEscaneados.length > 0) {
+    if (serialOpcional) {
+      const serNorm = normalizarClavePistoleo(serialOpcional);
+      const idxSer = item.serialesEscaneados.findIndex(s => normalizarClavePistoleo(s) === serNorm);
+      if (idxSer >= 0) {
+        serialQuitado = item.serialesEscaneados.splice(idxSer, 1)[0];
+      }
+    } else {
+      serialQuitado = item.serialesEscaneados.pop() || '';
+    }
+  }
+
+  if (item.fisicoPorAuditor && Number(item.fisicoPorAuditor[auditorActual] || 0) > 0) {
+    item.fisicoPorAuditor[auditorActual] = Number(item.fisicoPorAuditor[auditorActual]) - 1;
+  } else if (item.fisicoPorAuditor) {
+    const audConSaldo = Object.keys(item.fisicoPorAuditor).find(k => Number(item.fisicoPorAuditor[k] || 0) > 0);
+    if (audConSaldo) {
+      item.fisicoPorAuditor[audConSaldo] = Number(item.fisicoPorAuditor[audConSaldo]) - 1;
+    }
+  }
+
+  item.cantFisica = Math.max(0, Number(item.cantFisica || 0) - 1);
+  if (item.cantFisica === 0) {
+    item.fotoSolicitadaPLU = false;
+    quitarMarcaPluFotoPedida(codNorm);
+  }
+
+  const alerta = document.getElementById('alertaUltimoPistoleo');
+  if (alerta) {
+    alerta.className = 'alert alert-secondary small fw-bold mb-0 py-2 rounded-3';
+    alerta.innerHTML = `↩ <strong>PISTOLEO ELIMINADO:</strong> Se quitó 1 unidad de <code>${item.codigo}</code> - ${item.descripcion}${serialQuitado ? ` (Serial: <code>${serialQuitado}</code>)` : ''} (${item.cantFisica}/${item.cantTeorica} und.).`;
+  }
+
+  guardarSesionPistoleoLocal();
+  actualizarKPIsPistoleo();
+  enviarDisparoEnVivo({
+    tipo: 'DESHACER_ITEM',
+    codigo: item.codigo,
+    serial: serialQuitado,
+    cantFisica: item.cantFisica
+  });
+  enfocarPistola();
+}
+
 function forzarSobranteManual(lectura, codigoRef) {
   if (!sesionPistoleo) return;
   const item = codigoRef ? sesionPistoleo.items.find(x => x.codigo === codigoRef) : null;
@@ -821,8 +881,11 @@ function mostrarSublistaPistoleo(tipo) {
       const diff = f.cantTeorica - f.cantFisica;
       const cobro = diff * f.costoUnit;
       const serialesPend = f.serialesTeoricos.filter(s => !f.serialesEscaneados.includes(s)).join(', ');
+      const btnQuitar = f.cantFisica > 0
+        ? `<button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="deshacerPistoleoCodigo('${f.codigo.replace(/'/g, "\\'")}')">↩ Quitar 1</button>`
+        : '';
       return `
-        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small">
+        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
           <div>
             <span class="badge bg-dark">${f.codigo}</span>
             <strong class="ms-1">${f.descripcion}</strong>
@@ -834,6 +897,7 @@ function mostrarSublistaPistoleo(tipo) {
           <div class="text-end flex-shrink-0">
             <div class="fw-bold text-danger">$${cobro.toLocaleString('es-CO')}</div>
             <small class="text-muted" style="font-size: 0.65rem;">Para cobro</small>
+            ${btnQuitar ? `<div>${btnQuitar}</div>` : ''}
           </div>
         </div>
       `;
@@ -878,15 +942,16 @@ function mostrarSublistaPistoleo(tipo) {
       return;
     }
     cont.innerHTML = obsItems.map(it => `
-      <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small" style="cursor:pointer;" onclick="reabrirEvaluacionCodigo('${it.codigo}')">
-        <div>
+      <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
+        <div style="cursor:pointer;" onclick="reabrirEvaluacionCodigo('${it.codigo}')">
           <span class="badge bg-dark">${it.codigo}</span>
           <span class="badge bg-warning text-dark">${it.estado}</span>
           <strong class="ms-1">${it.descripcion}</strong>
-          <div class="text-muted" style="font-size: 0.7rem;">${it.dias}d · ${it.observacion}</div>
+          <div class="text-muted" style="font-size: 0.7rem;">${it.dias}d · Físico: ${it.cantFisica}/${it.cantTeorica} · ${it.observacion}</div>
         </div>
         <div class="text-end flex-shrink-0">
           <span class="badge ${it.foto1 || it.foto2 ? 'bg-success' : 'bg-danger'}">${it.foto1 || it.foto2 ? 'Foto PLU OK' : 'Falta foto'}</span>
+          <div><button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="deshacerPistoleoCodigo('${it.codigo.replace(/'/g, "\\'")}')">↩ Quitar 1</button></div>
         </div>
       </div>
     `).join('');
