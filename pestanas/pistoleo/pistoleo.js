@@ -5,6 +5,38 @@ let html5QrScanner = null;
 let syncVivoEnCurso = false;
 let intervaloSyncPistoleo = null;
 
+function normalizarClavePistoleo(val) {
+  let str = String(val ?? '').trim();
+  if (!str) return '';
+  // Si SheetJS convierte un serial numérico largo a notación científica (ej: 8.1240016345e+10)
+  if (/^\d+(\.\d+)?e\+\d+$/i.test(str)) {
+    const num = Number(str);
+    if (!Number.isNaN(num)) str = num.toFixed(0);
+  }
+  return str
+    .replace(/\.0+$/, '')
+    .replace(/\s+/g, '')
+    .toUpperCase();
+}
+
+function obtenerCampoFilaLike(cleanObj, posiblesClaves) {
+  const keys = Object.keys(cleanObj);
+  for (const buscada of posiblesClaves) {
+    const target = buscada
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+    const matchKey = keys.find(k =>
+      k.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === target
+    );
+    if (matchKey !== undefined && String(cleanObj[matchKey] ?? '').trim() !== '') {
+      return cleanObj[matchKey];
+    }
+  }
+  return '';
+}
+
 function inicializarModuloPistoleo() {
   aplicarEtiquetasMinDiasPistoleo();
   if (sesionPistoleo && sesionPistoleo.items && sesionPistoleo.items.length > 0) {
@@ -112,9 +144,10 @@ function subirYUnirMitadLike() {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const wb = XLSX.read(e.target.result, { type: 'array' });
+    // raw: false evita que los seriales numéricos largos (11-12 dígitos) se deformen en HTML/XLS
+    const wb = XLSX.read(e.target.result, { type: 'array', raw: false });
     const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '' });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '', raw: false });
 
     const mapa = {};
     let unidadesTotales = 0;
@@ -123,36 +156,49 @@ function subirYUnirMitadLike() {
       const clean = {};
       Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
 
-      const codigo = String(clean['Codigo'] || clean['Código Producto'] || '').split('(')[0].trim();
-      const serial = String(clean['Serial'] || clean['Serial 1'] || '').trim();
-      const desc = String(clean['Descripcion'] || clean['Producto'] || '').trim();
-      const sucFila = String(clean['Sucursal'] || '').trim().toUpperCase();
-      if (!tiendaNombre && sucFila) {
+      const rawCod = String(obtenerCampoFilaLike(clean, ['Codigo', 'Codigo Producto']) || '');
+      const codigo = normalizarClavePistoleo(rawCod.split('(')[0]);
+      const serial = normalizarClavePistoleo(obtenerCampoFilaLike(clean, ['Serial 1', 'Serial', 'Serial1', 'IMEI']));
+      const desc = String(obtenerCampoFilaLike(clean, ['Descripcion', 'Producto']) || '').trim();
+      const sucFila = String(obtenerCampoFilaLike(clean, ['Sucursal']) || '').trim().toUpperCase();
+
+      if (!tiendaNombre && sucFila && !sucFila.includes('REGISTROS')) {
         tiendaNombre = sucFila;
         document.getElementById('txtTiendaPistoleo').value = tiendaNombre;
       }
 
-      const dias = limpiarNumeroLike(clean['Antiguedad'] || clean['Dias en inventario'] || 0);
-      const costo = limpiarNumeroLike(clean['costo de compra'] || clean['Costo de compra'] || 0);
-      const estadoExcel = String(clean['Novedades(estado)'] || '').trim();
-      const obsExcel = String(clean['Observacion'] || '').trim();
-      const cantFila = limpiarNumeroLike(clean['Existencias'] || clean['Existencia'] || clean['Cantidad'] || 1) || 1;
+      const dias = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Antiguedad', 'Dias en inventario']) || 0);
+      const costo = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Costo de compra']) || 0);
+      const estadoExcel = String(obtenerCampoFilaLike(clean, ['Novedades(estado)', 'Estado']) || '').trim();
+      const obsExcel = String(obtenerCampoFilaLike(clean, ['Observacion']) || '').trim();
+      const cantFila = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Existencias', 'Existencia', 'Cantidad']) || 1) || 1;
 
       if (!codigo || codigo === '0' || !desc || desc === '0') return;
       unidadesTotales += cantFila;
 
       if (!mapa[codigo]) {
         mapa[codigo] = {
-          codigo, descripcion: desc, cantTeorica: 0, cantFisica: 0,
-          serialesTeoricos: [], serialesEscaneados: [], dias, costoUnit: costo,
+          codigo,
+          descripcion: desc,
+          cantTeorica: 0,
+          cantFisica: 0,
+          serialesTeoricos: [],
+          serialesEscaneados: [],
+          dias,
+          costoUnit: costo,
           estado: estadoExcel || 'Bueno / funcional',
           observacion: obsExcel || 'Caja deteriorada y con polvo.',
-          obsAdicional: '', esEstadoOtro: false, foto1: '', foto2: ''
+          obsAdicional: '',
+          esEstadoOtro: false,
+          foto1: '',
+          foto2: ''
         };
       }
       mapa[codigo].cantTeorica += cantFila;
       if (dias > mapa[codigo].dias) mapa[codigo].dias = dias;
-      if (serial && !mapa[codigo].serialesTeoricos.includes(serial)) mapa[codigo].serialesTeoricos.push(serial);
+      if (serial && serial !== 'NAN' && serial !== 'NONE' && !mapa[codigo].serialesTeoricos.includes(serial)) {
+        mapa[codigo].serialesTeoricos.push(serial);
+      }
     });
 
     const items = Object.values(mapa);
@@ -176,12 +222,22 @@ function subirYUnirMitadLike() {
     .then(r => r.json())
     .then(res => {
       if (res.ok && res.sesion) {
+        // Conservamos los serialesTeoricos completos por si el backend omitió alguno al unificar
+        const mapaLocalSeriales = new Map(items.map(it => [normalizarClavePistoleo(it.codigo), it.serialesTeoricos]));
+        res.sesion.items.forEach(srvIt => {
+          const codNorm = normalizarClavePistoleo(srvIt.codigo);
+          const locales = mapaLocalSeriales.get(codNorm) || [];
+          const actuales = Array.isArray(srvIt.serialesTeoricos) ? srvIt.serialesTeoricos.map(normalizarClavePistoleo) : [];
+          srvIt.serialesTeoricos = Array.from(new Set([...actuales, ...locales]));
+          srvIt.serialesEscaneados = Array.isArray(srvIt.serialesEscaneados) ? srvIt.serialesEscaneados.map(normalizarClavePistoleo) : [];
+        });
+
         sesionPistoleo = res.sesion;
         guardarSesionPistoleoLocal();
         restaurarUIPistoleo();
         if (typeof poblarSucursales === 'function') poblarSucursales();
         const cargados = (res.sesion.mitadesCargadas || [auditorMitad]).join(' + ');
-        msg.innerText = `✅ Mitad de ${auditorMitad} subida y unificada (${cargados}): ${res.sesion.items.length} refs en ${res.sesion.sucursal}.`;
+        msg.innerText = `✅ Mitad de ${auditorMitad} subida y unificada (${cargados}): ${res.sesion.items.length} refs (${unidadesTotales} und.) en ${res.sesion.sucursal}.`;
       } else {
         msg.innerText = '⚠️ Error al subir mitad: ' + (res.error || 'revisa el script');
       }
@@ -204,6 +260,10 @@ async function unirseASesionVivo() {
       msg.innerText = '⚠️ Aún no hay mitades cargadas en la nube. Sube tu mitad con el botón verde.';
       return;
     }
+    data.sesionVivo.items.forEach(it => {
+      it.serialesTeoricos = (it.serialesTeoricos || []).map(normalizarClavePistoleo).filter(Boolean);
+      it.serialesEscaneados = (it.serialesEscaneados || []).map(normalizarClavePistoleo).filter(Boolean);
+    });
     sesionPistoleo = data.sesionVivo;
     guardarSesionPistoleoLocal();
     restaurarUIPistoleo();
@@ -234,11 +294,17 @@ function fusionarProgresoEnVivo(remoto) {
   let huboCambios = false;
 
   remoto.items.forEach(rItem => {
-    const local = sesionPistoleo.items.find(x => x.codigo === rItem.codigo);
+    const codRemoto = normalizarClavePistoleo(rItem.codigo);
+    const local = sesionPistoleo.items.find(x => normalizarClavePistoleo(x.codigo) === codRemoto);
     if (local) {
       if (rItem.cantFisica > local.cantFisica) { local.cantFisica = rItem.cantFisica; huboCambios = true; }
+      (rItem.serialesTeoricos || []).forEach(s => {
+        const sn = normalizarClavePistoleo(s);
+        if (sn && !local.serialesTeoricos.includes(sn)) { local.serialesTeoricos.push(sn); huboCambios = true; }
+      });
       (rItem.serialesEscaneados || []).forEach(s => {
-        if (!local.serialesEscaneados.includes(s)) { local.serialesEscaneados.push(s); huboCambios = true; }
+        const sn = normalizarClavePistoleo(s);
+        if (sn && !local.serialesEscaneados.includes(sn)) { local.serialesEscaneados.push(sn); huboCambios = true; }
       });
       if (!local.foto1 && rItem.foto1 === 'OK') { local.foto1 = 'OK'; huboCambios = true; }
       if (!local.foto2 && rItem.foto2 === 'OK') { local.foto2 = 'OK'; huboCambios = true; }
@@ -296,35 +362,41 @@ function reproducirBeep(tipo) {
 }
 
 function procesarDisparoPistola(valorRaw) {
-  const lectura = String(valorRaw || '').trim();
-  if (!lectura || !sesionPistoleo) return;
+  const lecturaNorm = normalizarClavePistoleo(valorRaw);
+  const lecturaSinParentesis = normalizarClavePistoleo(String(valorRaw || '').split('(')[0]);
+  if (!lecturaNorm || !sesionPistoleo) return;
 
   const alerta = document.getElementById('alertaUltimoPistoleo');
-  const lecturaLower = lectura.toLowerCase();
 
   const itemPorSerialEscaneado = sesionPistoleo.items.find(x =>
-    x.serialesEscaneados.some(s => s.toLowerCase() === lecturaLower)
+    (x.serialesEscaneados || []).some(s => normalizarClavePistoleo(s) === lecturaNorm)
   );
 
   if (itemPorSerialEscaneado) {
     reproducirBeep('ALERTA');
     alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
     alerta.innerHTML = `
-      <span>⚠️ <strong>SERIAL YA REGISTRADO:</strong> <code>${lectura}</code> (${itemPorSerialEscaneado.descripcion}). Verificar si es doble disparo.</span>
-      <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '${itemPorSerialEscaneado.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
+      <span>⚠️ <strong>SERIAL YA REGISTRADO:</strong> <code>${lecturaNorm}</code> (${itemPorSerialEscaneado.descripcion}). Verificar si es doble disparo.</span>
+      <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lecturaNorm.replace(/'/g, "\\'")}', '${itemPorSerialEscaneado.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
     `;
     return;
   }
 
-  const item = sesionPistoleo.items.find(x =>
-    x.codigo.toLowerCase() === lecturaLower ||
-    x.serialesTeoricos.some(s => s.toLowerCase() === lecturaLower)
-  );
+  // 1) Buscar primero por Serial 1 exacto, luego por Código Producto exacto o base sin paréntesis
+  const item =
+    sesionPistoleo.items.find(x =>
+      (x.serialesTeoricos || []).some(s => normalizarClavePistoleo(s) === lecturaNorm)
+    ) ||
+    sesionPistoleo.items.find(x => {
+      const codItem = normalizarClavePistoleo(x.codigo);
+      return codItem === lecturaNorm || (lecturaSinParentesis && codItem === lecturaSinParentesis);
+    });
 
   if (item) {
     if (item.cantFisica < item.cantTeorica) {
       item.cantFisica += 1;
-      const serialDisparado = lecturaLower !== item.codigo.toLowerCase() ? lectura : '';
+      const codItemNorm = normalizarClavePistoleo(item.codigo);
+      const serialDisparado = (lecturaNorm !== codItemNorm && lecturaSinParentesis !== codItemNorm) ? lecturaNorm : '';
       if (serialDisparado && !item.serialesEscaneados.includes(serialDisparado)) {
         item.serialesEscaneados.push(serialDisparado);
       }
@@ -356,22 +428,24 @@ function procesarDisparoPistola(valorRaw) {
       alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
       alerta.innerHTML = `
         <span>⚠️ <strong>CÓDIGO YA REGISTRADO (${item.cantFisica}/${item.cantTeorica}):</strong> <code>${item.codigo}</code> - ${item.descripcion}. Verificar.</span>
-        <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '${item.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lecturaNorm.replace(/'/g, "\\'")}', '${item.codigo.replace(/'/g, "\\'")}')">+1 Sobrante</button>
       `;
     }
   } else {
-    const sobYaExiste = sesionPistoleo.sobrantes.find(s => s.codigo.toLowerCase() === lecturaLower || s.serial.toLowerCase() === lecturaLower);
+    const sobYaExiste = sesionPistoleo.sobrantes.find(s =>
+      normalizarClavePistoleo(s.codigo) === lecturaNorm || normalizarClavePistoleo(s.serial) === lecturaNorm
+    );
     reproducirBeep('ALERTA');
     if (sobYaExiste) {
       alerta.className = 'alert alert-danger small fw-bold mb-0 py-2 rounded-3 d-flex justify-content-between align-items-center gap-2';
       alerta.innerHTML = `
-        <span>⚠️ <strong>SOBRANTE YA REGISTRADO:</strong> <code>${lectura}</code> (${sobYaExiste.sobrante} und.). Verificar.</span>
-        <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lectura.replace(/'/g, "\\'")}', '')">+1 Más</button>
+        <span>⚠️ <strong>SOBRANTE YA REGISTRADO:</strong> <code>${lecturaNorm}</code> (${sobYaExiste.sobrante} und.). Verificar.</span>
+        <button type="button" class="btn btn-outline-danger btn-sm fw-bold flex-shrink-0" onclick="forzarSobranteManual('${lecturaNorm.replace(/'/g, "\\'")}', '')">+1 Más</button>
       `;
     } else {
-      registrarSobrante(lectura, 'Producto no registrado en teórico LIKE', lectura, 0);
+      registrarSobrante(lecturaNorm, 'Producto no registrado en teórico LIKE', lecturaNorm, 0);
       alerta.className = 'alert alert-info small fw-bold mb-0 py-2 rounded-3';
-      alerta.innerHTML = `➕ <strong>SOBRANTE NUEVO:</strong> Código/Serial <code>${lectura}</code> no figura en LIKE. Usa <strong>🔄 Cruzar</strong> si equivale a otro código.`;
+      alerta.innerHTML = `➕ <strong>SOBRANTE NUEVO:</strong> Código/Serial <code>${lecturaNorm}</code> no figura en LIKE. Usa <strong>🔄 Cruzar</strong> si equivale a otro código.`;
       guardarSesionPistoleoLocal();
       actualizarKPIsPistoleo();
     }
