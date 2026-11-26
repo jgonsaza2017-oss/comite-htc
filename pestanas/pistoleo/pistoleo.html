@@ -1,0 +1,207 @@
+<div class="card p-3 mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <h6 class="fw-bold text-primary mb-0">🎯 Auditoría Física: Mitades por Auditor (Johan / Oscar)</h6>
+    <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">Reiniciar sesión</button>
+  </div>
+  <p class="small text-muted mb-2" id="descPistoleoDias">1. Elige quién sube (<strong>Johan</strong> o <strong>Oscar</strong>) y carga tu mitad del Excel. 2. Toca el botón verde para subir y unificar. Productos <strong>&ge; 120d</strong> piden <strong>Estado y 2 Fotos</strong>.</p>
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-2">
+      <label class="form-label small fw-bold mb-1">Auditor</label>
+      <select id="selAuditorMitad" class="form-select form-select-sm fw-bold">
+        <option value="Johan">Johan</option>
+        <option value="Oscar">Oscar</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label small fw-bold mb-1">Tu mitad Excel (.xls / .xlsx)</label>
+      <input type="file" id="inputExcelLike" accept=".xlsx,.xls,.csv" class="form-control form-control-sm">
+    </div>
+    <div class="col-12 col-md-2">
+      <label class="form-label small fw-bold mb-1">Tienda</label>
+      <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. YOMASA">
+    </div>
+    <div class="col-12 col-md-4">
+      <button type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="subirYUnirMitadLike()">📡 Subir y Unir Mitades</button>
+    </div>
+  </div>
+  <div id="msgCargaLike" class="small fw-bold text-success mt-2"></div>
+</div>
+
+<div id="zonaTrabajoPistoleo" class="d-none">
+  <div class="card p-3 mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <span class="badge bg-dark py-2 px-3 rounded-pill" id="badgeTiendaPistoleo">TIENDA: -</span>
+        <span class="badge bg-success-subtle text-success border border-success py-1 px-2 rounded-pill" id="badgeSyncVivoPistoleo" style="font-size: 0.68rem;">🟢 En vivo</span>
+
+        <div class="pill-dias-control" id="cajaControlDias">
+          <label for="inputMinDiasComite" class="fw-bold text-dark mb-0" style="font-size: 0.72rem;">⏳ Mín. días:</label>
+          <input type="number" id="inputMinDiasComite" value="120" min="1" max="999"
+            onkeydown="if(event.key==='Enter'){ event.preventDefault(); aprobarMinDiasComite(); }">
+          <button type="button" id="btnAprobarDias" class="btn-aprobar-dias" onclick="aprobarMinDiasComite()">✓ Aplicar</button>
+        </div>
+
+        <button type="button" id="btnToggleFotos120" class="btn-toggle-fotos-estado modo-on" onclick="alternarPedirFotos120()">
+          📸 Fotos &ge;120d: ON
+        </button>
+      </div>
+      <span class="small fw-bold text-primary" id="progresoPistoleoTxt">0 / 0 unidades pistoleadas</span>
+    </div>
+
+    <div class="row g-2 align-items-center mb-2">
+      <div class="col-8 col-md-9">
+        <input type="text" id="inputPistolaBarcode" class="form-control scanner-input-pro" placeholder="Pistolear código o serial..." onkeydown="if(event.key==='Enter'){ procesarDisparoPistola(this.value); this.value=''; }">
+      </div>
+      <div class="col-4 col-md-3">
+        <button type="button" id="btnToggleCamara" class="btn btn-info text-white fw-bold w-100 py-2 rounded-3" onclick="toggleEscanerCamara()">
+          📷 Escáner
+        </button>
+      </div>
+    </div>
+
+    <div id="contenedorCamaraQR" class="mb-2 d-none">
+      <div id="readerQR" style="width: 100%; border-radius: 12px; overflow: hidden;"></div>
+      <button type="button" class="btn btn-outline-secondary btn-sm w-100 mt-1" onclick="detenerEscanerCamara()">Cerrar escáner</button>
+    </div>
+
+    <div id="alertaUltimoPistoleo" class="alert alert-secondary small fw-bold mb-0 py-2 rounded-3">
+      Listo para recibir disparos del lector o cámara...
+    </div>
+  </div>
+
+  <div id="panelFotoInmediataPistoleo" class="card border-warning p-3 mb-3 d-none" style="border-width: 2px;">
+    <div class="d-flex justify-content-between align-items-start mb-2">
+      <div>
+        <span class="badge bg-danger" id="badgeAlertaObsDias">⚠️ OBSOLESCENCIA &ge; 120 DÍAS — TOMA FÍSICA OBLIGATORIA</span>
+        <h6 class="fw-bold text-dark mt-1 mb-0 small" id="pFotoTitulo">-</h6>
+      </div>
+      <button type="button" class="btn-close btn-sm" onclick="cerrarPanelEvaluacionPistoleo()"></button>
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">1. Selecciona el Estado en la Toma Física:</label>
+      <div class="row g-2">
+        <div class="col-6">
+          <button type="button" id="btnEst_Bueno" class="btn-estado-toma" onclick="seleccionarEstadoToma('Bueno / funcional')">
+            ✅ Bueno / funcional
+            <small>Producto en condiciones normales.</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" id="btnEst_Novedad" class="btn-estado-toma" onclick="seleccionarEstadoToma('Funcional con novedad')">
+            ⚠️ Funcional con novedad
+            <small>Funciona, con detalles físicos.</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" id="btnEst_Baja" class="btn-estado-toma" onclick="seleccionarEstadoToma('Baja')">
+            🗑️ Baja
+            <small>No funcional, dañado o no comercializable.</small>
+          </button>
+        </div>
+        <div class="col-6">
+          <button type="button" id="btnEst_Otro" class="btn-estado-toma" onclick="seleccionarEstadoToma('Otro')">
+            ✏️ Otro (Personalizado)
+            <small>Escribir estado y observación manual.</small>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="bloqueObsEstandar" class="mb-2">
+      <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">2. Observación Estandarizada:</label>
+      <select id="selectObsEstandar" class="form-select form-select-sm fw-semibold mb-1" onchange="actualizarObservacionItemPistoleo()"></select>
+      <input type="text" id="txtObsAdicional" class="form-control form-control-sm" placeholder="Detalle adicional opcional (ej. color, accesorio faltante)..." oninput="actualizarObservacionItemPistoleo()">
+    </div>
+
+    <div id="bloqueObsOtro" class="mb-2 d-none">
+      <label class="form-label fw-bold text-uppercase text-primary mb-1" style="font-size: 0.68rem;">2. Escribe el Estado y la Observación:</label>
+      <input type="text" id="txtEstadoPersonalizado" class="form-control form-control-sm fw-bold mb-1" placeholder="Ej. En garantía / Faltante de accesorio / Revisión..." oninput="actualizarObservacionItemPistoleo()">
+      <input type="text" id="txtObsPersonalizada" class="form-control form-control-sm" placeholder="Escribe la observación detallada..." oninput="actualizarObservacionItemPistoleo()">
+    </div>
+
+    <label class="form-label fw-bold text-uppercase text-muted mb-1" style="font-size: 0.68rem;">3. Evidencia Fotográfica (2 Fotos):</label>
+    <div class="row g-2 text-center">
+      <div class="col-6">
+        <div class="border rounded-3 p-2 bg-light">
+          <span class="badge bg-dark mb-1">1. Foto Producto</span>
+          <img id="pImg1" src="https://via.placeholder.com/250x180?text=Foto+1" class="img-fluid img-preview-aud d-block mx-auto mb-2">
+          <label class="btn btn-primary btn-sm w-100 fw-semibold rounded-3 mb-1">
+            Subir / Móvil
+            <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(1, this)">
+          </label>
+          <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(1, 'PISTOLEO')">📷 Cámara USB / PC</button>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="border rounded-3 p-2 bg-light">
+          <span class="badge bg-danger mb-1">2. Foto Caja / Estado</span>
+          <img id="pImg2" src="https://via.placeholder.com/250x180?text=Foto+2" class="img-fluid img-preview-aud d-block mx-auto mb-2">
+          <label class="btn btn-danger btn-sm w-100 fw-semibold rounded-3 mb-1">
+            Subir / Móvil
+            <input type="file" accept="image/*" capture="environment" hidden onchange="capturarFotoPistoleoLocal(2, this)">
+          </label>
+          <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="abrirCamaraWeb(2, 'PISTOLEO')">📷 Cámara USB / PC</button>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-2">
+      <div id="msgFotoPistoleo" class="small fw-bold text-success"></div>
+      <button type="button" class="btn btn-dark btn-sm fw-bold rounded-3 px-3" onclick="cerrarPanelEvaluacionPistoleo()">Listo, seguir pistoleando →</button>
+    </div>
+  </div>
+
+  <div class="resumen-financiero-card mb-3">
+    <div class="row g-2 mb-3">
+      <div class="col-4">
+        <div class="fin-box fin-recup">
+          <span class="fin-lbl">Cuadrados (OK)</span>
+          <span class="fin-val" id="kpiPistOk">0</span>
+          <span class="fin-sub">unidades</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="fin-box fin-bajas">
+          <span class="fin-lbl">Faltantes Cobro</span>
+          <span class="fin-val" id="kpiPistFaltValor">$0</span>
+          <span class="fin-sub" id="kpiPistFaltCant">0 und.</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="fin-box fin-total">
+          <span class="fin-lbl">Sobrantes</span>
+          <span class="fin-val" id="kpiPistSobCant">0</span>
+          <span class="fin-sub" id="kpiPistSobValor">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-1 mb-2">
+      <button type="button" id="btnSubFaltantes" class="btn btn-danger btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('FALTANTES')">
+        🚨 Faltantes (<span id="badgeSubFalt">0</span>)
+      </button>
+      <button type="button" id="btnSubSobrantes" class="btn btn-outline-primary btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('SOBRANTES')">
+        ➕ Sobrantes (<span id="badgeSubSob">0</span>)
+      </button>
+      <button type="button" id="btnSubObs120" class="btn btn-outline-warning text-dark btn-sm flex-fill fw-bold rounded-3" onclick="mostrarSublistaPistoleo('OBS120')">
+        📸 &ge;<span id="lblBtnSubDias">120</span>d (<span id="badgeSubObs120">0</span>)
+      </button>
+    </div>
+
+    <div id="contenedorSublistaPistoleo" style="max-height: 290px; overflow-y: auto;" class="border rounded-3 p-2 bg-light mb-3"></div>
+
+    <div class="row g-2">
+      <div class="col-6">
+        <button type="button" class="btn btn-outline-dark btn-sm w-100 fw-bold rounded-3" onclick="exportarActaPistoleoCSV()">
+          📥 Descargar Acta (.CSV)
+        </button>
+      </div>
+      <div class="col-6">
+        <button type="button" id="btnCerrarTiendaSync" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="cerrarYEnviarAuditoriaTienda()">
+          ☁️ Guardar Cierre en Sheets
+        </button>
+      </div>
+    </div>
+    <div id="msgCierrePistoleo" class="small fw-bold text-primary text-center mt-2"></div>
+  </div>
+</div>
