@@ -1,0 +1,28 @@
+<div class="card p-3 mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-6 col-md-3">
+      <label class="form-label small fw-bold text-muted mb-1">Sucursal</label>
+      <select id="selSucursalComite" class="form-select form-select-sm fw-bold" onchange="aplicarFiltrosComite()">
+        <option value="TODAS">Todas las sedes</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label small fw-bold text-muted mb-1">Estado / Voto</label>
+      <select id="selEstadoComite" class="form-select form-select-sm fw-bold" onchange="aplicarFiltrosComite()">
+        <option value="TODOS">Todos los lotes</option>
+        <option value="PENDIENTES_MI_VOTO">Pendientes de mi voto</option>
+        <option value="COMPLETOS_4_4">Completos 4/4</option>
+        <option value="INCOMPLETOS">Incompletos</option>
+      </select>
+    </div>
+    <div class="col-8 col-md-4">
+      <label class="form-label small fw-bold text-muted mb-1">Buscar código o producto</label>
+      <input type="text" id="txtBuscarComite" class="form-control form-control-sm" placeholder="Ej. 1024, parlante, serial..." oninput="aplicarFiltrosComite()">
+    </div>
+    <div class="col-4 col-md-2">
+      <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold rounded-3" onclick="cargarDatos()">🔄 Refrescar</button>
+    </div>
+  </div>
+</div>
+
+<div id="tarjetaComiteActual"></div>
