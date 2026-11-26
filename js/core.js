@@ -1,5 +1,5 @@
 const API_URL = 'https://script.google.com/macros/s/AKfycbxfufJTUJK4jp9rr2_JHCGIZZCvFVSMi5USIazdQ1H5lMygCc7QnF1OaLuaOqrFcdQ-0w/exec';
-const APP_VER = '80';
+const APP_VER = '81';
 
 let MIN_DIAS_COMITE = Number(localStorage.getItem('htc_min_dias_comite') || 120);
 let pedirFotosActivo = localStorage.getItem('htc_pedir_fotos_120') !== '0';
@@ -121,15 +121,17 @@ async function mostrarAppPrincipal() {
     label.innerText = '👤 ' + NOMBRES_EVAL[usuarioActivo];
   }
 
+  const navMenu = document.getElementById('navSegmentedMenu');
   const esOperacion = usuarioActivo === 'AUDITOR_1' || usuarioActivo === 'AUDITOR_2';
+
   if (esOperacion) {
-  navMenu.classList.remove('modo-comite');
-  document.getElementById('btnTabComite').classList.add('d-none');
-  document.getElementById('btnTabCarga').classList.remove('d-none');
-  document.getElementById('btnTabPistoleo').classList.remove('d-none');
-  await cambiarVistaPestana('pistoleo');
-} else {
-    navMenu.classList.add('modo-comite');
+    if (navMenu) navMenu.classList.remove('modo-comite');
+    document.getElementById('btnTabComite').classList.add('d-none');
+    document.getElementById('btnTabCarga').classList.remove('d-none');
+    document.getElementById('btnTabPistoleo').classList.remove('d-none');
+    await cambiarVistaPestana('pistoleo');
+  } else {
+    if (navMenu) navMenu.classList.add('modo-comite');
     document.getElementById('btnTabComite').classList.remove('d-none');
     document.getElementById('btnTabCarga').classList.add('d-none');
     document.getElementById('btnTabPistoleo').classList.add('d-none');
@@ -172,7 +174,9 @@ async function cambiarVistaPestana(nombre) {
 
   const barra = document.getElementById('barraFlotanteComite');
   const appVisible = !document.getElementById('appPrincipal').classList.contains('d-none');
+  const tieneItems = typeof listaFiltrada !== 'undefined' && listaFiltrada.length > 0;
   const esOperacion = usuarioActivo === 'AUDITOR_1' || usuarioActivo === 'AUDITOR_2';
+
   if (appVisible && nombre === 'comite' && tieneItems && usuarioActivo && !esOperacion) {
     barra.classList.remove('d-none');
   } else {

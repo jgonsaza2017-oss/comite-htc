@@ -1,6 +1,50 @@
 let loteFotosSeleccionado = null;
 let fotoAuditoriaBase64 = { 1: '', 2: '' };
 
+function obtenerListaSerialesFoto(item) {
+  if (!item) return [];
+  const raw = item.seriales ?? item.serial ?? '';
+  if (Array.isArray(raw)) {
+    return raw.map(s => String(s || '').trim()).filter(Boolean);
+  }
+  return String(raw)
+    .split(/[\n,;]+/)
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function renderInfoDetalleFoto(item) {
+  let detalleEl = document.getElementById('detalleEstadoSerialesFoto');
+  if (!detalleEl) {
+    const panel = document.getElementById('panelEditorFotosAuditoria');
+    const tituloEl = document.getElementById('tituloLoteFotos');
+    if (!panel || !tituloEl) return;
+
+    detalleEl = document.createElement('div');
+    detalleEl.id = 'detalleEstadoSerialesFoto';
+    detalleEl.className = 'p-3 mb-3 rounded-3 border bg-light';
+    tituloEl.parentElement.insertAdjacentElement('afterend', detalleEl);
+  }
+
+  const estadoTxt = String(item.estado || item.estadoTienda || '').trim();
+  const obsTxt = String(item.observacion || item.novedad || item.obs || '').trim();
+  const lineaEstadoObs = [estadoTxt, obsTxt].filter(Boolean).join(' — ') || 'Sin novedad registrada en tienda.';
+  const seriales = obtenerListaSerialesFoto(item);
+
+  const serialesHtml = seriales.length
+    ? seriales.map(sn => `<span class="badge rounded-pill bg-white text-primary border border-primary-subtle px-2 py-1 me-1 mb-1">${sn}</span>`).join('')
+    : '<span class="text-muted small">Sin seriales registrados</span>';
+
+  detalleEl.innerHTML = `
+    <div class="small fw-bold text-uppercase text-primary mb-1" style="letter-spacing: 0.4px;">ESTADO Y OBSERVACIÓN EN TIENDA</div>
+    <div class="small text-dark mb-2">${lineaEstadoObs}</div>
+    <div class="border-top pt-2 d-flex flex-wrap align-items-center gap-1">
+      <span class="small fw-bold text-dark me-1">Seriales (${seriales.length}):</span>
+      ${serialesHtml}
+    </div>
+  `;
+}
+
 function poblarSucursalesFotos() {
   const sel = document.getElementById('selSucursalFotos');
   if (!sel) return;
@@ -85,6 +129,7 @@ function seleccionarLoteFotos(idx) {
 
   document.getElementById('panelEditorFotosAuditoria').classList.remove('d-none');
   document.getElementById('tituloLoteFotos').innerText = `${item.codigo || ''} · ${item.sucursal || ''} — ${item.descripcion || ''}`;
+  renderInfoDetalleFoto(item);
   document.getElementById('audImg1').src = item.foto1 || 'https://via.placeholder.com/250x180?text=Foto+1';
   document.getElementById('audImg2').src = item.foto2 || 'https://via.placeholder.com/250x180?text=Foto+2';
   document.getElementById('msgGuardadoFotosAud').innerText = '';
