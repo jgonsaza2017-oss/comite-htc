@@ -1,15 +1,19 @@
 <div class="card p-3 mb-3">
   <div class="d-flex justify-content-between align-items-center mb-1">
-    <h6 class="fw-bold text-primary mb-0">🎯 AUDITORÍA FÍSICA: MODO OPERACIÓN (AUDITOR 1 / AUDITOR 2)</h6>
+    <h6 class="fw-bold text-primary mb-0">🎯 AUDITORÍA FÍSICA: MODO OPERACIÓN (LÍDER / AUDITOR 1–3)</h6>
     <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.7rem;" onclick="reiniciarSesionPistoleo()">REINICIAR SESIÓN</button>
   </div>
-  <p class="small text-muted mb-2" id="descPistoleoDias">1. ELIGE <strong>AUDITOR 1</strong> O <strong>AUDITOR 2</strong> (O TRABAJA LA SEDE COMPLETA SI VAS SOLO) Y CARGA EL EXCEL. 2. TOCA EL BOTÓN VERDE PARA INICIAR Y SINCRONIZAR.</p>
+  <p class="small text-muted mb-2" id="descPistoleoDias">
+    1. ELIGE <strong>LÍDER</strong> (CONSOLIDA, CRUZA Y EXPORTA) O <strong>AUDITOR 1 / 2 / 3</strong>. 2. CARGA EL EXCEL Y TOCA <strong>SUBIR Y UNIR MITADES</strong> PARA INICIAR Y SINCRONIZAR.
+  </p>
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-2">
       <label class="form-label small fw-bold mb-1">AUDITOR</label>
-      <select id="selAuditorMitad" class="form-select form-select-sm fw-bold">
+      <select id="selAuditorMitad" class="form-select form-select-sm fw-bold" onchange="cambiarAuditorActivoPistoleo(this.value)">
+        <option value="LÍDER">LÍDER (CONSOLIDA)</option>
         <option value="AUDITOR 1">AUDITOR 1</option>
         <option value="AUDITOR 2">AUDITOR 2</option>
+        <option value="AUDITOR 3">AUDITOR 3</option>
       </select>
     </div>
     <div class="col-12 col-md-4">
@@ -18,7 +22,7 @@
     </div>
     <div class="col-12 col-md-2">
       <label class="form-label small fw-bold mb-1">Tienda</label>
-      <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. YOMASA">
+      <input type="text" id="txtTiendaPistoleo" class="form-control form-control-sm" placeholder="Ej. LTE VICTORIA">
     </div>
     <div class="col-12 col-md-4">
       <button type="button" class="btn btn-success btn-sm w-100 fw-bold rounded-3" onclick="subirYUnirMitadLike()">📡 Subir y Unir Mitades</button>
@@ -33,6 +37,9 @@
       <div class="d-flex flex-wrap align-items-center gap-2">
         <span class="badge bg-dark py-2 px-3 rounded-pill" id="badgeTiendaPistoleo">TIENDA: -</span>
         <span class="badge bg-success-subtle text-success border border-success py-1 px-2 rounded-pill" id="badgeSyncVivoPistoleo" style="font-size: 0.68rem;">🟢 En vivo</span>
+        <button type="button" id="btnSincronizarLider" class="btn btn-outline-primary btn-sm py-0 px-2 fw-bold rounded-pill" style="font-size: 0.72rem;" onclick="sincronizarYRefrescarLider()">
+          🔄 Consolidar / Refrescar
+        </button>
 
         <div class="pill-dias-control" id="cajaControlDias">
           <label for="inputMinDiasComite" class="fw-bold text-dark mb-0" style="font-size: 0.72rem;">⏳ Mín. días:</label>
