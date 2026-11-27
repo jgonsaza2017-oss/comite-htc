@@ -2,6 +2,7 @@ let sesionPistoleo = JSON.parse(localStorage.getItem('htc_sesion_pistoleo') || '
 let plusConFotoPedida = new Set(JSON.parse(localStorage.getItem('htc_plus_foto_pedida') || '[]'));
 let serialesDeshechosLocal = new Set(JSON.parse(localStorage.getItem('htc_seriales_deshechos') || '[]'));
 let ajustesDeshacerPorPlu = JSON.parse(localStorage.getItem('htc_ajustes_deshacer_plu') || '{}');
+let sobrantesEliminadosLocal = new Set(JSON.parse(localStorage.getItem('htc_sobrantes_eliminados') || '[]'));
 let itemPistoleoFotoActual = null;
 let sublistaPistoleoVista = 'FALTANTES';
 let html5QrScanner = null;
@@ -11,6 +12,23 @@ let intervaloSyncPistoleo = null;
 function guardarEstadoDeshacerLocal() {
   localStorage.setItem('htc_seriales_deshechos', JSON.stringify(Array.from(serialesDeshechosLocal)));
   localStorage.setItem('htc_ajustes_deshacer_plu', JSON.stringify(ajustesDeshacerPorPlu));
+  localStorage.setItem('htc_sobrantes_eliminados', JSON.stringify(Array.from(sobrantesEliminadosLocal)));
+}
+
+function cambiarAuditorActivoPistoleo(valor) {
+  const aud = String(valor || 'AUDITOR 1').trim().toUpperCase();
+  localStorage.setItem('htc_auditor_activo', aud);
+  const sel = document.getElementById('selAuditorMitad');
+  if (sel && sel.value !== aud) sel.value = aud;
+  enfocarPistola();
+}
+
+function restaurarAuditorActivoUI() {
+  const guardado = localStorage.getItem('htc_auditor_activo');
+  const sel = document.getElementById('selAuditorMitad');
+  if (sel && guardado && Array.from(sel.options).some(o => o.value === guardado)) {
+    sel.value = guardado;
+  }
 }
 
 function marcarPluFotoPedida(codigoPlu) {
@@ -41,7 +59,9 @@ function normalizarClavePistoleo(val) {
 }
 
 function obtenerAuditorActivoPistoleo() {
-  return (document.getElementById('selAuditorMitad')?.value || 'AUDITOR 1').trim().toUpperCase();
+  const selVal = document.getElementById('selAuditorMitad')?.value;
+  const guardado = localStorage.getItem('htc_auditor_activo');
+  return (selVal || guardado || 'AUDITOR 1').trim().toUpperCase();
 }
 
 function obtenerCampoFilaLike(cleanObj, posiblesClaves) {
@@ -66,13 +86,21 @@ function recalcularFisicoItem(item) {
   if (!item.fisicoPorAuditor || typeof item.fisicoPorAuditor !== 'object') {
     item.fisicoPorAuditor = {};
   }
+  const serialesUnicos = Array.isArray(item.serialesEscaneados)
+    ? item.serialesEscaneados.length
+    : 0;
+  const tieneSerialesTeoricos = Array.isArray(item.serialesTeoricos) && item.serialesTeoricos.length > 0;
+
+  if (tieneSerialesTeoricos) {
+    item.cantTeorica = item.serialesTeoricos.length;
+    item.cantFisica = Math.min(item.cantTeorica, Math.max(0, serialesUnicos));
+    return;
+  }
+
   const sumaPorAuditor = Object.values(item.fisicoPorAuditor).reduce(
     (acc, n) => acc + (Number(n) || 0),
     0
   );
-  const serialesUnicos = Array.isArray(item.serialesEscaneados)
-    ? item.serialesEscaneados.length
-    : 0;
   const totalCombinado = Math.max(sumaPorAuditor, serialesUnicos, Number(item.cantFisica || 0));
   item.cantFisica = Math.min(Number(item.cantTeorica || 0), Math.max(0, totalCombinado));
 }
@@ -107,7 +135,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
       const nuevo = {
         ...it,
         codigo: cod,
-        cantTeorica: Number(it.cantTeorica || 0),
+        cantTeorica: serTeoricos.length > 0 ? serTeoricos.length : Number(it.cantTeorica || 0),
         cantFisica: Number(it.cantFisica || 0),
         fisicoPorAuditor: mapaAud,
         serialesTeoricos: serTeoricos,
@@ -121,10 +149,13 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
     }
 
     const actual = mapaItems.get(cod);
-    actual.cantTeorica = Math.max(actual.cantTeorica, Number(it.cantTeorica || 0));
     actual.serialesTeoricos = Array.from(
       new Set([...(actual.serialesTeoricos || []), ...serTeoricos])
     );
+    actual.cantTeorica = actual.serialesTeoricos.length > 0
+      ? actual.serialesTeoricos.length
+      : Math.max(actual.cantTeorica, Number(it.cantTeorica || 0));
+
     actual.serialesEscaneados = Array.from(
       new Set([...(actual.serialesEscaneados || []), ...serEscaneados])
     ).filter(s => !serialesDeshechosLocal.has(`${cod}|${s}`));
@@ -140,24 +171,26 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
       );
     });
 
-    const sumaAuditores = Object.values(actual.fisicoPorAuditor).reduce(
-      (acc, n) => acc + (Number(n) || 0),
-      0
-    );
-    const maxDirecto = Math.max(
-      Number(actual.cantFisica || 0),
-      Number(it.cantFisica || 0),
-      actual.serialesEscaneados.length,
-      sumaAuditores
-    );
-    let calculado = Math.min(actual.cantTeorica, maxDirecto);
-
-    const descPlu = Number(ajustesDeshacerPorPlu[cod] || 0);
-    if (descPlu > 0) {
-      calculado = Math.max(0, calculado - descPlu);
+    if (actual.serialesTeoricos.length > 0) {
+      actual.cantFisica = Math.min(actual.cantTeorica, actual.serialesEscaneados.length);
+    } else {
+      const sumaAuditores = Object.values(actual.fisicoPorAuditor).reduce(
+        (acc, n) => acc + (Number(n) || 0),
+        0
+      );
+      const maxDirecto = Math.max(
+        Number(actual.cantFisica || 0),
+        Number(it.cantFisica || 0),
+        actual.serialesEscaneados.length,
+        sumaAuditores
+      );
+      let calculado = Math.min(actual.cantTeorica, maxDirecto);
+      const descPlu = Number(ajustesDeshacerPorPlu[cod] || 0);
+      if (descPlu > 0) {
+        calculado = Math.max(0, calculado - descPlu);
+      }
+      actual.cantFisica = calculado;
     }
-
-    actual.cantFisica = calculado;
 
     if (Number(it.dias || 0) > Number(actual.dias || 0)) actual.dias = Number(it.dias);
     if (Number(it.costoUnit || 0) > 0) actual.costoUnit = Number(it.costoUnit);
@@ -189,10 +222,11 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
   [...(sesionBase.sobrantes || []), ...(sesionEntrante.sobrantes || [])].forEach(s => {
     const codSob = normalizarClavePistoleo(s.codigo);
     const serSob = normalizarClavePistoleo(s.serial);
+    const key = `${codSob}|${serSob}`;
+    if (sobrantesEliminadosLocal.has(key)) return;
     if (codigosValidos.has(codSob) || serialesValidos.has(serSob) || serialesValidos.has(codSob)) {
       return;
     }
-    const key = `${codSob}|${serSob}`;
     if (!mapaSobrantes.has(key)) {
       mapaSobrantes.set(key, { ...s, codigo: codSob, serial: serSob });
     } else {
@@ -230,6 +264,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
 }
 
 function inicializarModuloPistoleo() {
+  restaurarAuditorActivoUI();
   aplicarEtiquetasMinDiasPistoleo();
   if (sesionPistoleo && sesionPistoleo.items && sesionPistoleo.items.length > 0) {
     restaurarUIPistoleo();
@@ -341,9 +376,9 @@ function subirYUnirMitadLike() {
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '', raw: false });
 
     const mapa = {};
-    let unidadesTotales = 0;
+    const filasDeduplicadas = new Set();
 
-    rows.forEach(r => {
+    rows.forEach((r, idxFila) => {
       const clean = {};
       Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
 
@@ -358,15 +393,20 @@ function subirYUnirMitadLike() {
         document.getElementById('txtTiendaPistoleo').value = tiendaNombre;
       }
 
+      if (!codigo || codigo === '0' || !desc || desc === '0') return;
+
+      // Evita duplicar si el Excel trae filas repetidas del mismo serial
+      if (serial && serial !== 'NAN' && serial !== 'NONE') {
+        const claveSerial = `${codigo}|${serial}`;
+        if (filasDeduplicadas.has(claveSerial)) return;
+        filasDeduplicadas.add(claveSerial);
+      }
+
       const dias = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Antiguedad', 'Dias en inventario']) || 0);
       const costo = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Costo de compra']) || 0);
       const estadoExcel = String(obtenerCampoFilaLike(clean, ['Novedades(estado)', 'Estado']) || '').trim();
       const obsExcel = String(obtenerCampoFilaLike(clean, ['Observacion']) || '').trim();
       const cantFila = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Existencias', 'Existencia', 'Cantidad']) || 1) || 1;
-
-      if (!codigo || codigo === '0' || !desc || desc === '0') return;
-      unidadesTotales += cantFila;
-
       const esBajaExcel = estadoExcel.toUpperCase() === 'BAJA';
 
       if (!mapa[codigo]) {
@@ -390,10 +430,14 @@ function subirYUnirMitadLike() {
           foto2: ''
         };
       }
-      mapa[codigo].cantTeorica += cantFila;
       if (dias > mapa[codigo].dias) mapa[codigo].dias = dias;
-      if (serial && serial !== 'NAN' && serial !== 'NONE' && !mapa[codigo].serialesTeoricos.includes(serial)) {
-        mapa[codigo].serialesTeoricos.push(serial);
+      if (serial && serial !== 'NAN' && serial !== 'NONE') {
+        if (!mapa[codigo].serialesTeoricos.includes(serial)) {
+          mapa[codigo].serialesTeoricos.push(serial);
+        }
+        mapa[codigo].cantTeorica = mapa[codigo].serialesTeoricos.length;
+      } else {
+        mapa[codigo].cantTeorica += cantFila;
       }
     });
 
@@ -403,6 +447,7 @@ function subirYUnirMitadLike() {
       return;
     }
 
+    const unidadesTotales = items.reduce((acc, it) => acc + Number(it.cantTeorica || 0), 0);
     const sucursalFinal = tiendaNombre || 'TIENDA';
     let sesionNueva = {
       sucursal: sucursalFinal,
@@ -437,7 +482,7 @@ function subirYUnirMitadLike() {
         restaurarUIPistoleo();
         if (typeof poblarSucursales === 'function') poblarSucursales();
         const cargados = (sesionPistoleo.mitadesCargadas || [auditorMitad]).join(' + ');
-        msg.innerText = `✅ Base cargada y cruzada (${cargados}): ${sesionPistoleo.items.length} refs (${unidadesTotales} und.) en ${sesionPistoleo.sucursal}.`;
+        msg.innerText = `✅ Base cargada sin duplicados (${cargados}): ${sesionPistoleo.items.length} refs (${unidadesTotales} und.) en ${sesionPistoleo.sucursal}.`;
       } else {
         sesionPistoleo = sesionNueva;
         guardarSesionPistoleoLocal();
@@ -499,7 +544,7 @@ function enviarDisparoEnVivo(payload) {
 function fusionarProgresoEnVivo(remoto) {
   if (!sesionPistoleo || !remoto || remoto.sucursal !== sesionPistoleo.sucursal) return;
   const antes = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -507,7 +552,7 @@ function fusionarProgresoEnVivo(remoto) {
   sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, remoto);
 
   const despues = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -528,8 +573,10 @@ function reiniciarSesionPistoleo() {
   localStorage.removeItem('htc_plus_foto_pedida');
   localStorage.removeItem('htc_seriales_deshechos');
   localStorage.removeItem('htc_ajustes_deshacer_plu');
+  localStorage.removeItem('htc_sobrantes_eliminados');
   plusConFotoPedida.clear();
   serialesDeshechosLocal.clear();
+  sobrantesEliminadosLocal.clear();
   ajustesDeshacerPorPlu = {};
   sesionPistoleo = null;
   document.getElementById('zonaTrabajoPistoleo').classList.add('d-none');
@@ -539,6 +586,7 @@ function reiniciarSesionPistoleo() {
 
 function restaurarUIPistoleo() {
   if (!sesionPistoleo) return;
+  restaurarAuditorActivoUI();
   document.getElementById('zonaTrabajoPistoleo').classList.remove('d-none');
   document.getElementById('badgeTiendaPistoleo').innerText = '🏪 TIENDA: ' + sesionPistoleo.sucursal;
   actualizarKPIsPistoleo();
@@ -683,7 +731,6 @@ function marcarBajaDesdeBuscador(codigo, serialSeleccionado = '') {
   const serNorm = normalizarClavePistoleo(serialSeleccionado);
 
   if (serNorm) {
-    // Alterna Baja SOLO para ese serial específico, dejando las demás unidades buenas
     const idx = item.serialesBaja.findIndex(s => normalizarClavePistoleo(s) === serNorm);
     const yaEstabaEnBaja = idx >= 0;
     if (yaEstabaEnBaja) {
@@ -692,7 +739,6 @@ function marcarBajaDesdeBuscador(codigo, serialSeleccionado = '') {
       item.serialesBaja.push(serNorm);
     }
 
-    // Si antes había quedado marcado todo el PLU en Baja pero hay unidades buenas, restaurar estado base
     if (String(item.estado || '').trim().toUpperCase() === 'BAJA' && Number(item.cantFisica || 0) > item.serialesBaja.length) {
       item.estado = 'Bueno / funcional';
     }
@@ -702,10 +748,9 @@ function marcarBajaDesdeBuscador(codigo, serialSeleccionado = '') {
       alerta.className = 'alert alert-warning text-dark small fw-bold mb-0 py-2 rounded-3';
       alerta.innerHTML = yaEstabaEnBaja
         ? `✅ <strong>SERIAL QUITADO DE BAJA:</strong> <code>${serNorm}</code> vuelve a estado bueno en <code>${item.codigo}</code>.`
-        : `🗑️ <strong>SERIAL MARCADO COMO BAJA (1 und.):</strong> <code>${serNorm}</code> en <code>${item.codigo}</code> - ${item.descripcion} (las demás ${Math.max(0, item.cantFisica - item.serialesBaja.length)} und. siguen buenas).`;
+        : `🗑️ <strong>SERIAL MARCADO COMO BAJA (1 und.):</strong> <code>${serNorm}</code> en <code>${item.codigo}</code> - ${item.descripcion}.`;
     }
   } else {
-    // Si es producto sin seriales, marca el código como Baja
     item.esEstadoOtro = false;
     item.estado = 'Baja';
     if (!item.observacion || item.observacion === 'Caja deteriorada y con polvo.') {
@@ -900,32 +945,44 @@ function forzarSobranteManual(lectura, codigoRef) {
 }
 
 function registrarSobrante(codigo, descripcion, serial, costoUnit) {
-  const existente = sesionPistoleo.sobrantes.find(s => s.codigo === codigo && s.serial === serial);
+  const codSob = normalizarClavePistoleo(codigo);
+  const serSob = normalizarClavePistoleo(serial);
+  sobrantesEliminadosLocal.delete(`${codSob}|${serSob}`);
+  guardarEstadoDeshacerLocal();
+
+  const existente = sesionPistoleo.sobrantes.find(s =>
+    normalizarClavePistoleo(s.codigo) === codSob && normalizarClavePistoleo(s.serial) === serSob
+  );
   if (existente) {
     existente.sobrante += 1;
     existente.valorSobrante = existente.sobrante * existente.costoUnit;
   } else {
     sesionPistoleo.sobrantes.push({
-      codigo, descripcion, serial, sobrante: 1,
+      codigo: codSob, descripcion, serial: serSob, sobrante: 1,
       costoUnit: Number(costoUnit || 0), valorSobrante: Number(costoUnit || 0)
     });
   }
-  enviarDisparoEnVivo({ tipo: 'SOBRANTE', codigo, descripcion, serial, costoUnit });
+  enviarDisparoEnVivo({ tipo: 'SOBRANTE', codigo: codSob, descripcion, serial: serSob, costoUnit });
 }
 
 function eliminarSobranteIdx(idx) {
   if (!sesionPistoleo) return;
   const item = sesionPistoleo.sobrantes[idx];
   if (!item) return;
+  const codSob = normalizarClavePistoleo(item.codigo);
+  const serSob = normalizarClavePistoleo(item.serial);
+
   if (item.sobrante > 1) {
     item.sobrante -= 1;
     item.valorSobrante = item.sobrante * item.costoUnit;
   } else {
+    sobrantesEliminadosLocal.add(`${codSob}|${serSob}`);
+    guardarEstadoDeshacerLocal();
     sesionPistoleo.sobrantes.splice(idx, 1);
   }
   guardarSesionPistoleoLocal();
   actualizarKPIsPistoleo();
-  enviarDisparoEnVivo({ tipo: 'ELIMINAR_SOB', idxSob: idx });
+  enviarDisparoEnVivo({ tipo: 'ELIMINAR_SOB', idxSob: idx, codigo: codSob, serial: serSob });
   enfocarPistola();
 }
 
