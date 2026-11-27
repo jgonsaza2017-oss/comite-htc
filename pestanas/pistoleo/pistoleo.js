@@ -46,16 +46,39 @@ function quitarMarcaPluFotoPedida(codigoPlu) {
 }
 
 function normalizarClavePistoleo(val) {
-  let str = String(val ?? '').trim();
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'number') {
+    if (!Number.isFinite(val) || val === 0) return '';
+    return val.toLocaleString('fullwide', { useGrouping: false }).replace(/\.0+$/, '').toUpperCase();
+  }
+  let str = String(val).trim();
   if (!str) return '';
-  if (/^\d+(\.\d+)?e\+\d+$/i.test(str)) {
-    const num = Number(str);
-    if (!Number.isNaN(num)) str = num.toFixed(0);
+  if (/^\d+([.,]\d+)?e\+\d+$/i.test(str)) {
+    const num = Number(str.replace(',', '.'));
+    if (!Number.isNaN(num) && Number.isFinite(num)) {
+      str = num.toLocaleString('fullwide', { useGrouping: false });
+    }
   }
   return str
     .replace(/\.0+$/, '')
     .replace(/\s+/g, '')
     .toUpperCase();
+}
+
+function parsearNumeroLikeSeguro(val) {
+  if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+  if (val === null || val === undefined) return 0;
+  if (typeof limpiarNumeroLike === 'function') {
+    const n = limpiarNumeroLike(val);
+    if (Number.isFinite(n)) return n;
+  }
+  const limpio = String(val)
+    .trim()
+    .replace(/\s+/g, '')
+    .replace(/\.(?=\d{3}(?:,|$))/g, '')
+    .replace(',', '.');
+  const num = Number(limpio);
+  return Number.isFinite(num) ? num : 0;
 }
 
 function obtenerAuditorActivoPistoleo() {
@@ -112,7 +135,7 @@ function consolidarSesionesInventarioTotal(sesionBase, sesionEntrante) {
   const mapaItems = new Map();
 
   const absorberItem = (it) => {
-    const cod = normalizarClavePistoleo(it.codigo);
+    const cod = normalizarClavePistoleo(String(it.codigo || '').split('(')[0]);
     if (!cod) return;
 
     const serTeoricos = Array.from(
@@ -367,18 +390,19 @@ function subirYUnirMitadLike() {
     return;
   }
 
-  msg.innerText = `Leyendo base total de ${auditorMitad} y cruzando avances...`;
+  msg.innerText = `Leyendo base total de ${auditorMitad} y cruzando avances sin borrar conteo...`;
 
   const reader = new FileReader();
   reader.onload = async function(e) {
-    const wb = XLSX.read(e.target.result, { type: 'array', raw: false });
+    // raw: true evita que Excel trunque los IMEI/Serial 1 largos en notación científica
+    const wb = XLSX.read(e.target.result, { type: 'array', raw: true });
     const hojaNombre = wb.SheetNames.includes('Toma(pistoleo)') ? 'Toma(pistoleo)' : wb.SheetNames[0];
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '', raw: false });
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[hojaNombre], { defval: '', raw: true });
 
     const mapa = {};
     const filasDeduplicadas = new Set();
 
-    rows.forEach((r, idxFila) => {
+    rows.forEach((r) => {
       const clean = {};
       Object.keys(r).forEach(k => clean[k.trim()] = r[k]);
 
@@ -393,20 +417,19 @@ function subirYUnirMitadLike() {
         document.getElementById('txtTiendaPistoleo').value = tiendaNombre;
       }
 
-      if (!codigo || codigo === '0' || !desc || desc === '0') return;
+      if (!codigo || codigo === '0' || !desc || desc === '0' || sucFila.includes('REGISTROS')) return;
 
-      // Evita duplicar si el Excel trae filas repetidas del mismo serial
       if (serial && serial !== 'NAN' && serial !== 'NONE') {
         const claveSerial = `${codigo}|${serial}`;
         if (filasDeduplicadas.has(claveSerial)) return;
         filasDeduplicadas.add(claveSerial);
       }
 
-      const dias = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Antiguedad', 'Dias en inventario']) || 0);
-      const costo = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Costo de compra']) || 0);
+      const dias = parsearNumeroLikeSeguro(obtenerCampoFilaLike(clean, ['Antiguedad', 'Dias en inventario']) || 0);
+      const costo = parsearNumeroLikeSeguro(obtenerCampoFilaLike(clean, ['Costo de compra']) || 0);
       const estadoExcel = String(obtenerCampoFilaLike(clean, ['Novedades(estado)', 'Estado']) || '').trim();
       const obsExcel = String(obtenerCampoFilaLike(clean, ['Observacion']) || '').trim();
-      const cantFila = limpiarNumeroLike(obtenerCampoFilaLike(clean, ['Existencias', 'Existencia', 'Cantidad']) || 1) || 1;
+      const cantFila = parsearNumeroLikeSeguro(obtenerCampoFilaLike(clean, ['Existencias', 'Existencia', 'Cantidad']) || 1) || 1;
       const esBajaExcel = estadoExcel.toUpperCase() === 'BAJA';
 
       if (!mapa[codigo]) {
@@ -431,6 +454,7 @@ function subirYUnirMitadLike() {
         };
       }
       if (dias > mapa[codigo].dias) mapa[codigo].dias = dias;
+      if (costo > 0 && mapa[codigo].costoUnit === 0) mapa[codigo].costoUnit = costo;
       if (serial && serial !== 'NAN' && serial !== 'NONE') {
         if (!mapa[codigo].serialesTeoricos.includes(serial)) {
           mapa[codigo].serialesTeoricos.push(serial);
@@ -482,7 +506,7 @@ function subirYUnirMitadLike() {
         restaurarUIPistoleo();
         if (typeof poblarSucursales === 'function') poblarSucursales();
         const cargados = (sesionPistoleo.mitadesCargadas || [auditorMitad]).join(' + ');
-        msg.innerText = `✅ Base cargada sin duplicados (${cargados}): ${sesionPistoleo.items.length} refs (${unidadesTotales} und.) en ${sesionPistoleo.sucursal}.`;
+        msg.innerText = `✅ Base cargada sin perder avances (${cargados}): ${sesionPistoleo.items.length} refs (${unidadesTotales} und.) en ${sesionPistoleo.sucursal}.`;
       } else {
         sesionPistoleo = sesionNueva;
         guardarSesionPistoleoLocal();
@@ -544,7 +568,7 @@ function enviarDisparoEnVivo(payload) {
 function fusionarProgresoEnVivo(remoto) {
   if (!sesionPistoleo || !remoto || remoto.sucursal !== sesionPistoleo.sucursal) return;
   const antes = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesTeoricos, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -552,7 +576,7 @@ function fusionarProgresoEnVivo(remoto) {
   sesionPistoleo = consolidarSesionesInventarioTotal(sesionPistoleo, remoto);
 
   const despues = JSON.stringify({
-    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
+    items: sesionPistoleo.items.map(i => [i.codigo, i.cantTeorica, i.cantFisica, i.serialesTeoricos, i.serialesEscaneados, i.serialesBaja, i.foto1, i.foto2, i.fotoSolicitadaPLU, i.estado]),
     sobrantes: sesionPistoleo.sobrantes,
     cruces: sesionPistoleo.cruces
   });
@@ -866,7 +890,13 @@ function buscarProductoPistoleado(textoFiltro = '') {
     const cod = normalizarClavePistoleo(it.codigo);
     const desc = String(it.descripcion || '').toUpperCase();
     const serEsc = (it.serialesEscaneados || []).map(normalizarClavePistoleo);
-    return cod.includes(qTexto) || desc.includes(qTexto) || serEsc.some(s => s.includes(q));
+    const serTeo = (it.serialesTeoricos || []).map(normalizarClavePistoleo);
+    return (
+      cod.includes(qTexto) ||
+      desc.includes(qTexto) ||
+      serEsc.some(s => s.includes(q)) ||
+      serTeo.some(s => s.includes(q))
+    );
   });
 
   if (pistoleados.length === 0) {
@@ -1127,7 +1157,10 @@ function actualizarKPIsPistoleo() {
 
   const sobUnd = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.sobrante, 0);
   const sobValor = sesionPistoleo.sobrantes.reduce((acc, s) => acc + s.valorSobrante, 0);
-  const obs120Items = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
+  const obs120Items = sesionPistoleo.items.filter(it => {
+    const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA' || (it.serialesBaja || []).length > 0;
+    return it.cantFisica > 0 && (it.dias >= MIN_DIAS_COMITE || esBaja);
+  });
 
   document.getElementById('progresoPistoleoTxt').innerText = `${totalFisico} / ${totalTeorico} unidades pistoleadas`;
   document.getElementById('kpiPistOk').innerText = totalFisico;
@@ -1142,6 +1175,49 @@ function actualizarKPIsPistoleo() {
   document.getElementById('badgeSubObs120').innerText = obs120Items.length;
 
   mostrarSublistaPistoleo(sublistaPistoleoVista);
+}
+
+// Despliega al tocar cualquier producto en Faltantes todos sus Serial 1 / IMEI pendientes y encontrados
+function toggleDetalleFaltantePistoleo(codigo) {
+  const codNorm = normalizarClavePistoleo(codigo);
+  const panel = document.getElementById(`detalle-faltante-seriales-${codNorm}`);
+  if (!panel || !sesionPistoleo) return;
+
+  if (!panel.classList.contains('d-none')) {
+    panel.classList.add('d-none');
+    return;
+  }
+
+  const item = (sesionPistoleo.items || []).find(x => normalizarClavePistoleo(x.codigo) === codNorm);
+  if (!item) return;
+
+  const escSet = new Set((item.serialesEscaneados || []).map(normalizarClavePistoleo));
+  const bajaSet = new Set((item.serialesBaja || []).map(normalizarClavePistoleo));
+  const teoricos = Array.isArray(item.serialesTeoricos) ? item.serialesTeoricos : [];
+
+  if (teoricos.length === 0) {
+    panel.innerHTML = `<span class="text-muted" style="font-size:0.72rem;">Este PLU no tiene Serial 1 / IMEI registrados en memoria.</span>`;
+  } else {
+    const chips = teoricos.map(s => {
+      const sNorm = normalizarClavePistoleo(s);
+      const estaBaja = bajaSet.has(sNorm);
+      const estaOk = escSet.has(sNorm);
+      const cls = estaBaja
+        ? 'bg-warning text-dark'
+        : (estaOk ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger');
+      const tag = estaBaja ? ' · BAJA' : (estaOk ? ' · ✓ OK' : ' · Falta');
+      return `<span class="badge ${cls} font-monospace" style="font-size:0.72rem;">${s}${tag}</span>`;
+    }).join(' ');
+
+    panel.innerHTML = `
+      <div class="fw-bold text-dark mb-1" style="font-size:0.72rem;">
+        Seriales / IMEI del PLU ${item.codigo} (${teoricos.length} en LIKE):
+      </div>
+      <div class="d-flex flex-wrap gap-1">${chips}</div>
+    `;
+  }
+
+  panel.classList.remove('d-none');
 }
 
 function mostrarSublistaPistoleo(tipo) {
@@ -1164,25 +1240,33 @@ function mostrarSublistaPistoleo(tipo) {
     cont.innerHTML = faltantes.map(f => {
       const diff = f.cantTeorica - f.cantFisica;
       const cobro = diff * f.costoUnit;
-      const serialesPend = f.serialesTeoricos.filter(s => !f.serialesEscaneados.includes(s)).join(', ');
+      const codNorm = normalizarClavePistoleo(f.codigo);
+      const codEsc = String(f.codigo).replace(/'/g, "\\'");
+      const escSet = new Set((f.serialesEscaneados || []).map(normalizarClavePistoleo));
+      const serialesPendArr = (f.serialesTeoricos || []).filter(s => !escSet.has(normalizarClavePistoleo(s)));
+      const vistaPreviaSeriales = serialesPendArr.slice(0, 3).join(', ') + (serialesPendArr.length > 3 ? ` (+${serialesPendArr.length - 3} más)` : '');
       const btnQuitar = f.cantFisica > 0
-        ? `<button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="deshacerPistoleoCodigo('${f.codigo.replace(/'/g, "\\'")}')">↩ Quitar 1</button>`
+        ? `<button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2 mt-1" style="font-size:0.65rem;" onclick="event.stopPropagation(); deshacerPistoleoCodigo('${codEsc}')">↩ Quitar 1</button>`
         : '';
       return `
-        <div class="d-flex justify-content-between align-items-center py-2 px-2 border-bottom bg-white rounded-2 mb-1 small gap-2">
-          <div>
-            <span class="badge bg-dark">${f.codigo}</span>
-            <strong class="ms-1">${f.descripcion}</strong>
-            <div class="text-muted" style="font-size: 0.7rem;">
-              Teórico: ${f.cantTeorica} · Físico: ${f.cantFisica} · <span class="text-danger fw-bold">Faltan: ${diff}</span>
-              ${serialesPend ? `<br>Seriales: <span class="font-monospace">${serialesPend}</span>` : ''}
+        <div class="py-2 px-2 border-bottom bg-white rounded-2 mb-1 small" style="cursor:pointer;" onclick="toggleDetalleFaltantePistoleo('${codEsc}')">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <div>
+              <span class="badge bg-dark">${f.codigo}</span>
+              <strong class="ms-1">${f.descripcion}</strong>
+              <div class="text-muted" style="font-size: 0.7rem;">
+                Teórico: ${f.cantTeorica} · Físico: ${f.cantFisica} · <span class="text-danger fw-bold">Faltan: ${diff}</span>
+                ${serialesPendArr.length > 0 ? ` · <span class="text-primary fw-semibold">📋 Ver ${serialesPendArr.length} Serial/IMEI</span>` : ''}
+                ${vistaPreviaSeriales ? `<br>Seriales: <span class="font-monospace">${vistaPreviaSeriales}</span>` : ''}
+              </div>
+            </div>
+            <div class="text-end flex-shrink-0">
+              <div class="fw-bold text-danger">$${cobro.toLocaleString('es-CO')}</div>
+              <small class="text-muted" style="font-size: 0.65rem;">Para cobro</small>
+              ${btnQuitar ? `<div>${btnQuitar}</div>` : ''}
             </div>
           </div>
-          <div class="text-end flex-shrink-0">
-            <div class="fw-bold text-danger">$${cobro.toLocaleString('es-CO')}</div>
-            <small class="text-muted" style="font-size: 0.65rem;">Para cobro</small>
-            ${btnQuitar ? `<div>${btnQuitar}</div>` : ''}
-          </div>
+          <div id="detalle-faltante-seriales-${codNorm}" class="d-none mt-2 pt-2 border-top" onclick="event.stopPropagation()"></div>
         </div>
       `;
     }).join('');
@@ -1220,9 +1304,12 @@ function mostrarSublistaPistoleo(tipo) {
 
     cont.innerHTML = htmlSobrantes + htmlCruces;
   } else {
-    const obsItems = sesionPistoleo.items.filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE);
+    const obsItems = sesionPistoleo.items.filter(it => {
+      const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA' || (it.serialesBaja || []).length > 0;
+      return it.cantFisica > 0 && (it.dias >= MIN_DIAS_COMITE || esBaja);
+    });
     if (obsItems.length === 0) {
-      cont.innerHTML = `<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; ${MIN_DIAS_COMITE} días.</div>`;
+      cont.innerHTML = `<div class="text-muted small text-center py-3">Aún no has pistoleado productos con &ge; ${MIN_DIAS_COMITE} días o en Baja.</div>`;
       return;
     }
     cont.innerHTML = obsItems.map(it => {
@@ -1277,7 +1364,8 @@ function abrirCruceSobrante(idxSob) {
         onkeydown="if(event.key==='Enter'){ const visibles = [...document.querySelectorAll('.opcion-cruce-item:not(.d-none)')]; if(visibles.length===1) visibles[0].click(); }">
       <div id="listaOpcionesCruce" class="d-flex flex-column gap-1" style="max-height: 210px; overflow-y: auto;">
         ${ordenados.map(f => {
-          const serialesPend = f.serialesTeoricos.filter(s => !f.serialesEscaneados.includes(s));
+          const escSet = new Set((f.serialesEscaneados || []).map(normalizarClavePistoleo));
+          const serialesPend = f.serialesTeoricos.filter(s => !escSet.has(normalizarClavePistoleo(s)));
           const serialesTxt = serialesPend.join(', ');
           const dataSearch = `${f.codigo} ${f.descripcion} ${serialesTxt}`.toLowerCase();
           return `
@@ -1443,7 +1531,8 @@ function exportarActaPistoleoCSV() {
       const ser = it.serialesTeoricos.filter(s => !it.serialesEscaneados.includes(s)).join(', ');
       csv += `"FALTANTE COBRO";"${sesionPistoleo.sucursal}";"${it.codigo}";"${it.descripcion}";"${ser}";${it.cantTeorica};${it.cantFisica};${diff};${it.costoUnit};${diff * it.costoUnit};"No encontrado";"Faltante en auditoria fisica"\n`;
     }
-    if (it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE) {
+    const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA' || (it.serialesBaja || []).length > 0;
+    if (it.cantFisica > 0 && (it.dias >= MIN_DIAS_COMITE || esBaja)) {
       const lotes = dividirLotesComitePorSerialBaja(it);
       lotes.forEach(l => {
         csv += `"OBSOLESCENCIA >=${MIN_DIAS_COMITE}D";"${l.sucursal}";"${l.codigo}";"${l.descripcion}";"${l.seriales}";${it.cantTeorica};${l.cantidad};0;${l.costoUnit};${l.costoTotal};"${l.estado}";"${l.observacion}"\n`;
@@ -1493,7 +1582,10 @@ async function cerrarYEnviarAuditoriaTienda() {
     });
 
   const lotesComite = sesionPistoleo.items
-    .filter(it => it.cantFisica > 0 && it.dias >= MIN_DIAS_COMITE)
+    .filter(it => {
+      const esBaja = String(it.estado || '').trim().toUpperCase() === 'BAJA' || (it.serialesBaja || []).length > 0;
+      return it.cantFisica > 0 && (it.dias >= MIN_DIAS_COMITE || esBaja);
+    })
     .flatMap(it => dividirLotesComitePorSerialBaja(it));
 
   try {
